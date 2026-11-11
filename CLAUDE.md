@@ -13,7 +13,7 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 - Lanzar un lote de un cliente (desde esta carpeta):
   `.venv/bin/python -m fincas "<ruta>/entrada/lista.csv" --cliente "Nombre Cliente" --nombre lote-x [--simular|--prueba N]`
   `--cliente` guarda en `<carpeta clientes>/<slug>/salidas/` (`FINCAS_CLIENTES` cambia la raíz).
-- Clientes hechos: `jose-bouza-rey` (Sibil-Ortigueira, 31 parcelas, 2026-11-11).
+- Clientes hechos: ver la carpeta de clientes (los datos de clientes no se documentan en este repo).
 
 ## Reglas del encargo (no negociables)
 - **No lanzar ninguna consulta real (Catastro/SIGPAC) hasta que el usuario lo diga.** Para ver el plan sin
@@ -89,7 +89,7 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
   Ahora la ficha se genera en `sigpac._ficha_pdf`: captura del mapa con la parcela resaltada y rotulada
   (herramienta Consultas>Parcela) + tabla de datos. El panel de búsqueda se oculta alternando los prismáticos.
 
-- **Lote Sibil-Ortigueira (31 parcelas) completado y verificado de extremo a extremo** con SIXPAC (provincia 15):
+- **Lote de prueba real (31 parcelas, un solo municipio de A Coruña) completado y verificado de extremo a extremo** con SIXPAC (provincia 15):
   31/31 con `coincide = SI`. Parcelas grandes: el visor da la superficie en hectáreas (`2.0601 ha`); `sigpac.etiqueta_coincide`
   ya convierte ha -> m². (Antes se daban por NO ENCONTRADA: no era monte, era el parser.)
 
