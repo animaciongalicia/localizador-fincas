@@ -13,7 +13,7 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 - Lanzar un lote de un cliente (desde esta carpeta):
   `.venv/bin/python -m fincas "<ruta>/entrada/lista.csv" --cliente "Nombre Cliente" --nombre lote-x [--simular|--prueba N]`
   `--cliente` guarda en `<carpeta clientes>/<slug>/salidas/` (`FINCAS_CLIENTES` cambia la raíz).
-- Clientes hechos: `jose-bouza-rey` (Sibil-Ortigueira, 31 parcelas, 2026-11-11).
+- Clientes hechos: ver la carpeta de clientes (los datos de clientes no se documentan en este repo).
 
 ## Reglas del encargo (no negociables)
 - **No lanzar ninguna consulta real (Catastro/SIGPAC) hasta que el usuario lo diga.** Para ver el plan sin
@@ -77,19 +77,19 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
   #dirPol #dirPar #dirRec`; por referencia catastral: `#dirCpProv #dirCpMun #dirCpAgr #dirCpZona #dirCpPol
   #dirCpParRem #dirCpSub` (esos ids se leyeron, aún no se han usado).
 
-- **SIGPAC VERIFICADO de extremo a extremo** (visor FEGA v4.20, que incluye Galicia; no se usa SIXPAC de la
-  Xunta). Flujo documentado en la cabecera de `sigpac.py`: búsqueda Directa, impresión
+- **Visor verificado de extremo a extremo** (FEGA v4.20; en Galicia el SIGPAC del FEGA daba error, se usa SIXPAC
+  de la Xunta). Flujo documentado en la cabecera de `sigpac.py`: búsqueda Directa, impresión
   nativa del visor (PDF ortofoto+parcelario, ~1,5 MB), y referencia catastral vía Consultas > Catastro (U)
   (abre la Sede con `RefC=`). Se controla con coordenadas de pantalla (viewport 1400x900).
 - Prueba real completa (1 parcela, ~1 min): Excel + 2 PDF + registro + ZIP, `coincide = SI`.
 
 - **SIXPAC (Xunta) = mismo visor** (v4.18, FOGGA) que el SIGPAC del FEGA, mismos datos (misma ref. catastral y
-  517,8 m² para Ortigueira 34/175). Se usa SIXPAC para provincias 15/27/32/36 (`sigpac.url_visor`).
+  517,8 m² para Ortigueira 34/175). **En Galicia (provincias 15/27/32/36) usar SIEMPRE SIXPAC** (`sigpac.url_visor`): el SIGPAC del FEGA daba error ahí y SIXPAC no falla.
 - El PDF impreso por el visor es un recorte 1:500 SIN la parcela marcada (inútil en parcelas pequeñas).
   Ahora la ficha se genera en `sigpac._ficha_pdf`: captura del mapa con la parcela resaltada y rotulada
   (herramienta Consultas>Parcela) + tabla de datos. El panel de búsqueda se oculta alternando los prismáticos.
 
-- **Lote Sibil-Ortigueira (31 parcelas) completado y verificado de extremo a extremo** con SIXPAC (provincia 15):
+- **Lote de prueba real (31 parcelas, un solo municipio de A Coruña) completado y verificado de extremo a extremo** con SIXPAC (provincia 15):
   31/31 con `coincide = SI`. Parcelas grandes: el visor da la superficie en hectáreas (`2.0601 ha`); `sigpac.etiqueta_coincide`
   ya convierte ha -> m². (Antes se daban por NO ENCONTRADA: no era monte, era el parser.)
 
