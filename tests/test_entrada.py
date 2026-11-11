@@ -36,3 +36,34 @@ def test_nombre_pdf():
     filas = [["municipio", "provincia", "poligono", "parcela"], ["Vilanova de Arousa", "Pontevedra", "5", "12"]]
     f = filas_a_fincas(filas)[0][0]
     assert f.nombre_base == "vilanova-de-arousa_poligono05_parcela012"
+
+
+# ---- entrada por referencia catastral y fincas sin datos
+def test_pol_par_desde_refcat():
+    from fincas.entrada import pol_par_desde_refcat
+    assert pol_par_desde_refcat("99999A001000120000AB") == ("1", "12")
+    assert pol_par_desde_refcat("99999A00100012") == ("1", "12")
+    assert pol_par_desde_refcat(" 99999a001-00007 0000zz ") == ("1", "7")
+    assert pol_par_desde_refcat("9872023VH5797S0001WX") == ("", "")  # urbana
+    assert pol_par_desde_refcat(None) == ("", "")
+
+
+def test_solo_refcat_sin_poligono_parcela():
+    from fincas.entrada import filas_a_fincas
+    filas = [["Concello", "Provincia", "Ref. Catastral", "Nombre"],
+             ["Villaejemplo", "Provincia X", "99999A001000120000AB", "Finca A"],
+             ["Villaejemplo", "Provincia X", "", "Finca B"]]
+    fincas, problemas = filas_a_fincas(filas)
+    assert len(fincas) == 2  # nunca se descarta una finca
+    assert (fincas[0].poligono, fincas[0].parcela) == ("1", "12") and not fincas[0].sin_datos
+    assert fincas[1].sin_datos and fincas[1].poligono == ""
+    assert fincas[1].nombre_base == "villaejemplo_fila3"
+    assert any("SIN DATOS" in p for p in problemas)
+
+
+def test_refcat_discrepante_se_avisa_y_manda_la_fila():
+    from fincas.entrada import filas_a_fincas
+    filas = [["Concello", "Provincia", "Polígono", "Parcela", "Referencia catastral"],
+             ["Villaejemplo", "Provincia X", "1", "99", "99999A001000120000AB"]]
+    fincas, problemas = filas_a_fincas(filas)
+    assert fincas[0].parcela == "99" and any("indica pol 1/parc 12" in p for p in problemas)

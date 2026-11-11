@@ -100,6 +100,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     from .red import ClienteHttp, Limitador
     from .sigpac import ServicioSigpac
 
+    import signal
+
+    def _term(*_):  # `kill`/cierre de terminal: sale por el finally y guarda Excel y registro
+        raise KeyboardInterrupt
+
+    signal.signal(signal.SIGTERM, _term)
     reg = Registro()
     for pr in problemas:
         reg.aviso("entrada", pr)
@@ -115,7 +121,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         except Ambiguo as e:
             print(f"Ambigüedad: {e}", file=sys.stderr)
             return 3
-        print(f"\nListo: {carpeta}")
-        return 0
+        print(f"\nListo: {carpeta}", flush=True)
+        return 1 if getattr(reg, "_revisar", None) and any("ERROR" in m for _, m in reg._revisar) else 0
     finally:
         nav.cerrar()

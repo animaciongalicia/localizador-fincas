@@ -6,7 +6,7 @@ Los servicios se inyectan, así se puede probar entero con dobles (sin red).
 from __future__ import annotations
 
 import shutil
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import date
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
@@ -38,6 +38,7 @@ class Servicios:
     catastro: object    # .consulta_parcela(), .descargar_pdf()
     sigpac: Optional[object]  # .consultar()
     cache: Cache
+    usados: Dict[str, str] = field(default_factory=dict)  # nombre de fichero -> clave (detecta colisiones)
 
 
 def carpeta_trabajo(op: Opciones) -> Path:
@@ -76,6 +77,15 @@ def ejecutar(fincas: Sequence[Finca], op: Opciones, srv: Servicios, reg: Registr
             fallos_codigos[k] = f"No se pudieron resolver los códigos: {e}"
 
     resultados: List[Resultado] = []
+
+    def _volcar() -> None:  # Excel + registro a disco; un fallo aquí no debe tumbar el lote
+        for fn in (lambda: escribir_excel(resultados, raiz / "resultados.xlsx"),
+                   lambda: reg.escribir(raiz / "registro.txt")):
+            try:
+                fn()
+            except Exception as e:  # noqa: BLE001
+                reg.info(f"No se pudo guardar un fichero de resultados ({e})")
+
     try:
         for i, f in enumerate(fincas, start=1):
             reg.info(f"[{i}/{len(fincas)}] {f.etiqueta}")
@@ -90,9 +100,10 @@ def ejecutar(fincas: Sequence[Finca], op: Opciones, srv: Servicios, reg: Registr
                 msg = fallos_codigos[(f.provincia, f.municipio)]
                 res.errores.append(msg)
                 reg.error(f.etiqueta, msg)
+            if i % 5 == 0:
+                _volcar()  # copia de seguridad cada 5 parcelas (corte de luz, cierre de terminal...)
     finally:
-        escribir_excel(resultados, raiz / "resultados.xlsx")
-        reg.escribir(raiz / "registro.txt")
+        _volcar()
 
     zip_base = raiz.parent / raiz.name
     shutil.make_archive(str(zip_base), "zip", root_dir=raiz.parent, base_dir=raiz.name)
@@ -103,10 +114,17 @@ def ejecutar(fincas: Sequence[Finca], op: Opciones, srv: Servicios, reg: Registr
 def _procesar(res: Resultado, op: Opciones, srv: Servicios, d_cat: Path, d_sig: Path,
               reg: Registro) -> None:
     f, cod = res.finca, res.codigos
+    if f.sin_datos:
+        res.errores.append(f.sin_datos)
+        reg.error(f.etiqueta, f.sin_datos)
+        return
     if cod is None:
         return
     clave = f"{cod.clave}_{f.poligono}_{f.parcela}"
     base = f.nombre_base
+    previo = srv.usados.setdefault(base, clave)
+    if previo != clave:  # municipios homónimos de otra provincia: no pisar el PDF anterior
+        base = f"{base}_{cod.cod_provincia}{cod.cod_municipio_ine}"
 
     if not f.cuota.valida:
         res.avisos.append(f"Cuota '{f.cuota.texto}' no interpretable")
@@ -150,6 +168,11 @@ def _procesar(res: Resultado, op: Opciones, srv: Servicios, d_cat: Path, d_sig: 
     if op.usar_sigpac and srv.sigpac is not None:
         res.sigpac = _sigpac(res, srv, cod, clave, d_sig, base, reg)
         res.coincide = coincide_refcat(datos.refcat if datos else "", res.sigpac.refcat)
+        if res.sigpac.estado == "ERROR":
+            res.coincide = "ERROR"  # fallo técnico, no confundir con parcela inexistente
+        elif res.sigpac.estado == "ENCONTRADA" and not res.sigpac.refcat:
+            res.coincide = "SIN REF SIGPAC"
+            reg.aviso(f.etiqueta, "SIGPAC la encontró pero no devolvió referencia catastral")
         if res.sigpac.estado == "NO ENCONTRADA":
             res.coincide = "NO ENCONTRADA"
             reg.aviso(f.etiqueta, "no aparece en SIGPAC (¿monte/forestal?)")
@@ -162,7 +185,10 @@ def _catastro_datos(res, srv, cod, clave, reg) -> Optional[DatosCatastro]:
     f = res.finca
     cacheado = srv.cache.leer("catastro", clave)
     if cacheado:
-        return DatosCatastro(**cacheado)
+        try:
+            return DatosCatastro(**cacheado)
+        except (TypeError, ValueError):  # caché de otro esquema o corrupta: se descarta y se reconsulta
+            srv.cache.borrar("catastro", clave)
     try:
         datos = srv.catastro.consulta_parcela(cod, f.poligono, f.parcela)
     except ParcelaNoEncontrada as e:
@@ -184,19 +210,24 @@ def _catastro_datos(res, srv, cod, clave, reg) -> Optional[DatosCatastro]:
 def _sigpac(res, srv, cod, clave, d_sig, base, reg) -> ResultadoSigpac:
     f = res.finca
     destino = d_sig / f"{base}_sigpac.pdf"
-    cacheado = srv.cache.leer("sigpac", clave)
-    en_cache_pdf = srv.cache.fichero("pdf_sigpac", clave)
+    cacheado = srv.cache.leer("sigpac_v2", clave)
+    en_cache_pdf = srv.cache.fichero("pdf_sigpac_v2", clave)
     if cacheado and en_cache_pdf:
-        shutil.copyfile(en_cache_pdf, destino)
-        return ResultadoSigpac(**cacheado)
+        try:
+            r = ResultadoSigpac(**cacheado)
+            shutil.copyfile(en_cache_pdf, destino)
+            return r
+        except (TypeError, ValueError, OSError):
+            srv.cache.borrar("sigpac_v2", clave)
+            srv.cache.borrar("pdf_sigpac_v2", clave)
     try:
         r = srv.sigpac.consultar(f, cod, res.catastro.refcat if res.catastro else "", destino)
     except Exception as e:  # noqa: BLE001
         res.errores.append(f"SIGPAC: {e}")
         reg.error(f.etiqueta, f"SIGPAC: {e}")
         return ResultadoSigpac("ERROR", detalle=str(e))
-    if r.estado == "ENCONTRADA":
-        srv.cache.guardar("sigpac", clave, asdict(r))
+    if r.estado == "ENCONTRADA" and r.refcat:  # sin referencia no es un éxito completo: se reintenta otro día
+        srv.cache.guardar("sigpac_v2", clave, asdict(r))
         if destino.exists():
-            srv.cache.guardar_fichero("pdf_sigpac", clave, destino)
+            srv.cache.guardar_fichero("pdf_sigpac_v2", clave, destino)
     return r

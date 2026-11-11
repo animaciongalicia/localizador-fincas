@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 from pathlib import Path
 from typing import Optional
@@ -21,21 +22,42 @@ class Cache:
         if not self.activa or not p.exists():
             return None
         try:
-            return json.loads(p.read_text(encoding="utf-8"))
+            datos = json.loads(p.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             return None
+        return datos if isinstance(datos, dict) else None
+
+    def borrar(self, ns: str, clave: str) -> None:
+        for ext in (".json", ".pdf"):
+            try:
+                self._ruta(ns, clave, ext).unlink()
+            except OSError:
+                pass
 
     def guardar(self, ns: str, clave: str, datos: dict) -> None:
         p = self._ruta(ns, clave, ".json")
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(json.dumps(datos, ensure_ascii=False, indent=1), encoding="utf-8")
+        tmp = p.with_name(p.name + ".tmp")
+        tmp.write_text(json.dumps(datos, ensure_ascii=False, indent=1), encoding="utf-8")
+        os.replace(tmp, p)
 
     # --- ficheros
     def fichero(self, ns: str, clave: str, ext: str = ".pdf") -> Optional[Path]:
         p = self._ruta(ns, clave, ext)
-        return p if self.activa and p.exists() and p.stat().st_size > 0 else None
+        if not (self.activa and p.exists() and p.stat().st_size > 0):
+            return None
+        if ext == ".pdf":
+            try:
+                with open(p, "rb") as fh:
+                    if fh.read(5) != b"%PDF-":
+                        return None
+            except OSError:
+                return None
+        return p
 
     def guardar_fichero(self, ns: str, clave: str, origen: Path, ext: str = ".pdf") -> None:
         p = self._ruta(ns, clave, ext)
         p.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(origen, p)
+        tmp = p.with_name(p.name + ".tmp")
+        shutil.copyfile(origen, tmp)
+        os.replace(tmp, p)

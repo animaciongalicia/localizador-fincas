@@ -81,9 +81,9 @@ class ResolutorCodigos:
     def _cargar_provincias(self) -> Dict[str, str]:
         if self._provincias is None:
             datos = self.cache.leer("codigos", "provincias") if self.cache else None
-            if not datos:
+            if not datos or not datos.get("provincias"):
                 datos = {"provincias": self.catastro.provincias()}
-                if self.cache:
+                if self.cache and datos["provincias"]:  # nunca cachear una lista vacía (error transitorio)
                     self.cache.guardar("codigos", "provincias", datos)
             self._provincias = {n: c for c, n in datos["provincias"]}
         return self._provincias
@@ -92,9 +92,9 @@ class ResolutorCodigos:
         if cod_prov not in self._municipios:
             clave = f"municipios_{cod_prov}"
             datos = self.cache.leer("codigos", clave) if self.cache else None
-            if not datos:
+            if not datos or not datos.get("municipios"):
                 datos = {"municipios": self.catastro.municipios(nombre_prov)}
-                if self.cache:
+                if self.cache and datos["municipios"]:
                     self.cache.guardar("codigos", clave, datos)
             self._municipios[cod_prov] = datos["municipios"]
         return self._municipios[cod_prov]

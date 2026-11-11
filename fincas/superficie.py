@@ -18,8 +18,8 @@ def control_superficie(catastral: Optional[float], cliente: Optional[float], cuo
     if cliente is None or cliente <= 0:
         return "SIN DATO CLIENTE"
     candidatos = [cliente]
-    if cuota.valida and not cuota.completa and cuota.denominador > 1:
-        candidatos.append(cliente * cuota.denominador)
+    if cuota.valida and not cuota.completa and cuota.denominador > 1 and cuota.numerador > 0:
+        candidatos.append(cliente * cuota.denominador / cuota.numerador)  # 2/5 -> total = cliente x 2,5
     for ref in candidatos:
         if abs(catastral - ref) / ref <= margen:
             return "OK"

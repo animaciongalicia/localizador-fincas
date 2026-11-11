@@ -56,5 +56,7 @@ def limpiar_codigo(valor: object) -> str:
         return str(int(valor))
     t = str(valor).strip()
     t = re.sub(r"^(pol[ií]gono|pol|parcela|parc)\.?\s*", "", t, flags=re.I)
-    t = re.sub(r"\.0+$", "", t)
-    return t.strip()
+    t = re.sub(r"\.0+$", "", t).strip()
+    if t.isdigit():
+        return str(int(t))  # '05' y '5' son la misma parcela (misma caché y mismos ficheros)
+    return t.upper()

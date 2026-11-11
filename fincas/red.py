@@ -10,6 +10,10 @@ from . import config
 T = TypeVar("T")
 
 
+class ErrorCliente(Exception):
+    """Respuesta 4xx definitiva (salvo 408/429): reintentar solo empeora un posible bloqueo."""
+
+
 class Limitador:
     """Garantiza una pausa aleatoria (3-5 s por defecto) entre consultas reales."""
 
@@ -43,7 +47,8 @@ def reintentar(fn: Callable[[], T], limitador: Limitador, reintentos: int = conf
             ultimo = e
             if log:
                 log(f"intento {intento + 1}/{reintentos + 1} fallido: {e}")
-    assert ultimo is not None
+    if ultimo is None:
+        raise RuntimeError("reintentar: sin intentos")
     raise ultimo
 
 
@@ -60,7 +65,11 @@ class ClienteHttp:
     def get(self, url: str, params: Optional[dict] = None):
         def _una():
             r = self._s.get(url, params=params, timeout=config.TIMEOUT_HTTP_S)
+            if r.status_code in (429, 503):
+                time.sleep(15)  # nos piden calma: pausa larga antes del reintento
+            if 400 <= r.status_code < 500 and r.status_code not in (408, 429):
+                raise ErrorCliente(f"HTTP {r.status_code} en {url}")  # no se reintenta: no mejorará
             r.raise_for_status()
             return r
 
-        return reintentar(_una, self.limitador, self.reintentos, log=self.log)
+        return reintentar(_una, self.limitador, self.reintentos, no_reintentar=(ErrorCliente,), log=self.log)
