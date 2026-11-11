@@ -1,9 +1,7 @@
 """Constantes y URLs en un único sitio.
 
-IMPORTANTE: las URLs y selectores de aquí NO están verificados todavía contra
-los servicios reales (aún no se ha lanzado ninguna consulta). Se validan en la
-primera ejecución de prueba (--prueba 1). Todas se pueden sobreescribir con
-variables de entorno para no tocar código si cambian.
+Las URLs de Catastro, Sede y visores están verificadas con consultas reales (ver CLAUDE.md).
+Se pueden sobreescribir con variables de entorno para no tocar código si cambian.
 """
 import os
 from pathlib import Path
@@ -32,6 +30,8 @@ SIGPAC_VISOR_URL = os.environ.get(
 )
 
 SIXPAC_VISOR_URL = os.environ.get("FINCAS_SIXPAC_URL", "https://sixpac.xunta.gal/visorhtml5/")
+# Servicios de datos del visor SIXPAC (geometría de parcela y ortofoto) para dibujar el plano de la ficha
+SIXPAC_SERVICIOS = os.environ.get("FINCAS_SIXPAC_SERVICIOS", "https://vispac.xunta.gal")
 
 # --- Comportamiento
 PAUSA_MIN_S = 3.0

@@ -22,8 +22,20 @@ class Navegador:
         self._ctx.set_default_timeout(45_000)
 
     def pagina(self):
+        if self._ctx is not None and not self._vivo():
+            self.cerrar()  # Chromium murió (memoria, crash): se relanza en vez de fallar todas las parcelas
         self._abrir()
+        self._usos = getattr(self, "_usos", 0) + 1
+        if self._usos % 60 == 0:  # reciclar el contexto: acumula cookies/popups durante lotes largos
+            self.cerrar()
+            self._abrir()
         return self._ctx.new_page()
+
+    def _vivo(self) -> bool:
+        try:
+            return bool(self._browser and self._browser.is_connected())
+        except Exception:  # noqa: BLE001
+            return False
 
     def cerrar(self) -> None:
         for obj in (self._ctx, self._browser):
@@ -33,7 +45,10 @@ class Navegador:
             except Exception:  # noqa: BLE001
                 pass
         if self._pw:
-            self._pw.stop()
+            try:
+                self._pw.stop()
+            except Exception:  # noqa: BLE001
+                pass
         self._pw = self._browser = self._ctx = None
 
     def __enter__(self):

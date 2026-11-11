@@ -21,13 +21,30 @@ ALIAS: Dict[str, List[str]] = {
     "provincia": ["provincia", "provincia catastral"],
     "poligono": ["poligono", "poligon", "pol", "poligono catastral", "n poligono"],
     "parcela": ["parcela", "parc", "parcela catastral", "n parcela", "num parcela"],
-    "paraje": ["paraje", "paraxe", "lugar", "sitio", "toponimo", "nombre paraje"],
+    "refcat": ["referencia catastral", "ref catastral", "refcat", "ref cat", "rc", "referencia",
+               "ref catastro", "referencia catastro"],
+    "paraje": ["paraje", "paraxe", "lugar", "sitio", "toponimo", "nombre paraje", "nombre finca", "nombre", "finca",
+               "denominacion"],
     "superficie_m2": ["superficie m2", "superficie", "sup", "sup m2", "m2", "superficie cliente",
                       "metros", "superficie m"],
     "cuota": ["cuota", "participacion", "porcentaje", "cota", "quota", "propiedad"],
     "notas": ["notas", "nota", "observaciones", "observacions", "comentarios"],
 }
-OBLIGATORIAS = ("poligono", "parcela")  # municipio/provincia pueden venir por parámetro
+OBLIGATORIAS = ("poligono", "parcela")  # municipio/provincia pueden venir por parámetro; sin ellas vale refcat
+# Referencia catastral rústica: prov(2) mun(3) sector(1) pol(3) parcela(5) [instancia(4) control(2)]
+_RE_RC_RUSTICA = re.compile(r"^(\d{2})(\d{3})([A-Z])(\d{3})(\d{5})(?:\d{4}[A-Z]{2})?$")
+
+
+_RE_CODIGO_SEGURO = re.compile(r"^[0-9A-Za-z]{1,6}(?:[-_.][0-9A-Za-z]{1,6})?$")
+
+
+def pol_par_desde_refcat(texto: object) -> Tuple[str, str]:
+    """'99999A001000120000AB' -> ('1', '12'). Si no es una RC rústica reconocible: ('', '')."""
+    t = re.sub(r"[\s\-.]", "", str(texto or "")).upper()
+    m = _RE_RC_RUSTICA.match(t)
+    if not m:
+        return "", ""
+    return str(int(m.group(4))), str(int(m.group(5)))
 _INVERSO = {v: k for k, vs in ALIAS.items() for v in vs}
 
 
@@ -77,7 +94,7 @@ def _mapear_cabecera(fila: Sequence[object]) -> Dict[str, int]:
 def _buscar_cabecera(filas: Sequence[Sequence[object]]) -> Optional[Tuple[int, Dict[str, int]]]:
     for i, fila in enumerate(filas[:15]):
         mapa = _mapear_cabecera(fila)
-        if all(c in mapa for c in OBLIGATORIAS):
+        if all(c in mapa for c in OBLIGATORIAS) or "refcat" in mapa:
             return i, mapa
     return None
 
@@ -89,7 +106,7 @@ def filas_a_fincas(filas: Sequence[Sequence[object]], municipio: str = "", provi
     if not hallado:
         raise ErrorEntrada(
             f"{origen}: no encuentro la cabecera. Hacen falta al menos las columnas "
-            f"poligono y parcela (nombres admitidos: {', '.join(ALIAS['poligono'] + ALIAS['parcela'])})."
+            f"poligono y parcela, o referencia catastral (nombres admitidos: {', '.join(ALIAS['poligono'] + ALIAS['parcela'])})."
         )
     idx, mapa = hallado
     fincas: List[Finca] = []
@@ -103,21 +120,33 @@ def filas_a_fincas(filas: Sequence[Sequence[object]], municipio: str = "", provi
     for n, fila in enumerate(filas[idx + 1:], start=idx + 2):
         pol = limpiar_codigo(celda(fila, "poligono"))
         par = limpiar_codigo(celda(fila, "parcela"))
-        if not pol and not par:
+        rc = str(celda(fila, "refcat") or "").strip()
+        rc_pol, rc_par = pol_par_desde_refcat(rc)
+        if not pol and not par and not rc and not str(celda(fila, "paraje") or "").strip():
             continue  # fila vacía
+        etiqueta = f"{origen} fila {n}"
+        if not pol and not par and rc_pol:
+            pol, par = rc_pol, rc_par  # entrada solo por referencia catastral
+        elif rc_pol and (pol, par) != (rc_pol, rc_par):
+            problemas.append(f"{etiqueta}: la referencia catastral {rc} indica pol {rc_pol}/parc {rc_par} "
+                             f"pero la fila dice {pol}/{par} (se usa lo de la fila)")
         mun = str(celda(fila, "municipio") or "").strip() or mun_prev
         prov = str(celda(fila, "provincia") or "").strip() or prov_prev
         mun_prev, prov_prev = mun, prov  # relleno hacia abajo
-        etiqueta = f"{origen} fila {n}"
-        if not pol or not par:
-            problemas.append(f"{etiqueta}: falta polígono o parcela (pol='{pol}', parc='{par}')")
-            continue
         if not mun:
             problemas.append(f"{etiqueta}: sin municipio (usa --municipio)")
             continue
         if not prov:
             problemas.append(f"{etiqueta}: sin provincia (usa --provincia)")
             continue
+        sin_datos = ""
+        if (pol and not _RE_CODIGO_SEGURO.match(pol)) or (par and not _RE_CODIGO_SEGURO.match(par)):
+            problemas.append(f"{etiqueta}: polígono/parcela con caracteres no válidos ('{pol}', '{par}')")
+            pol = par = ""
+        if not pol or not par:
+            sin_datos = (f"SIN DATOS: falta polígono/parcela y la referencia catastral "
+                         f"{'no es interpretable' if rc else 'no consta'}; hay que pedírsela al cliente")
+            problemas.append(f"{etiqueta}: {sin_datos} (se mantiene en el Excel, no se busca)")
         cuota = parsear_cuota(celda(fila, "cuota"))
         if not cuota.valida:
             problemas.append(f"{etiqueta}: cuota '{cuota.texto}' no interpretable (se marca, no se descarta)")
@@ -125,7 +154,7 @@ def filas_a_fincas(filas: Sequence[Sequence[object]], municipio: str = "", provi
             municipio=mun, provincia=prov, poligono=pol, parcela=par,
             paraje=str(celda(fila, "paraje") or "").strip(),
             superficie_m2=a_numero(celda(fila, "superficie_m2")),
-            cuota=cuota, notas=str(celda(fila, "notas") or "").strip(), fila=n,
+            cuota=cuota, notas=str(celda(fila, "notas") or "").strip(), fila=n, sin_datos=sin_datos,
         ))
     return fincas, problemas
 

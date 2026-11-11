@@ -31,7 +31,8 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 | `entrada.py` | Lee CSV/XLSX/DOCX, cabeceras flexibles, cuota, relleno hacia abajo de municipio |
 | `codigos.py` | Nombre → códigos (provincia/municipio), tildes, gallego/castellano, `Ambiguo` |
 | `catastro.py` | Servicios XML (provincias, municipios, `Consulta_DNPPP`) + PDF de la Sede. Parsers puros |
-| `sigpac.py` | Visor SIGPAC con Playwright. `SELECTORES` agrupados arriba |
+| `sigpac.py` | Visor SIGPAC/SIXPAC con Playwright (búsqueda, ref. catastral, ficha PDF) |
+| `plano.py` | Plano de la ficha SIXPAC: geometría + ortofoto de los servicios del visor, dibujado en SVG (funciones puras testeables) |
 | `excel.py` | `resultados.xlsx` |
 | `superficie.py` | Control de superficie (margen 10 %, cuota) |
 | `pipeline.py` | Orquestación; servicios inyectados (testeable sin red) |
@@ -92,6 +93,14 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 - **Lote de prueba real (31 parcelas, un solo municipio de A Coruña) completado y verificado de extremo a extremo** con SIXPAC (provincia 15):
   31/31 con `coincide = SI`. Parcelas grandes: el visor da la superficie en hectáreas (`2.0601 ha`); `sigpac.etiqueta_coincide`
   ya convierte ha -> m². (Antes se daban por NO ENCONTRADA: no era monte, era el parser.)
+
+- **Ficha SIXPAC rehecha (2026-11-12)**: la captura de pantalla salía cortada y con relleno azul. Ahora `plano.py` usa los
+  servicios del visor (`vispac.xunta.gal`: `servis/query/parcelabox/...` bbox lon/lat; `sdg-vector/vector/parcela@3857/{prov}.{x}.{y}.geojson`
+  teselas z15 con y TMS; `sdg-raster/wmts?layer=ortofotos` XYZ hasta z19) → encuadre automático, contorno sin relleno, vecinos,
+  escala y norte, mapa de situación. Si falla, se usa la captura antigua. Caché de SIGPAC versionada (`sigpac_v2`).
+- Entrada: columna de referencia catastral rústica (20 car.) sustituye a polígono+parcela; filas sin datos se conservan en el Excel
+  con `SIN DATOS` (no se buscan). Alias `nombre finca` -> paraje.
+- Ejecutar SIEMPRE sin `--visible` (headless, no molesta); `--visible` solo para captcha/calibrar.
 
 ## PENDIENTE DE VERIFICAR
 1. Parcela inexistente en SIGPAC (monte/forestal): se supone que la etiqueta pol:parc nunca aparece y se marca

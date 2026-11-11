@@ -4,6 +4,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List
 
+import os
+
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
@@ -26,13 +29,21 @@ CABECERA = PatternFill("solid", fgColor="1F4E78")
 def _fila(r: Resultado) -> List[object]:
     f, c, s = r.finca, r.catastro, r.sigpac
     notas = " | ".join(x for x in [f.notas, *r.avisos, *r.errores] if x)
-    return [
+    return [_seguro(x) for x in [
         f.municipio, f.paraje or (c.paraje if c else ""), f.poligono, f.parcela, f.cuota.texto,
         c.refcat if c else "", c.superficie_m2 if c else None, c.uso if c else "",
         f.superficie_m2, r.control_superficie,
         s.refcat if s else "", r.coincide,
         r.pdf_catastro, s.pdf if s else "", notas,
-    ]
+    ]]
+
+
+def _seguro(v: object) -> object:
+    """Texto del cliente/errores: sin caracteres de control (openpyxl falla) ni fórmulas (=, +, -, @)."""
+    if not isinstance(v, str):
+        return v
+    v = ILLEGAL_CHARACTERS_RE.sub("", v)
+    return "'" + v if v[:1] in ("=", "+", "-", "@") else v
 
 
 def escribir_excel(resultados: List[Resultado], ruta: Path) -> Path:
@@ -71,5 +82,7 @@ def escribir_excel(resultados: List[Resultado], ruta: Path) -> Path:
     ws.freeze_panes = "A2"
     ws.auto_filter.ref = ws.dimensions
     ruta.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(ruta)
+    tmp = ruta.with_name(ruta.name + ".tmp")
+    wb.save(tmp)
+    os.replace(tmp, ruta)
     return ruta

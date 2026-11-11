@@ -27,6 +27,7 @@ class Finca:
     cuota: Cuota = field(default_factory=Cuota)
     notas: str = ""
     fila: int = 0  # fila de origen en el fichero (para el registro)
+    sin_datos: str = ""  # motivo si no hay polígono/parcela: la finca se conserva en el Excel pero no se busca
 
     @property
     def etiqueta(self) -> str:
@@ -35,6 +36,8 @@ class Finca:
     @property
     def nombre_base(self) -> str:
         """municipio_poligonoXX_parcelaXXX (sin extensión)."""
+        if not self.poligono or not self.parcela:
+            return f"{slug(self.municipio)}_fila{self.fila}"
         pol = self.poligono.zfill(2) if self.poligono.isdigit() else self.poligono
         par = self.parcela.zfill(3) if self.parcela.isdigit() else self.parcela
         return f"{slug(self.municipio)}_poligono{pol}_parcela{par}"
