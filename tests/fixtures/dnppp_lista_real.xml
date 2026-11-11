@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<consulta_dnp xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.catastro.meh.es/">
+  <control>
+    <cudnp>2</cudnp>
+  </control>
+  <lrcdnp>
+    <rcdnp>
+      <rc>
+        <pc1>36061A0</pc1>
+        <pc2>2800236</pc2>
+        <car>0000</car>
+        <cc1>L</cc1>
+        <cc2>Y</cc2>
+      </rc>
+      <dt>
+        <loine>
+          <cp>36</cp>
+          <cm>61</cm>
+        </loine>
+        <cmc>61</cmc>
+        <np>PONTEVEDRA</np>
+        <nm>VILANOVA DE AROUSA</nm>
+        <locs>
+          <lors>
+            <lorus>
+              <czc>0</czc>
+              <cpp>
+                <cpo>28</cpo>
+                <cpa>236</cpa>
+              </cpp>
+              <npa>MONTE DE EIVIÑO</npa>
+              <cpaj>1177</cpaj>
+            </lorus>
+            <lourb>
+              <dir>
+                <cv>60</cv>
+                <tv>LG</tv>
+                <nv>GALANS-CALEIRO</nv>
+                <pnp>0</pnp>
+              </dir>
+              <loint />
+              <dp>36629</dp>
+              <dm>3</dm>
+            </lourb>
+          </lors>
+        </locs>
+      </dt>
+    </rcdnp>
+    <rcdnp>
+      <rc>
+        <pc1>36061A0</pc1>
+        <pc2>2800236</pc2>
+        <car>0001</car>
+        <cc1>B</cc1>
+        <cc2>U</cc2>
+      </rc>
+      <dt>
+        <loine>
+          <cp>36</cp>
+          <cm>61</cm>
+        </loine>
+        <cmc>61</cmc>
+        <np>PONTEVEDRA</np>
+        <nm>VILANOVA DE AROUSA</nm>
+        <locs>
+          <lous>
+            <lourb>
+              <dir>
+                <cv>60</cv>
+                <tv>LG</tv>
+                <nv>GALANS-CALEIRO</nv>
+                <pnp>0</pnp>
+              </dir>
+              <loint>
+                <es>S</es>
+                <pt>UE</pt>
+                <pu>LO</pu>
+              </loint>
+              <dp>36629</dp>
+              <dm>3</dm>
+            </lourb>
+            <lorus>
+              <czc>0</czc>
+              <cpp>
+                <cpo>28</cpo>
+                <cpa>236</cpa>
+              </cpp>
+              <npa>MONTE DE EIVIÑO</npa>
+              <cpaj>1177</cpaj>
+            </lorus>
+          </lous>
+        </locs>
+      </dt>
+    </rcdnp>
+  </lrcdnp>
+</consulta_dnp>
