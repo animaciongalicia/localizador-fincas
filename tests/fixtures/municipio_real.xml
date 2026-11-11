@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<consulta_municipiero xmlns="http://www.catastro.meh.es/">
+  <control>
+    <cumun>1</cumun>
+  </control>
+  <municipiero>
+    <muni>
+      <nm>VILANOVA DE AROUSA</nm>
+      <locat>
+        <cd>36</cd>
+        <cmc>61</cmc>
+      </locat>
+      <loine>
+        <cp>36</cp>
+        <cm>61</cm>
+      </loine>
+    </muni>
+  </municipiero>
+</consulta_municipiero>
