@@ -1,0 +1,15 @@
+# Datos de clientes y descargas: no subir a GitHub
+salidas/
+cache/
+.cache/
+.env
+*.zip
+
+# Python / entorno
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# macOS
+.DS_Store

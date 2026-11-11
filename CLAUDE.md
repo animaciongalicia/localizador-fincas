@@ -1,0 +1,109 @@
+# CLAUDE.md — Búsqueda de fincas rústicas
+
+## Objetivo
+CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de España
+(municipio, provincia, polígono, parcela). Salida: carpeta `salidas/AAAA-MM-DD_nombre-trabajo/` con
+`resultados.xlsx`, `pdf_catastro/`, `pdf_sigpac/`, `registro.txt` y un ZIP.
+**Nada del código puede estar atado a un municipio, cliente o lista concreta.**
+
+## Organización de carpetas
+- **Herramienta (este proyecto, "BUSQUEDA FINCAS CLAUDE")**: código, tests, `.venv`, `.cache` (caché única).
+- **Clientes**: `~/Desktop/BUSQUEDAS FERRADOS-CLAUDE/<cliente-slug>/` con `entrada/` (listas del cliente) y
+  `salidas/` (resultados). Un hilo por cliente, titulado con su nombre.
+- Lanzar un lote de un cliente (desde esta carpeta):
+  `.venv/bin/python -m fincas "<ruta>/entrada/lista.csv" --cliente "Nombre Cliente" --nombre lote-x [--simular|--prueba N]`
+  `--cliente` guarda en `<carpeta clientes>/<slug>/salidas/` (`FINCAS_CLIENTES` cambia la raíz).
+- Clientes hechos: `jose-bouza-rey` (Sibil-Ortigueira, 31 parcelas, 2026-11-11).
+
+## Reglas del encargo (no negociables)
+- **No lanzar ninguna consulta real (Catastro/SIGPAC) hasta que el usuario lo diga.** Para ver el plan sin
+  red: `python -m fincas fichero --simular`.
+- No obtener titular ni valor catastral (datos protegidos).
+- No saltarse captchas: si la Sede pide uno, se registra y se resuelve a mano (`--visible`).
+- Pausa 3–5 s entre consultas reales, 2 reintentos, caché para relanzar sin repetir.
+- Si una parcela falla, se continúa con las demás. Nunca se descartan parcelas (la cuota y el control de
+  superficie solo marcan/avisan).
+- `--prueba N` ejecuta solo las N primeras parcelas.
+
+## Arquitectura (un módulo por fuente; si una web cambia, solo se toca su módulo)
+| Módulo | Responsabilidad |
+|---|---|
+| `entrada.py` | Lee CSV/XLSX/DOCX, cabeceras flexibles, cuota, relleno hacia abajo de municipio |
+| `codigos.py` | Nombre → códigos (provincia/municipio), tildes, gallego/castellano, `Ambiguo` |
+| `catastro.py` | Servicios XML (provincias, municipios, `Consulta_DNPPP`) + PDF de la Sede. Parsers puros |
+| `sigpac.py` | Visor SIGPAC con Playwright. `SELECTORES` agrupados arriba |
+| `excel.py` | `resultados.xlsx` |
+| `superficie.py` | Control de superficie (margen 10 %, cuota) |
+| `pipeline.py` | Orquestación; servicios inyectados (testeable sin red) |
+| `red.py` / `navegador.py` / `cache.py` / `registro.py` | pausas+reintentos+HTTP / Chromium compartido / caché / registro.txt |
+| `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
+
+## Decisiones técnicas
+- Python 3.9 compatible (`from __future__ import annotations`). Entorno: `.venv`.
+- Servicios inyectados en `pipeline.ejecutar` → los tests usan dobles; los tests no tocan red.
+- Caché global en `.cache/` (clave = prov+muni INE + polígono + parcela). Solo se cachean éxitos; los fallos
+  se reintentan en la siguiente ejecución. `--sin-cache` la ignora. Los PDF se copian de la caché a la carpeta.
+- Los códigos se resuelven **todos antes** de consultar parcelas, para preguntar ambigüedades al inicio.
+  Ambigüedad → `Ambiguo` → la CLI pregunta (o aborta si no hay terminal). Sin coincidencia → esas filas
+  quedan con error y se sigue.
+- SIGPAC: provincia INE (2) + municipio con el código del CATASTRO (`cmc`), NO el INE. Coinciden en
+  Vilanova (61) pero no en Ortigueira (INE 61, Catastro 62). `Codigos` guarda ambos.
+- Referencia de la parcela = 14 primeros caracteres; la de 20 (subparcelas) se guarda aparte.
+- Superficie catastral = suma de subparcelas (`ssp`) si existen, si no `sfc`.
+- Control de superficie: `OK` si coincide ±10 % con el valor del cliente o con cliente × denominador de la
+  cuota; `REVISAR` si no. Añadido `SIN DATO CLIENTE` cuando el cliente no dio superficie (extensión menor).
+- Coincidencia Catastro/SIGPAC: `SI` / `NO` / `NO ENCONTRADA`.
+- Nombres de PDF: `municipio-slug_poligonoXX_parcelaXXX_{catastro|sigpac}.pdf`.
+
+## VERIFICADO con consultas reales (2026-11-11)
+- Host `http://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx`: `ConsultaProvincia`,
+  `ConsultaMunicipio`, `Consulta_DNPPP`, `Consulta_DNPRC` responden; esquema XML confirmado (fixtures en
+  `tests/fixtures/*_real.xml`). Nombres oficiales: "A CORUÑA", "ALACANT" (no "CORUÑA, A").
+- `Consulta_DNPPP` devuelve una lista SIN superficie ni cultivos; hay que llamar a `Consulta_DNPRC` con la
+  referencia de 20 car. de la parte rústica (la de `locs/lors`). Cada parcela = 2 consultas.
+- Una parcela puede mezclar inmuebles rústico + urbano (sufijo 0001...): solo se usa el rústico.
+- Superficie: `sfc` del rústico suele ser 0; la fiable es la suma de `ssp` (subparcelas). La página de la
+  Sede muestra la superficie TOTAL de la parcela (856 m² en la de prueba vs 393 m² rústicos): ojo en el
+  control de superficie (puede dar REVISAR por incluir parte urbana).
+- Para buscar parcelas de prueba reales: `OVCCoordenadas.asmx/Consulta_RCCOOR` (SRS, Coordenada_X/Y).
+- `SECImprimirCroquisYDatos.aspx` NO es público (pide certificado/Cl@ve). La consulta pública
+  `OVCListaBienes.aspx?rc1=&rc2=&del=&mun=` sí carga sin login, con botones postback (`btnPDFFXCC`...).
+
+- **PDF de la Sede VERIFICADO de extremo a extremo** (parcela 36061A02800236): se abre
+  `OVCConCiud.aspx?del=&mun=&UrbRus=R&RefC=<20 car.>...` y el botón `#BImpCroquisYDatos` descarga el PDF
+  (~400 KB) sin captcha ni login. Se rechazan las cookies. Playwright + Chromium instalados en `.venv`.
+- Visor SIGPAC (`https://sigpac.mapa.gob.es/fega/visor/`, "Visor SigPac V 4.20") carga con Playwright.
+  Campos de búsqueda por localización (ocultos hasta abrir el panel): `#dirProv #dirMun #dirAgr #dirZona
+  #dirPol #dirPar #dirRec`; por referencia catastral: `#dirCpProv #dirCpMun #dirCpAgr #dirCpZona #dirCpPol
+  #dirCpParRem #dirCpSub` (esos ids se leyeron, aún no se han usado).
+
+- **SIGPAC VERIFICADO de extremo a extremo** (visor FEGA v4.20, que incluye Galicia; no se usa SIXPAC de la
+  Xunta). Flujo documentado en la cabecera de `sigpac.py`: búsqueda Directa, impresión
+  nativa del visor (PDF ortofoto+parcelario, ~1,5 MB), y referencia catastral vía Consultas > Catastro (U)
+  (abre la Sede con `RefC=`). Se controla con coordenadas de pantalla (viewport 1400x900).
+- Prueba real completa (1 parcela, ~1 min): Excel + 2 PDF + registro + ZIP, `coincide = SI`.
+
+- **SIXPAC (Xunta) = mismo visor** (v4.18, FOGGA) que el SIGPAC del FEGA, mismos datos (misma ref. catastral y
+  517,8 m² para Ortigueira 34/175). Se usa SIXPAC para provincias 15/27/32/36 (`sigpac.url_visor`).
+- El PDF impreso por el visor es un recorte 1:500 SIN la parcela marcada (inútil en parcelas pequeñas).
+  Ahora la ficha se genera en `sigpac._ficha_pdf`: captura del mapa con la parcela resaltada y rotulada
+  (herramienta Consultas>Parcela) + tabla de datos. El panel de búsqueda se oculta alternando los prismáticos.
+
+- **Lote Sibil-Ortigueira (31 parcelas) completado y verificado de extremo a extremo** con SIXPAC (provincia 15):
+  31/31 con `coincide = SI`. Parcelas grandes: el visor da la superficie en hectáreas (`2.0601 ha`); `sigpac.etiqueta_coincide`
+  ya convierte ha -> m². (Antes se daban por NO ENCONTRADA: no era monte, era el parser.)
+
+## PENDIENTE DE VERIFICAR
+1. Parcela inexistente en SIGPAC (monte/forestal): se supone que la etiqueta pol:parc nunca aparece y se marca
+   NO ENCONTRADA tras ~25 clics (lento); comprobar con un caso real.
+2. Polígonos/parcelas con letras (no numéricos) se marcan NO ENCONTRADA en SIGPAC sin consultar.
+3. Cuota/parcelas en lote: tiempo real ~1 min por parcela (pausas + visor).
+
+Procedimiento de verificación: `--visible --prueba 1` con una parcela conocida, guardar respuestas reales
+como fixtures en `tests/`, y ajustar solo el módulo afectado.
+
+## Comandos
+```bash
+.venv/bin/python -m pytest -q                       # tests (sin red)
+.venv/bin/python -m fincas tests/ejemplo.csv --simular   # plan sin consultas
+```
