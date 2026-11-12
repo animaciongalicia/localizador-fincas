@@ -73,6 +73,7 @@ class ResultadoSigpac:
     refcat: str = ""
     pdf: str = ""
     detalle: str = ""
+    respaldo: bool = False      # True si la ficha lleva la captura del visor (relleno) y no el plano de contorno
 
 
 @dataclass

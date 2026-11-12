@@ -13,7 +13,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 from .cache import Cache
 from .catastro import CatastroError, ParcelaNoEncontrada, RequiereCaptcha
-from .codigos import Ambiguo, NoEncontrado
+from .codigos import Ambiguo, NoEncontrado, _partes, clave_nombre
 from .excel import escribir_excel
 from .informe import escribir_informe
 from .modelos import Codigos, DatosCatastro, Finca, Resultado, ResultadoSigpac
@@ -80,12 +80,16 @@ def ejecutar(fincas: Sequence[Finca], op: Opciones, srv: Servicios, reg: Registr
     fallos_codigos: Dict[Tuple[str, str], str] = {}
     for f in fincas:
         k = (f.provincia, f.municipio)
-        if k in codigos:
+        if k in codigos or f.sin_datos:  # las filas SIN DATOS no se buscan: tampoco se resuelven sus códigos
             continue
         try:
             codigos[k] = srv.resolutor.resolver(f.provincia, f.municipio, preguntar)
             reg.info(f"{f.municipio} ({f.provincia}) -> {codigos[k].nombre_municipio} "
                      f"[{codigos[k].cod_provincia}{codigos[k].cod_municipio_ine}]")
+            if clave_nombre(f.municipio) not in _partes(codigos[k].nombre_municipio):
+                # coincidencia aproximada (prefijo o errata): que quede a la vista, no en silencio
+                reg.aviso(f"{f.municipio} ({f.provincia})",
+                          f"municipio interpretado como {codigos[k].nombre_municipio}; comprobar que es el correcto")
         except Ambiguo:
             raise  # se para: lo decide el usuario
         except NoEncontrado as e:
@@ -108,15 +112,15 @@ def ejecutar(fincas: Sequence[Finca], op: Opciones, srv: Servicios, reg: Registr
     try:
         for i, f in enumerate(fincas, start=1):
             reg.info(f"[{i}/{len(fincas)}] {f.etiqueta}")
-            res = Resultado(finca=f, codigos=codigos[(f.provincia, f.municipio)])
+            res = Resultado(finca=f, codigos=codigos.get((f.provincia, f.municipio)))
             resultados.append(res)
             try:
                 _procesar(res, op, srv, d_cat, d_sig, reg)
             except Exception as e:  # noqa: BLE001  una parcela que falla no para las demás
                 res.errores.append(f"Error inesperado: {e}")
                 reg.error(f.etiqueta, f"Error inesperado: {e!r}")
-            if res.codigos is None:
-                msg = fallos_codigos[(f.provincia, f.municipio)]
+            if res.codigos is None and not f.sin_datos:
+                msg = fallos_codigos.get((f.provincia, f.municipio), "No se pudieron resolver los códigos")
                 res.errores.append(msg)
                 reg.error(f.etiqueta, msg)
             if i % 5 == 0:
@@ -264,7 +268,10 @@ def _sigpac(res, srv, cod, clave, d_sig, base, reg) -> ResultadoSigpac:
         res.errores.append(f"SIGPAC: {e}")
         reg.error(f.etiqueta, f"SIGPAC: {e}")
         return ResultadoSigpac("ERROR", detalle=str(e))
-    if r.estado == "ENCONTRADA" and r.refcat:  # sin referencia no es un éxito completo: se reintenta otro día
+    if r.respaldo:
+        res.avisos.append("Ficha SIXPAC/SIGPAC con captura de respaldo (parcela rellena): repetir para obtener el contorno")
+        reg.aviso(f.etiqueta, "ficha con captura de respaldo (parcela rellena, tapa la ortofoto); no se guarda en caché")
+    if r.estado == "ENCONTRADA" and r.refcat and not r.respaldo:  # éxito completo; si no, se reintenta otro día
         srv.cache.guardar("sigpac_v3", clave, asdict(r))
         if destino.exists():
             srv.cache.guardar_fichero("pdf_sigpac_v3", clave, destino)

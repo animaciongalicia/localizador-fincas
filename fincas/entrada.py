@@ -52,11 +52,32 @@ class ErrorEntrada(Exception):
     pass
 
 
-def parsear_cuota(texto: object) -> Cuota:
-    """'1/5' -> 1/5; '20%' -> 1/5; vacío/'completa' -> completa."""
+_CUOTA_PALABRAS = {"mitad": (1, 2), "la mitad": (1, 2), "medio": (1, 2), "tercio": (1, 3), "un tercio": (1, 3),
+                   "tercera parte": (1, 3), "cuarto": (1, 4), "un cuarto": (1, 4), "cuarta parte": (1, 4),
+                   "quinto": (1, 5), "un quinto": (1, 5), "quinta parte": (1, 5), "sexta parte": (1, 6),
+                   "dos tercios": (2, 3), "tres cuartos": (3, 4)}
+
+
+def parsear_cuota(texto: object, en_porcentaje: bool = False) -> Cuota:
+    """'1/5' -> 1/5; '20%' -> 1/5; 'mitad' -> 1/2; '0,5' -> 1/2; vacío/'completa' -> completa.
+    `en_porcentaje`: la columna se titula '%' o 'porcentaje', así que '50' significa 50 %."""
+    if isinstance(texto, float) and texto.is_integer():
+        texto = int(texto)
     t = "" if texto is None else str(texto).strip()
     if not t:
         return Cuota()
+    if normalizar(t) in _CUOTA_PALABRAS:
+        n, d = _CUOTA_PALABRAS[normalizar(t)]
+        return Cuota(t, n, d, completa=False)
+    if re.fullmatch(r"\d+(?:[.,]\d+)?", t):
+        v = float(t.replace(",", "."))
+        if 0 < v < 1:  # 0,5 -> 1/2
+            f = Fraction(v).limit_denominator(100)
+            return Cuota(t, f.numerator, f.denominator, completa=False)
+        if en_porcentaje and 1 <= v <= 100:
+            t_pct = f"{t}%"
+            c = parsear_cuota(t_pct)
+            return c
     m = re.search(r"(\d+)\s*/\s*(\d+)", t)
     if m:
         n, d = int(m.group(1)), int(m.group(2))
@@ -64,6 +85,8 @@ def parsear_cuota(texto: object) -> Cuota:
             return Cuota(t, 0, 0, completa=False, valida=False)
         if n == d:
             return Cuota("completa")
+        if n > d or n == 0:  # 3/2 no es una cuota: se marca como no interpretable
+            return Cuota(t, 0, 0, completa=False, valida=False)
         f = Fraction(n, d)
         return Cuota(t, f.numerator, f.denominator, completa=False)
     m = re.search(r"(\d+(?:[.,]\d+)?)\s*%", t)
@@ -82,13 +105,82 @@ def parsear_cuota(texto: object) -> Cuota:
 
 
 # ---------------------------------------------------------------- filas -> fincas
+# Palabras sueltas que identifican una columna aunque el rótulo no sea un alias exacto
+# ('Polígono nº', 'Sup. catastral (ha)', '% propiedad'). Orden = prioridad.
+_CLAVES = [  # superficie y cuota antes que parcela: 'Superficie parcela' es una superficie, no una parcela
+    ("refcat", {"refcat", "rc"}),
+    ("superficie_m2", {"superficie", "sup", "m2", "hectareas", "ha", "ferrados"}),
+    ("cuota", {"cuota", "participacion", "porcentaje", "propiedad"}),
+    ("municipio", {"municipio", "concello", "concejo", "ayuntamiento"}), ("provincia", {"provincia"}),
+    ("poligono", {"poligono", "poligon", "pol"}), ("parcela", {"parcela", "parc"}),
+    ("notas", {"notas", "observaciones", "comentarios"}), ("paraje", {"paraje", "paraxe", "lugar"}),
+]
+_UNIDADES = {"ha": 10_000.0, "has": 10_000.0, "hectareas": 10_000.0, "hectarea": 10_000.0,
+             "a": 100.0, "areas": 100.0, "area": 100.0, "m2": 1.0, "m": 1.0, "metros": 1.0}
+_SIN_CONVERSION = {"ferrados", "ferrado", "fanegas", "fanega", "cuncas", "tegas"}  # varían por concello
+
+
+def _canon_cabecera(celda: object) -> Optional[str]:
+    n = normalizar(celda)
+    if not n:
+        return None
+    if n in _INVERSO:
+        return _INVERSO[n]
+    palabras = set(n.split())
+    if {"referencia", "catastral"} <= palabras or {"ref", "catastral"} <= palabras:
+        return "refcat"
+    for canon, claves in _CLAVES:
+        if palabras & claves:
+            return canon
+    return None
+
+
 def _mapear_cabecera(fila: Sequence[object]) -> Dict[str, int]:
     mapa: Dict[str, int] = {}
     for i, celda in enumerate(fila):
-        canon = _INVERSO.get(normalizar(celda))
+        canon = _canon_cabecera(celda)
         if canon and canon not in mapa:
             mapa[canon] = i
     return mapa
+
+
+def unidad_de(texto: object) -> Tuple[Optional[float], str]:
+    """(factor a m², unidad) según las palabras del texto. (None, 'ferrados') si no hay conversión fiable."""
+    palabras = normalizar(texto).split()
+    for w in palabras:
+        if w in _SIN_CONVERSION:
+            return None, w
+    for w in palabras:
+        if w in ("ha", "has", "hectareas", "hectarea", "areas", "area"):
+            return _UNIDADES[w], w
+    return 1.0, ""
+
+
+def superficie_a_m2(valor: object, factor_cabecera: Optional[float] = 1.0,
+                    unidad_cabecera: str = "") -> Tuple[Optional[float], str]:
+    """Superficie del cliente en m² y, si procede, un aviso. Nunca inventa una conversión."""
+    if valor is None or str(valor).strip() == "":
+        return None, ""
+    factor, unidad = factor_cabecera, unidad_cabecera
+    if isinstance(valor, str):
+        f_celda, u_celda = unidad_de(re.sub(r"[\d.,]", " ", valor))
+        if u_celda:
+            factor, unidad = f_celda, u_celda
+    if factor is None:
+        return None, f"superficie '{valor}' en {unidad}: sin conversión fiable a m² (no se compara)"
+    if isinstance(valor, str):  # quitar la unidad ('m2', 'm²', 'ha', 'metros') sin comerse dígitos
+        valor_num: object = re.sub(r"[A-Za-zÀ-ÿ]+\.?", " ", re.sub(r"(?i)m\s*[2²]", " ", valor))
+    else:
+        valor_num = valor
+    num = a_numero(valor_num)
+    if num is None:
+        return None, f"superficie '{valor}' no interpretable (no se compara)"
+    m2 = num * factor
+    if factor != 1.0:
+        return m2, f"superficie '{valor}' en {unidad} convertida a {m2:,.0f} m²".replace(",", ".")
+    if 0 < m2 < 10:
+        return m2, f"superficie '{valor}' = {m2} m²: muy pequeña, ¿está en otra unidad o es un separador de miles?"
+    return m2, ""
 
 
 def _buscar_cabecera(filas: Sequence[Sequence[object]]) -> Optional[Tuple[int, Dict[str, int]]]:
@@ -111,6 +203,16 @@ def filas_a_fincas(filas: Sequence[Sequence[object]], municipio: str = "", provi
     idx, mapa = hallado
     fincas: List[Finca] = []
     problemas: List[str] = []
+    usadas = set(mapa.values())
+    ignoradas = [str(c).strip() for i, c in enumerate(filas[idx]) if i not in usadas and str(c or "").strip()]
+    if ignoradas:
+        problemas.append(f"{origen}: columnas no reconocidas (se ignoran): {', '.join(ignoradas)}")
+    i_sup = mapa.get("superficie_m2")
+    factor_sup, unidad_sup = unidad_de(filas[idx][i_sup]) if i_sup is not None else (1.0, "")
+    i_cuota = mapa.get("cuota")
+    cuota_en_pct = i_cuota is not None and ("%" in str(filas[idx][i_cuota]) or
+                                           "porcentaje" in normalizar(filas[idx][i_cuota]))
+    vistas: Dict[Tuple[str, str, str, str], int] = {}
     mun_prev, prov_prev = municipio, provincia
 
     def celda(fila, campo) -> object:
@@ -133,27 +235,35 @@ def filas_a_fincas(filas: Sequence[Sequence[object]], municipio: str = "", provi
         mun = str(celda(fila, "municipio") or "").strip() or mun_prev
         prov = str(celda(fila, "provincia") or "").strip() or prov_prev
         mun_prev, prov_prev = mun, prov  # relleno hacia abajo
-        if not mun:
-            problemas.append(f"{etiqueta}: sin municipio (usa --municipio)")
-            continue
-        if not prov:
-            problemas.append(f"{etiqueta}: sin provincia (usa --provincia)")
-            continue
         sin_datos = ""
+        if not mun or not prov:  # nunca se descarta una fila: se conserva en el Excel sin buscarla
+            falta = "municipio" if not mun else "provincia"
+            sin_datos = f"SIN DATOS: falta {falta} (usa --{falta} o complétalo en la lista)"
+            problemas.append(f"{etiqueta}: {sin_datos} (se mantiene en el Excel, no se busca)")
+            mun, prov = mun or "sin municipio", prov or ""
         if (pol and not _RE_CODIGO_SEGURO.match(pol)) or (par and not _RE_CODIGO_SEGURO.match(par)):
             problemas.append(f"{etiqueta}: polígono/parcela con caracteres no válidos ('{pol}', '{par}')")
             pol = par = ""
-        if not pol or not par:
+        if (not pol or not par) and not sin_datos:
             sin_datos = (f"SIN DATOS: falta polígono/parcela y la referencia catastral "
                          f"{'no es interpretable' if rc else 'no consta'}; hay que pedírsela al cliente")
             problemas.append(f"{etiqueta}: {sin_datos} (se mantiene en el Excel, no se busca)")
-        cuota = parsear_cuota(celda(fila, "cuota"))
+        cuota = parsear_cuota(celda(fila, "cuota"), en_porcentaje=cuota_en_pct)
         if not cuota.valida:
             problemas.append(f"{etiqueta}: cuota '{cuota.texto}' no interpretable (se marca, no se descarta)")
+        sup, aviso_sup = superficie_a_m2(celda(fila, "superficie_m2"), factor_sup, unidad_sup)
+        if aviso_sup:
+            problemas.append(f"{etiqueta}: {aviso_sup}")
+        if pol and par and not sin_datos:
+            k = (normalizar(prov), normalizar(mun), pol, par)
+            if k in vistas:
+                problemas.append(f"{etiqueta}: parcela repetida (misma que la fila {vistas[k]}); se mantienen las dos")
+            else:
+                vistas[k] = n
         fincas.append(Finca(
             municipio=mun, provincia=prov, poligono=pol, parcela=par,
             paraje=str(celda(fila, "paraje") or "").strip(),
-            superficie_m2=a_numero(celda(fila, "superficie_m2")),
+            superficie_m2=sup,
             cuota=cuota, notas=str(celda(fila, "notas") or "").strip(), fila=n, sin_datos=sin_datos,
         ))
     return fincas, problemas
@@ -166,11 +276,23 @@ def _leer_csv(ruta: Path) -> List[List[str]]:
         texto = raw.decode("utf-8-sig")
     except UnicodeDecodeError:
         texto = raw.decode("cp1252")
-    try:
-        dialecto = csv.Sniffer().sniff(texto[:4096], delimiters=",;\t|")
-    except csv.Error:
-        dialecto = csv.excel
-    return [list(f) for f in csv.reader(io.StringIO(texto), dialecto)]
+    return [list(f) for f in csv.reader(io.StringIO(texto), delimiter=separador_csv(texto))]
+
+
+def separador_csv(texto: str) -> str:
+    """El separador que más se repite de forma constante en las primeras líneas con contenido."""
+    lineas = [l for l in texto.splitlines()[:30] if l.strip()]
+    mejor, puntos = ",", -1.0
+    for sep in (";", "\t", "|", ","):
+        cuentas = [l.count(sep) for l in lineas]
+        con = [c for c in cuentas if c > 0]
+        if not con:
+            continue
+        moda = max(set(con), key=con.count)
+        p = con.count(moda) * 10 + moda - (0.5 if sep == "," else 0)  # la coma también es decimal: desempata peor
+        if p > puntos:
+            mejor, puntos = sep, p
+    return mejor
 
 
 def _leer_xlsx(ruta: Path) -> List[List[object]]:

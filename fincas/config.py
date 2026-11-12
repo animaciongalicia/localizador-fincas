@@ -9,7 +9,7 @@ from pathlib import Path
 # --- Catastro: servicios públicos de datos no protegidos (SOAP/HTTP-GET, XML)
 CATASTRO_BASE = os.environ.get(
     "FINCAS_CATASTRO_BASE",
-    "http://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx",
+    "https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx",
 )
 
 # --- Catastro: Sede Electrónica (PDF de consulta descriptiva y gráfica)
