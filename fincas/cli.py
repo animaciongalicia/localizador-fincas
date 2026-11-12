@@ -29,6 +29,7 @@ def _parser() -> argparse.ArgumentParser:
                    help="solo lee y valida la entrada y muestra el plan. NO hace ninguna consulta.")
     p.add_argument("--sin-sigpac", action="store_true", help="saltar el paso SIGPAC")
     p.add_argument("--sin-pdf-catastro", action="store_true", help="no descargar el PDF del Catastro")
+    p.add_argument("--sin-informe", action="store_true", help="no generar informe.pdf (resumen + todas las fichas)")
     p.add_argument("--sin-cache", action="store_true", help="ignorar la caché (vuelve a consultar)")
     p.add_argument("--visible", action="store_true", help="mostrar el navegador (calibrar / captcha manual)")
     p.add_argument("--pausa-min", type=float, default=config.PAUSA_MIN_S)
@@ -87,7 +88,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         salidas = Path("salidas")
     op = Opciones(nombre_trabajo=args.nombre or Path(args.entrada).stem, salidas=salidas,
                   prueba=args.prueba, usar_sigpac=not args.sin_sigpac,
-                  usar_pdf_catastro=not args.sin_pdf_catastro)
+                  usar_pdf_catastro=not args.sin_pdf_catastro,
+                  informe=not args.sin_informe)
     if args.simular:
         _plan(fincas[: args.prueba] if args.prueba else fincas, problemas, op)
         return 0
