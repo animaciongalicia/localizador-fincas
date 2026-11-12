@@ -55,3 +55,18 @@ def test_codigo_peligroso_no_se_usa_en_ficheros():
     fincas, problemas = filas_a_fincas(filas)
     assert len(fincas) == 2 and fincas[0].sin_datos and fincas[0].poligono == ""
     assert fincas[1].poligono == "5" and any("no válidos" in p for p in problemas)
+
+
+def test_carpeta_libre_no_pisa_lotes(tmp_path: Path):
+    from fincas.pipeline import Opciones, carpeta_libre, carpeta_trabajo
+    op = Opciones(nombre_trabajo="lote x", salidas=tmp_path, fecha="2026-01-01")
+    primera = carpeta_libre(op)
+    assert primera == carpeta_trabajo(op) and not primera.exists()
+    primera.mkdir(parents=True)
+    assert carpeta_libre(op) == primera  # vacía: se reutiliza
+    (primera / "resultados.xlsx").write_text("x")
+    segunda = carpeta_libre(op)
+    assert segunda.name.endswith("lote-x_2")
+    segunda.mkdir()
+    (segunda / "a").write_text("x")
+    assert carpeta_libre(op).name.endswith("lote-x_3")

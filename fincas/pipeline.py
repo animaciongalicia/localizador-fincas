@@ -45,12 +45,27 @@ def carpeta_trabajo(op: Opciones) -> Path:
     return Path(op.salidas) / f"{op.fecha or date.today().isoformat()}_{slug(op.nombre_trabajo)}"
 
 
+def carpeta_libre(op: Opciones) -> Path:
+    """Como carpeta_trabajo, pero si ya existe (con contenido) añade _2, _3... para no mezclar ni pisar lotes."""
+    base = carpeta_trabajo(op)
+    if not base.exists() or not any(base.iterdir()):
+        return base
+    n = 2
+    while True:
+        cand = base.with_name(f"{base.name}_{n}")
+        if not cand.exists():
+            return cand
+        n += 1
+
+
 def ejecutar(fincas: Sequence[Finca], op: Opciones, srv: Servicios, reg: Registro,
              preguntar: Optional[Callable[[str, Sequence[str]], str]] = None) -> Path:
     if op.prueba:
         fincas = list(fincas)[: op.prueba]
         reg.info(f"Modo prueba: solo las primeras {len(fincas)} parcelas")
-    raiz = carpeta_trabajo(op)
+    raiz = carpeta_libre(op)
+    if raiz != carpeta_trabajo(op):
+        reg.info(f"Ya existía {carpeta_trabajo(op).name}: este lote va a {raiz.name}")
     d_cat, d_sig = raiz / "pdf_catastro", raiz / "pdf_sigpac"
     d_cat.mkdir(parents=True, exist_ok=True)
     d_sig.mkdir(parents=True, exist_ok=True)
