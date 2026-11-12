@@ -2,7 +2,7 @@
 
 Servicios que usa el visor (verificados 2026-11-12):
   - {base}/servis/query/parcelabox/{prov}/{mun}/{agr}/{zona}/{pol}/{parc}/   -> bbox lon/lat de la parcela
-  - {base}/sdg-vector/vector/parcela@3857/{prov}.{x}.{y}.geojson            -> parcelas (EPSG:3857), teselas z15, y TMS
+  - {base}/sdg-vector/vector/parcela@3857/{z}.{x}.{y}.geojson               -> parcelas (EPSG:3857), z=15 fijo, y TMS
   - {base}/sdg-raster/wmts?layer=ortofotos&...TileMatrix=z&TileCol=x&TileRow=y -> ortofoto (XYZ estándar, hasta z19)
 
 Con eso se calcula el encuadre exacto (parcela + margen), se dibuja el contorno sin relleno, los vecinos,
@@ -105,6 +105,23 @@ def barra_escala(res_merc: float, lat: float, ancho_max_px: float) -> Tuple[floa
     return 5 / m_por_px, 5
 
 
+def url_tesela_vector(base: str, tx: int, ty: int) -> str:
+    """El primer número de la tesela es el ZOOM (15), no la provincia. Con la provincia solo funcionaba
+    en A Coruña (15) por casualidad: en Lugo/Ourense/Pontevedra devolvía vacío y se caía a la captura."""
+    return f"{base}/sdg-vector/vector/parcela@3857/{Z_VECTOR}.{tx}.{ty}.geojson"
+
+
+def es_la_parcela(props: dict, prov, mun, pol, par) -> bool:
+    def igual(clave: str, valor) -> bool:
+        try:
+            return int(props.get(clave)) == int(valor)
+        except (TypeError, ValueError):
+            return False
+
+    return (igual("poligono", pol) and igual("parcela", par) and igual("municipio", mun)
+            and (props.get("provincia") is None or igual("provincia", prov)))
+
+
 def ruta_svg(anillo: Anillo, vista: Vista) -> str:
     pts = [vista.a_px(x, y) for x, y in anillo]
     return "M" + " L".join(f"{x:.1f},{y:.1f}" for x, y in pts) + " Z"
@@ -162,13 +179,12 @@ def obtener_datos(base: str, prov: str, mun: str, pol: str, par: str, sesion=Non
     vecinos: List[Anillo] = []
     for tx, ty in teselas:
         try:
-            rr = s.get(f"{base}/sdg-vector/vector/parcela@3857/{int(prov)}.{tx}.{ty}.geojson",
+            rr = s.get(url_tesela_vector(base, tx, ty),
                        timeout=config.TIMEOUT_HTTP_S)
             rr.raise_for_status()
             for f in rr.json().get("features", []):
                 pr = f.get("properties", {})
-                es = (pr.get("poligono") == int(pol) and pr.get("parcela") == int(par)
-                      and pr.get("municipio") == int(mun))
+                es = es_la_parcela(pr, prov, mun, pol, par)
                 (objetivo if es else vecinos).extend(anillos(f.get("geometry") or {}))
         except Exception as e:  # noqa: BLE001
             raise PlanoNoDisponible(f"teselas vectoriales {tx}.{ty}: {e}") from e

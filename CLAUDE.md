@@ -44,6 +44,10 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- **Teselas de contornos de SIXPAC: `parcela@3857/{zoom=15}.{x}.{y}.geojson`. El primer número es el ZOOM, no la provincia.**
+  Con la provincia solo funcionaba A Coruña (15) y el resto de Galicia caía a la captura del visor (parcela rellena de azul, no vale:
+  tapa la ortofoto). Corregido 2026-11-12; caché de fichas subida a `sigpac_v3` para regenerar las fichas azules.
+  La ficha buena es SIEMPRE contorno amarillo sin relleno; si en el registro sale "plano propio no disponible", investigar.
 - `mapa_conjunto.pdf` y hoja `Distancias` del Excel (`--sin-mapa` lo omite). Distancias en línea recta entre centros de la caja de
   cada parcela (orientativas). Fincas sin geometría o fuera de Galicia se omiten con aviso. Verificado con 31 fincas reales
   (31 peticiones + ~20 teselas, ~1 min). Si hay números solapados en zonas densas, es esperable (posición = centro de la caja).

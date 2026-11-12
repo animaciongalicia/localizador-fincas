@@ -64,3 +64,15 @@ def test_bbox_merc_sin_geometria_usa_lonlat():
     d = plano.DatosParcela((-8.49, 42.99, -8.48, 43.0), [], [])
     x1, y1, x2, y2 = d.bbox_merc
     assert x2 > x1 and y2 > y1 and math.isfinite(x1)
+
+
+def test_tesela_vector_usa_el_zoom_no_la_provincia():
+    # regresión: con la provincia en la URL solo funcionaba A Coruña (15 = zoom) y el resto caía a la captura azul
+    from fincas.plano import Z_VECTOR, es_la_parcela, url_tesela_vector
+    assert url_tesela_vector("https://x", 15625, 20616).endswith(f"/parcela@3857/{Z_VECTOR}.15625.20616.geojson")
+    props = {"provincia": 36, "municipio": 1, "poligono": 42, "parcela": 362}
+    assert es_la_parcela(props, "36", "1", "42", "362")
+    assert es_la_parcela({k: str(v) for k, v in props.items()}, "36", "001", "042", "00362")
+    assert not es_la_parcela(props, "15", "1", "42", "362")        # misma numeración en otra provincia
+    assert not es_la_parcela(props, "36", "1", "42", "363")
+    assert not es_la_parcela({"poligono": None}, "36", "1", "42", "362")
