@@ -248,16 +248,16 @@ def _catastro_datos(res, srv, cod, clave, reg) -> Optional[DatosCatastro]:
 def _sigpac(res, srv, cod, clave, d_sig, base, reg) -> ResultadoSigpac:
     f = res.finca
     destino = d_sig / f"{base}_sigpac.pdf"
-    cacheado = srv.cache.leer("sigpac_v2", clave)
-    en_cache_pdf = srv.cache.fichero("pdf_sigpac_v2", clave)
+    cacheado = srv.cache.leer("sigpac_v3", clave)
+    en_cache_pdf = srv.cache.fichero("pdf_sigpac_v3", clave)
     if cacheado and en_cache_pdf:
         try:
             r = ResultadoSigpac(**cacheado)
             shutil.copyfile(en_cache_pdf, destino)
             return r
         except (TypeError, ValueError, OSError):
-            srv.cache.borrar("sigpac_v2", clave)
-            srv.cache.borrar("pdf_sigpac_v2", clave)
+            srv.cache.borrar("sigpac_v3", clave)
+            srv.cache.borrar("pdf_sigpac_v3", clave)
     try:
         r = srv.sigpac.consultar(f, cod, res.catastro.refcat if res.catastro else "", destino)
     except Exception as e:  # noqa: BLE001
@@ -265,7 +265,7 @@ def _sigpac(res, srv, cod, clave, d_sig, base, reg) -> ResultadoSigpac:
         reg.error(f.etiqueta, f"SIGPAC: {e}")
         return ResultadoSigpac("ERROR", detalle=str(e))
     if r.estado == "ENCONTRADA" and r.refcat:  # sin referencia no es un éxito completo: se reintenta otro día
-        srv.cache.guardar("sigpac_v2", clave, asdict(r))
+        srv.cache.guardar("sigpac_v3", clave, asdict(r))
         if destino.exists():
-            srv.cache.guardar_fichero("pdf_sigpac_v2", clave, destino)
+            srv.cache.guardar_fichero("pdf_sigpac_v3", clave, destino)
     return r
