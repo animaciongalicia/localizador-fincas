@@ -148,7 +148,7 @@ def test_capas_del_registro_forestal_fajas_energia_e_incendios():
     assert [x["detalle"] for x in e] == ["Línea eléctrica", "Línea eléctrica prevista: LAT 132 Kv"]
     c = interpretar_identify("Afeccions_ConcentracionsParcelarias", {"results": [
         {"layerName": "Concentracións parcelarias acordo firme", "attributes": {"ZONA": "Dombodán", "FASE_ULT": "Rematada"}}]})
-    assert c[0]["detalle"] == "Zona Dombodán (rematada)"
+    assert c[0]["detalle"] == "Zona Dombodán (rematada)" and c[0]["organismo"] == "Consellería do Medio Rural"
     i = interpretar_identify("CAMPANHAS_INCENDIOS", {"results": [
         {"layerName": "x", "attributes": {"CODIGO": "2020150001", "DATA": "14/01/2020"}}]})
     j = interpretar_identify("Afeccions_outras_AreasIncendiadas", {"results": [

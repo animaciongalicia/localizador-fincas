@@ -63,7 +63,7 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
   que figuran como monte vecinal o público. `DatosInventario.monte_vecinal` sale de `MVMC_MP` (1 = sí, 0 = no; sale de la misma
   consulta). Las entradas de caché sin ese campo se vuelven a consultar solas.
 - **Bloque de corta CONSTRUIDO (2026-11-12)** con (a), (b) sin la capa legal y (c) de la lista siguiente: `aprovechamiento.py`,
-  16 peticiones por finca (~70 s), caché `aprovechamiento_v2` (solo consultas completas), `--sin-corta` lo omite. La hoja de la finca
+  16 peticiones por finca (~70 s), caché `aprovechamiento_v3` (solo consultas completas), `--sin-corta` lo omite. La hoja de la finca
   puede ocupar 2 páginas (`_Entrada.hoja` cuenta las reales para el índice). El informe NUNCA dice si se puede cortar: solo qué
   capa toca y a qué organismo corresponde. Probado con 7 parcelas reales (aguas, patrimonio, Camino de Santiago; resultados distintos).
   AÑADIDAS después y verificadas con una entidad real de cada capa (`CARPETAS` da la carpeta del servidor): `PBA/Afeccions_Forestal` (registro de

@@ -280,12 +280,12 @@ def _aprovechamiento(res: Resultado, srv: Servicios, clave: str, reg: Registro) 
     """Afecciones a una corta y dificultad de saca. Es un extra: si falla, se avisa y la finca sigue adelante."""
     f = res.finca
     d: Optional[DatosAprovechamiento] = None
-    cacheado = srv.cache.leer("aprovechamiento_v2", clave)
+    cacheado = srv.cache.leer("aprovechamiento_v3", clave)
     if cacheado:
         try:
             d = DatosAprovechamiento(**cacheado)
         except (TypeError, ValueError):
-            srv.cache.borrar("aprovechamiento_v2", clave)
+            srv.cache.borrar("aprovechamiento_v3", clave)
     if d is None:
         try:
             d = srv.aprovechamiento.consultar(res.catastro.refcat)
@@ -297,7 +297,7 @@ def _aprovechamiento(res: Resultado, srv: Servicios, clave: str, reg: Registro) 
             return
         d.consultado = _ahora()
         if not d.sin_consultar:              # solo se cachea la consulta completa
-            srv.cache.guardar("aprovechamiento_v2", clave, asdict(d))
+            srv.cache.guardar("aprovechamiento_v3", clave, asdict(d))
     res.aprovechamiento = d
     if d.afecciones:
         tipos = "; ".join(dict.fromkeys(a["tipo"].split(" (")[0] for a in d.afecciones))
