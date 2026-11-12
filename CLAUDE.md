@@ -11,13 +11,14 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 - **Clientes**: `~/Desktop/BUSQUEDAS FERRADOS-CLAUDE/<cliente-slug>/` con `entrada/` (listas del cliente) y
   `salidas/` (resultados). Un hilo por cliente, titulado con su nombre.
 - Lanzar un lote de un cliente (desde esta carpeta):
-  `.venv/bin/python -m fincas "<ruta>/entrada/lista.csv" --cliente "Nombre Cliente" --nombre lote-x [--simular|--prueba N]`
+  `.venv/bin/python -m fincas "<ruta>/entrada/lista.csv" --cliente "Nombre Cliente" --nombre lote-x`
+  Se lanza directamente, siempre en segundo plano (sin ventana), para que el usuario pueda seguir usando el ordenador.
   `--cliente` guarda en `<carpeta clientes>/<slug>/salidas/` (`FINCAS_CLIENTES` cambia la raíz).
 - Clientes hechos: ver la carpeta de clientes (los datos de clientes no se documentan en este repo).
 
 ## Reglas del encargo (no negociables)
-- **No lanzar ninguna consulta real (Catastro/SIGPAC) hasta que el usuario lo diga.** Para ver el plan sin
-  red: `python -m fincas fichero --simular`.
+- **La herramienta ya está validada: no hace falta simular ni probar antes de un lote.** Se lanza el lote
+  completo cuando el usuario da la lista. (`--simular` y `--prueba N` siguen existiendo, solo opcionales.)
 - No obtener titular ni valor catastral (datos protegidos).
 - No saltarse captchas: si la Sede pide uno, se registra y se resuelve a mano (`--visible`).
 - Pausa 3–5 s entre consultas reales, 2 reintentos, caché para relanzar sin repetir.
@@ -100,7 +101,8 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
   escala y norte, mapa de situación. Si falla, se usa la captura antigua. Caché de SIGPAC versionada (`sigpac_v2`).
 - Entrada: columna de referencia catastral rústica (20 car.) sustituye a polígono+parcela; filas sin datos se conservan en el Excel
   con `SIN DATOS` (no se buscan). Alias `nombre finca` -> paraje.
-- Ejecutar SIEMPRE sin `--visible` (headless, no molesta); `--visible` solo para captcha/calibrar.
+- Ejecutar SIEMPRE sin `--visible` (headless, no molesta; el usuario sigue trabajando en el ordenador).
+  `--visible` solo si hay un captcha o hay que depurar un cambio del visor, y solo a petición del usuario.
 
 ## PENDIENTE DE VERIFICAR
 1. Parcela inexistente en SIGPAC (monte/forestal): se supone que la etiqueta pol:parc nunca aparece y se marca
