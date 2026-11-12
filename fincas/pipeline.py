@@ -15,6 +15,7 @@ from .cache import Cache
 from .catastro import CatastroError, ParcelaNoEncontrada, RequiereCaptcha
 from .codigos import Ambiguo, NoEncontrado
 from .excel import escribir_excel
+from .informe import escribir_informe
 from .modelos import Codigos, DatosCatastro, Finca, Resultado, ResultadoSigpac
 from .registro import Registro
 from .sigpac import coincide_refcat
@@ -29,6 +30,7 @@ class Opciones:
     prueba: Optional[int] = None
     usar_sigpac: bool = True
     usar_pdf_catastro: bool = True
+    informe: bool = True   # informe.pdf único con resumen, índice y todas las fichas
     fecha: Optional[str] = None
 
 
@@ -94,7 +96,7 @@ def ejecutar(fincas: Sequence[Finca], op: Opciones, srv: Servicios, reg: Registr
     resultados: List[Resultado] = []
 
     def _volcar() -> None:  # Excel + registro a disco; un fallo aquí no debe tumbar el lote
-        for fn in (lambda: escribir_excel(resultados, raiz / "resultados.xlsx"),
+        for fn in (lambda: escribir_excel(resultados, raiz / "resultados.xlsx", op.nombre_trabajo),
                    lambda: reg.escribir(raiz / "registro.txt")):
             try:
                 fn()
@@ -119,6 +121,13 @@ def ejecutar(fincas: Sequence[Finca], op: Opciones, srv: Servicios, reg: Registr
                 _volcar()  # copia de seguridad cada 5 parcelas (corte de luz, cierre de terminal...)
     finally:
         _volcar()
+
+    if op.informe:
+        try:
+            if escribir_informe(resultados, raiz, op.nombre_trabajo, log=reg.info):
+                reg.info("Informe: informe.pdf generado")
+        except Exception as e:  # noqa: BLE001  el informe es un extra: no debe impedir el ZIP
+            reg.info(f"No se pudo generar informe.pdf ({e})")
 
     zip_base = raiz.parent / raiz.name
     shutil.make_archive(str(zip_base), "zip", root_dir=raiz.parent, base_dir=raiz.name)

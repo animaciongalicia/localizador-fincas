@@ -43,7 +43,7 @@ rellena hacia abajo. Un mismo fichero puede mezclar municipios. Ejemplo: `tests/
 ```
 
 Opciones: `--cliente` (salidas en `~/Desktop/BUSQUEDAS FERRADOS-CLAUDE/<cliente>/salidas/`), `--nombre`, `--municipio`, `--provincia`, `--prueba N`, `--salidas DIR`, `--simular`, `--sin-sigpac`,
-`--sin-pdf-catastro`, `--sin-cache`, `--visible`, `--pausa-min`, `--pausa-max`.
+`--sin-pdf-catastro`, `--sin-cache`, `--sin-informe`, `--visible`, `--pausa-min`, `--pausa-max`.
 
 ## Salida
 ```
@@ -65,3 +65,6 @@ salidas/2026-11-11_cliente-perez.zip
 ```bash
 .venv/bin/python -m pytest -q
 ```
+
+## Salida
+`resultados.xlsx` (hoja **Resumen** con totales y hoja **Fincas** con enlaces a cada PDF y a la Sede del Catastro), `pdf_catastro/`, `pdf_sigpac/`, `registro.txt`, **`informe.pdf`** (portada con resumen, índice y todas las fichas, con marcadores) y el ZIP.

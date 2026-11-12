@@ -50,12 +50,12 @@ def test_pipeline_completo(tmp_path):
     assert (raiz / "pdf_catastro" / "vilanova-de-arousa_poligono05_parcela123_catastro.pdf").exists()
     assert (raiz / "pdf_sigpac" / "vilanova-de-arousa_poligono05_parcela123_sigpac.pdf").exists()
 
-    ws = load_workbook(raiz / "resultados.xlsx").active
+    ws = load_workbook(raiz / "resultados.xlsx")["Fincas"]
     filas = list(ws.iter_rows(min_row=2, values_only=True))
     assert len(filas) == 5                                   # nada se descarta
-    assert filas[0][9] == "OK" and filas[0][11] == "SI"
+    assert filas[0][9] == "OK" and filas[0][12] == "SI"
     assert filas[1][9] == "OK"                                # 500,1 x 5 ~ 2500
-    assert filas[2][11] == "NO ENCONTRADA"                    # parcela 7: SIGPAC no la tiene
+    assert filas[2][12] == "NO ENCONTRADA"                    # parcela 7: SIGPAC no la tiene
     assert not filas[3][5]                                # parcela 45: Catastro falla, continúa
     assert "no encontrada" in open(raiz / "registro.txt", encoding="utf-8").read().lower()
     assert ws.cell(row=3, column=1).fill.fgColor.rgb.endswith("FFF2CC")   # cuota 1/5 resaltada

@@ -34,13 +34,17 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 | `catastro.py` | Servicios XML (provincias, municipios, `Consulta_DNPPP`) + PDF de la Sede. Parsers puros |
 | `sigpac.py` | Visor SIGPAC/SIXPAC con Playwright (búsqueda, ref. catastral, ficha PDF) |
 | `plano.py` | Plano de la ficha SIXPAC: geometría + ortofoto de los servicios del visor, dibujado en SVG (funciones puras testeables) |
-| `excel.py` | `resultados.xlsx` |
+| `excel.py` | `resultados.xlsx`: hoja Resumen + hoja Fincas (enlaces a PDF y a la Sede, detalle del control) |
+| `resumen.py` | Cifras del lote (totales, por municipio/uso, controles). Puro, sin red |
+| `informe.py` | `informe.pdf`: portada+resumen, índice y todas las fichas con marcadores. Une PDF ya descargados (pypdf + reportlab) |
 | `superficie.py` | Control de superficie (margen 10 %, cuota) |
 | `pipeline.py` | Orquestación; servicios inyectados (testeable sin red) |
 | `red.py` / `navegador.py` / `cache.py` / `registro.py` | pausas+reintentos+HTTP / Chromium compartido / caché / registro.txt |
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- `informe.pdf` se genera al final de cada lote (`--sin-informe` lo omite). Pesa lo que suman los PDF (~60 MB con 31 fincas).
+  reportlab fijado a <5 (la 5.x exige Python 3.10; el proyecto es 3.9).
 - Python 3.9 compatible (`from __future__ import annotations`). Entorno: `.venv`.
 - Servicios inyectados en `pipeline.ejecutar` → los tests usan dobles; los tests no tocan red.
 - Caché global en `.cache/` (clave = prov+muni INE + polígono + parcela). Solo se cachean éxitos; los fallos

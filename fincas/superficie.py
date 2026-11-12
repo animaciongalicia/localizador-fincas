@@ -7,6 +7,27 @@ from . import config
 from .modelos import Cuota
 
 
+def _m2(v: float) -> str:
+    return f"{v:,.0f}".replace(",", ".") + " m²"
+
+
+def explicar_control(catastral: Optional[float], cliente: Optional[float], cuota: Cuota,
+                     control: str) -> str:
+    """Texto breve que explica un control distinto de OK (vacío si es OK). Solo informa."""
+    if control == "OK":
+        return ""
+    if catastral is None:
+        return "Sin superficie catastral: no se pudo comparar"
+    if control == "SIN DATO CLIENTE" or cliente is None or cliente <= 0:
+        return f"El cliente no indicó superficie (Catastro: {_m2(catastral)})"
+    dif = (catastral - cliente) / cliente * 100
+    txt = f"Catastro {_m2(catastral)} vs cliente {_m2(cliente)} ({dif:+.0f} %)"
+    if cuota.valida and not cuota.completa and cuota.denominador > 1 and cuota.numerador > 0:
+        total = cliente * cuota.denominador / cuota.numerador
+        txt += f"; con cuota {cuota.texto} la finca entera serían {_m2(total)}"
+    return txt
+
+
 def control_superficie(catastral: Optional[float], cliente: Optional[float], cuota: Cuota,
                        margen: float = config.MARGEN_SUPERFICIE) -> str:
     """'OK' si la sup. catastral coincide (±margen) con la del cliente o con
