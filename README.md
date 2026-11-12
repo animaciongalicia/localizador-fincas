@@ -26,14 +26,14 @@ rellena hacia abajo. Un mismo fichero puede mezclar municipios. Ejemplo: `tests/
 
 ## Uso
 ```bash
-# 1. Ver el plan sin hacer ninguna consulta
+# Ejecución completa (siempre en segundo plano, sin ventana)
+.venv/bin/python -m fincas lista.xlsx --nombre cliente-perez
+
+# Opcional: ver el plan sin hacer ninguna consulta
 .venv/bin/python -m fincas lista.xlsx --simular
 
-# 2. Prueba con las 2 primeras parcelas (con navegador visible para calibrar)
-.venv/bin/python -m fincas lista.xlsx --nombre cliente-perez --prueba 2 --visible
-
-# 3. Ejecución completa
-.venv/bin/python -m fincas lista.xlsx --nombre cliente-perez
+# Opcional: solo las N primeras parcelas
+.venv/bin/python -m fincas lista.xlsx --nombre cliente-perez --prueba 2
 
 # Fichero sin municipio/provincia en columnas
 .venv/bin/python -m fincas lista.docx --municipio "Vilanova de Arousa" --provincia Pontevedra
