@@ -73,3 +73,16 @@ class ClienteHttp:
             return r
 
         return reintentar(_una, self.limitador, self.reintentos, no_reintentar=(ErrorCliente,), log=self.log)
+
+    def post(self, url: str, data: Optional[dict] = None):
+        """POST de formulario (consultas con geometría, que no caben en una URL). Mismas pausas y reintentos."""
+        def _una():
+            r = self._s.post(url, data=data, timeout=config.TIMEOUT_HTTP_S)
+            if r.status_code in (429, 503):
+                time.sleep(15)
+            if 400 <= r.status_code < 500 and r.status_code not in (408, 429):
+                raise ErrorCliente(f"HTTP {r.status_code} en {url}")
+            r.raise_for_status()
+            return r
+
+        return reintentar(_una, self.limitador, self.reintentos, no_reintentar=(ErrorCliente,), log=self.log)

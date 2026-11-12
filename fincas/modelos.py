@@ -90,6 +90,17 @@ class DatosInventario:
     recintos: int = 0
     historico: Dict[str, Dict[str, float]] = field(default_factory=dict)   # '2022' -> coberturas
     consultado: str = ""                # fecha y hora de la consulta (ISO, minutos)
+    monte_vecinal: Optional[bool] = None   # el inventario lo marca como monte vecinal o público (None = no consta)
+
+
+@dataclass
+class DatosAprovechamiento:
+    """Condicionantes de una corta de madera: afecciones sectoriales que toca la parcela y dificultad de saca."""
+    afecciones: List[Dict[str, str]] = field(default_factory=list)   # {'tipo', 'detalle', 'organismo'}
+    sin_consultar: List[str] = field(default_factory=list)           # capas que fallaron: NO se dan por limpias
+    saca: Dict[str, float] = field(default_factory=dict)             # 'Muy desfavorable' -> fracción de la parcela
+    integrada: Dict[str, float] = field(default_factory=dict)        # integración técnica y legal (Xunta)
+    consultado: str = ""
 
 
 @dataclass
@@ -104,6 +115,7 @@ class Resultado:
     inventario: Optional[DatosInventario] = None
     contraste: str = ""         # cultivo Catastro vs inventario: COHERENTE | REVISAR | NO COMPARABLE | SIN DATO
     contraste_detalle: str = ""
+    aprovechamiento: Optional[DatosAprovechamiento] = None   # condicionantes de corta (solo Galicia)
     avisos: List[str] = field(default_factory=list)
     errores: List[str] = field(default_factory=list)
 

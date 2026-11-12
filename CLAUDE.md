@@ -39,6 +39,7 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 | `mapa.py` | Mapa de conjunto de todas las fincas (solo Galicia): 1 petición `parcelabox` por finca (caché `bbox_sixpac`) + ortofoto SIXPAC; distancias, grupos cercanos (≤2,5 km encadenadas, máx. 8 mapas). Geometría pura + `ServicioMapa` con red inyectable |
 | `informe.py` | `informe.pdf`: portada+resumen, índice y todas las fichas con marcadores. Une PDF ya descargados (pypdf + reportlab) |
 | `inventario.py` | Inventario Forestal Continuo de Galicia (Xunta): cobertura ACTUAL por referencia catastral y contraste con el cultivo del Catastro. Parsers puros + `ServicioInventario` con HTTP inyectable |
+| `aprovechamiento.py` | Condicionantes de una corta (solo Galicia): afecciones sectoriales que toca la parcela (capas VISAF de la Xunta) con su organismo, y dificultad de saca (restricciones técnicas INVEGA). Parsers puros + `ServicioAprovechamiento` con HTTP inyectable |
 | `superficie.py` | Control de superficie (margen 10 %, cuota) |
 | `pipeline.py` | Orquestación; servicios inyectados (testeable sin red) |
 | `red.py` / `navegador.py` / `cache.py` / `registro.py` | pausas+reintentos+HTTP / Chromium compartido / caché / registro.txt |
@@ -57,6 +58,40 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
   1 consulta más por finca (~4 s con la pausa), caché `inventario`. `--sin-inventario` lo omite. Si falla, aviso y se sigue.
   El mismo servidor tiene más capas sin usar todavía: especies (`InvegaUsosSueloEspecies`), densidad, restricciones legales y
   técnicas, y `ParcelasCatastrais/SIXPAC_2022/MapServer/1/query` (búsqueda de parcela por prov/mun/pol/parc sin visor).
+- **Cotejo destacado y monte vecinal (2026-11-12).** `informe.pdf` lleva tras el índice la página "Cotejo con el Inventario
+  Forestal Continuo de Galicia": tabla de fincas con diferencias (Catastro frente a inventario), coherentes, no comparables y las
+  que figuran como monte vecinal o público. `DatosInventario.monte_vecinal` sale de `MVMC_MP` (1 = sí, 0 = no; sale de la misma
+  consulta). Las entradas de caché sin ese campo se vuelven a consultar solas.
+- **Bloque de corta CONSTRUIDO (2026-11-12)** con (a), (b) sin la capa legal y (c) de la lista siguiente: `aprovechamiento.py`,
+  16 peticiones por finca (~70 s), caché `aprovechamiento_v2` (solo consultas completas), `--sin-corta` lo omite. La hoja de la finca
+  puede ocupar 2 páginas (`_Entrada.hoja` cuenta las reales para el índice). El informe NUNCA dice si se puede cortar: solo qué
+  capa toca y a qué organismo corresponde. Probado con 7 parcelas reales (aguas, patrimonio, Camino de Santiago; resultados distintos).
+  AÑADIDAS después y verificadas con una entidad real de cada capa (`CARPETAS` da la carpeta del servidor): `PBA/Afeccions_Forestal` (registro de
+  montes vecinales con nombre, utilidad pública, montes ordenados, masas consolidadas de frondosas autóctonas),
+  `PBA/Afeccions_outras_Forestal_Faixas` (faja de protección 50 m), `PBA/Afeccions_Enerxia` (líneas eléctricas, gasoducto),
+  `PBA/Afeccions_ConcentracionsParcelarias`, `SIRFOG/CAMPANHAS_INCENDIOS` (incendios 2020-2021 con fecha) y
+  `PBA/Afeccions_outras_AreasIncendiadas` (2010-2020, año en `CODIGO[:4]`; el mismo incendio en las dos se deja una vez).
+  identify devuelve ALIAS de campo (p. ej. `confederac`, `Concello`): comparar sin mayúsculas (`_atr`). La capa de fajas no
+  devuelve geometría en `query` (demasiado grande) pero `identify` sí funciona. Sin añadir: `PBA/Afeccions_outras_ConcesionsMineiras`. Descartada `MUAGA/Actual_Galicia` (contradice al inventario 2024: más antigua).
+- **Investigado y VERIFICADO con parcela real (2026-11-12)**:
+  (a) Geometría de la parcela: la misma consulta de `InvegaRecintos` con `returnGeometry=true` (EPSG:25829).
+  (b) Restricciones a la corta (raster 10 m): `INVEGA/InvegaRestriccionesLegais|Tecnicas|TecLeg/ImageServer/computeHistograms`
+  (POST, `geometry`=polígono, `geometryType=esriGeometryPolygon`) devuelve el recuento de píxeles por clase dentro de la parcela.
+  TecLeg: 1 favorable, 2 intermedio, 3 desfavorable. Técnicas: 1 favorable … 4 muy desfavorable. Legales: 0–6, significado SIN
+  confirmar (falta leer el informe explicativo del centro de descargas de INVEGA): no rotular hasta saberlo.
+  (c) Afecciones sectoriales (las del visor de aprovechamientos): `VISAF/{Augas,Estradas,Costas_DPMT,PatrimonioCultural,
+  PatrimonioNatural_autorizacion_declaracion,CaminosSantiago,ZonasDemarcadas}/MapServer/identify` (POST, polígono, `layers=all`,
+  `tolerance=0`, `mapExtent`, `imageDisplay`) → capas que toca la parcela. 7 peticiones por finca.
+  (d) Especies: `InvegaUsosSueloEspecies` es piloto y solo distingue pinos (21 silvestre, 26 pinaster, 28 radiata); el campo
+  `ESPECIE` de recintos viene a 0. `Invega_DB`/`Invega_MOE` son densidad básica y elasticidad de la MADERA, no pies/ha.
+  (e) Altura LiDAR: el IGN NO la sirve por WCS/API (solo MDT). Hay que descargar del CNIG el MDSnV 2,5 m (1ª/2ª cobertura) o
+  restar MDS−MDT 50 cm de la 3ª cobertura (Galicia ya publicada), por hojas, y leer GeoTIFF. Sin resolver la descarga automática.
+  (e2) Altura por servicio, VERIFICADO (lo usa Iberpix): `https://wms-mapa-lidar.idee.es/lidar` WMS 1.3.0 GetFeatureInfo,
+  `layers=query_layers=EL.GridCoverage`, `crs=EPSG:25829`, `info_format=text/plain` → capa `gfi-vegetacion-h30`, `value_0` =
+  altura de la vegetación en metros en ese punto. Un punto por petición (GetMap en tiff devuelve imagen pintada, no valores).
+  OJO: es la 1ª cobertura PNOA-LiDAR (malla 2,5 m, vuelo antiguo, fecha por zona sin confirmar): en eucalipto puede no valer.
+  (f) Régimen de cortas (declaración responsable MR604R / autorización, Decreto 73/2020, Ley 7/2012): NO redactar reglas en el
+  informe sin validarlas; solo afecciones detectadas + organismo + remisión a Medio Rural.
 - **Dossier con marca (2026-11-12).** `informe.pdf` = portada (marca `ferrados.com` en verde oscuro, cliente, expediente, fecha) +
   resumen + índice + metodología y aviso legal + mapa + por finca una HOJA propia (identificación, comprobaciones, incidencias y
   TRAZABILIDAD: fuente, fecha y hora de cada consulta, enlace a la Sede) y sus fichas. Cabecera y pie en TODAS las páginas (las fichas

@@ -9,6 +9,7 @@ VERIFICADO 2026-11-12 con parcelas reales de Ortigueira (pol. 34):
 - Un registro por recinto y por edición (ADM_FECINI = 1 de enero del año). Una parcela puede tener varios recintos.
 - Columnas S01..S12 y derivadas (S41.., S51.., S111.., S121..): m² de cada cobertura; su suma = SUTIL.
   Significado tomado de los textos del propio visor (appdata/locales/es.json).
+- MVMC_MP: 1 = "Propiedad de Monte Vecinal/Monte Público" (sí/no en el visor); 0 = no.
 - Vm3 / Vm3_ha: el visor las rotula "estimaciones provisionales pendientes de validar"; suelen venir vacías.
 - Solo Galicia. Es teledetección (píxel ~1 m agregado por recinto): orientativo, no sustituye una visita.
 
@@ -100,11 +101,13 @@ def interpretar(atributos: Sequence[dict]) -> Optional[DatosInventario]:
     if not cob:
         return None
     vol = sum(_num(a.get("Vm3")) for a in recintos)
+    marcas = [a.get("MVMC_MP") for a in recintos if a.get("MVMC_MP") is not None]
     usos = list(dict.fromkeys(str(a.get("USO") or "").strip() for a in recintos if a.get("USO")))
     return DatosInventario(
         anio=ultimo, superficie_m2=round(sum(_num(a.get("SUTIL")) for a in recintos), 1),
         coberturas=cob, dominante=max(cob, key=lambda k: cob[k]), uso="; ".join(usos),
-        volumen_m3=round(vol, 1) if vol > 0 else None, recintos=len(recintos), historico=historico)
+        volumen_m3=round(vol, 1) if vol > 0 else None, recintos=len(recintos), historico=historico,
+        monte_vecinal=any(_num(m) == 1 for m in marcas) if marcas else None)
 
 
 def _total(d: DatosInventario) -> float:

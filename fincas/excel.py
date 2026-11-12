@@ -13,6 +13,7 @@ from openpyxl.utils import get_column_letter
 
 from . import config
 from .modelos import Meta, Resultado, fecha_legible
+from .aprovechamiento import resumen_afecciones, texto_clases
 from .inventario import evolucion, texto_reparto
 from .mapa import Conjunto, formato_dist, matriz_distancias
 from .resumen import calcular, formato_ha, formato_m2
@@ -26,6 +27,7 @@ COLUMNAS = [
     ("ref. catastral SIGPAC", 22), ("coincide con Catastro", 14),
     ("cobertura actual (inventario forestal)", 18), ("detalle cobertura", 48), ("edición inventario", 10),
     ("contraste con cultivo catastral", 15),
+    ("afecciones para una corta", 30), ("organismos", 40), ("dificultad de saca", 22),
     ("PDF Catastro", 36), ("PDF SIGPAC", 36), ("ficha web Catastro", 18),
     ("consulta Catastro", 17), ("consulta SIGPAC", 17), ("notas", 50),
 ]
@@ -51,12 +53,13 @@ def _fila(r: Resultado) -> List[object]:
     notas = " | ".join(x for x in [f.notas, *r.avisos, *r.errores] if x)
     detalle = explicar_control(c.superficie_m2 if c else None, f.superficie_m2, f.cuota,
                                r.control_superficie)
-    inv = r.inventario
+    inv, ap = r.inventario, r.aprovechamiento
     det_inv = ""
     if inv:
         det_inv = " | ".join(x for x in [
             texto_reparto(inv), f"Evolución: {evolucion(inv)}" if evolucion(inv) else "",
             f"Volumen estimado provisional: {inv.volumen_m3:,.0f} m³".replace(",", ".") if inv.volumen_m3 else "",
+            "Figura como monte vecinal o público en el inventario" if inv.monte_vecinal else "",
             r.contraste_detalle] if x)
     return [_seguro(x) for x in [
         f.municipio, f.paraje or (c.paraje if c else ""), f.poligono, f.parcela, f.cuota.texto,
@@ -64,6 +67,9 @@ def _fila(r: Resultado) -> List[object]:
         f.superficie_m2, r.control_superficie, detalle,
         s.refcat if s else "", r.coincide,
         inv.dominante if inv else "", det_inv, inv.anio if inv else None, r.contraste,
+        resumen_afecciones(ap) if ap else "",
+        "; ".join(dict.fromkeys(a["organismo"] for a in ap.afecciones)) if ap else "",
+        texto_clases(ap.saca) if ap else "",
         r.pdf_catastro, s.pdf if s else "", "Abrir en la Sede" if _enlace_sede(r) else "",
         fecha_legible(c.consultado) if c else "", fecha_legible(s.consultado) if s else "", notas,
     ]]
