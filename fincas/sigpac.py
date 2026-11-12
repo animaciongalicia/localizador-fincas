@@ -65,11 +65,18 @@ def puntos_busqueda(cx: int, cy: int) -> List[Tuple[int, int]]:
     return pts
 
 
-def etiqueta_coincide(texto: str, poligono: str, parcela: str) -> Optional[float]:
-    """Si el texto trae la etiqueta de la parcela buscada devuelve su superficie en m², si no None."""
+def etiqueta_coincide(texto: str, poligono: str, parcela: str,
+                      provincia: Optional[str] = None, municipio: Optional[str] = None) -> Optional[float]:
+    """Si el texto trae la etiqueta de la parcela buscada devuelve su superficie en m², si no None.
+    Con provincia/municipio se exige que también coincidan (junto a un límite municipal puede haber
+    otra parcela con el mismo polígono:parcela)."""
     if not (poligono.isdigit() and parcela.isdigit()):
         return None
     for m in _RE_ETIQUETA.finditer(texto):
+        if provincia is not None and str(provincia).isdigit() and int(m.group(1)) != int(provincia):
+            continue
+        if municipio is not None and str(municipio).isdigit() and int(m.group(2)) != int(municipio):
+            continue
         if int(m.group(5)) == int(poligono) and int(m.group(6)) == int(parcela):
             valor = float(m.group(7).replace(",", "."))
             return valor * 10_000 if m.group(8) == "ha" else valor  # el visor da "2.0601 ha" en las grandes
@@ -145,7 +152,7 @@ class ServicioSigpac:
             pg.wait_for_timeout(1_000)
 
             # 4) localizar un punto dentro de la parcela (etiqueta pol:parc) y comprobarla
-            punto, sup = self._punto_en_parcela(pg, finca)
+            punto, sup = self._punto_en_parcela(pg, finca, codigos)
             if punto is None and not ultimo:
                 # puede ser lentitud del visor y no inexistencia: una segunda búsqueda antes de darla por perdida
                 raise RuntimeError("el visor no localizó la parcela; se repite la búsqueda")
@@ -165,7 +172,8 @@ class ServicioSigpac:
             if not pdf_ok:
                 det += " | PDF no generado"
             return ResultadoSigpac("ENCONTRADA", refcat=refcat, pdf=destino_pdf.name if pdf_ok else "",
-                                   detalle=det)
+                                   detalle=det,
+                                   respaldo=bool(pdf_ok and plano is None and codigos.cod_provincia in GALICIA))
         finally:
             pg.close()
 
@@ -241,12 +249,15 @@ class ServicioSigpac:
         pg.click(item, timeout=10_000)
         pg.wait_for_timeout(600)
 
-    def _punto_en_parcela(self, pg, finca: Finca) -> Tuple[Optional[Tuple[int, int]], Optional[float]]:
+    def _punto_en_parcela(self, pg, finca: Finca,
+                          codigos: Optional[Codigos] = None) -> Tuple[Optional[Tuple[int, int]], Optional[float]]:
         self._menu(pg, MENU_PARCELA)
         for x, y in puntos_busqueda(*COORD["centro_mapa"]):
             pg.mouse.click(x, y)
             pg.wait_for_timeout(1_200)
-            sup = etiqueta_coincide(pg.inner_text("body"), finca.poligono, finca.parcela)
+            sup = etiqueta_coincide(pg.inner_text("body"), finca.poligono, finca.parcela,
+                                    codigos.cod_provincia if codigos else None,
+                                    codigos.cod_municipio_catastro if codigos else None)
             if sup is not None:
                 return (x, y), sup
         return None, None

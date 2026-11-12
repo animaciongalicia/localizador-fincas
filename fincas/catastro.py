@@ -5,8 +5,8 @@ Dos partes:
   2. PDF de la consulta descriptiva y gráfica en la Sede Electrónica (directo o con Playwright).
 
 Los parsers son funciones puras (texto XML -> objetos) para poder probarlos sin red.
-NOTA: el esquema XML que se asume aquí (etiquetas cp, cm, cmc, nm, pc1, pc2, ssp, dcc...) está
-escrito de memoria y se debe contrastar con la primera respuesta real (--prueba 1).
+El esquema XML (etiquetas cp, cm, cmc, nm, pc1, pc2, ssp, dcc...) está contrastado con respuestas
+reales, guardadas como fixtures en tests/fixtures/*_real.xml.
 """
 from __future__ import annotations
 

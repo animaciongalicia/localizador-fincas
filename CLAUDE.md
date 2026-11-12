@@ -44,6 +44,13 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- **Revisión de código 2026-11-12** (PR "revisión entrada y robustez"). Entrada: separador CSV por recuento (el Sniffer fallaba
+  con una línea de título), cabeceras por palabra clave ('Polígono nº', 'Superficie parcela', '% propiedad'), superficie en ha/áreas
+  convertida a m² con aviso, ferrados/fanegas SIN conversión (varía por concello: no se inventa), filas sin municipio/provincia se
+  conservan como SIN DATOS (antes se perdían), parcelas repetidas y columnas no reconocidas se avisan, cuotas 'mitad'/'0,5'/'50' bajo
+  cabecera '%'; '3/2' no es cuota. Visor: la etiqueta exige también provincia y municipio. Ficha de respaldo (captura con relleno) en
+  Galicia: aviso en registro y NO se cachea. Municipio resuelto por aproximación: aviso. Catastro por https (verificado).
+- Riesgos conocidos sin resolver: ver "PENDIENTE" abajo.
 - **Teselas de contornos de SIXPAC: `parcela@3857/{zoom=15}.{x}.{y}.geojson`. El primer número es el ZOOM, no la provincia.**
   Con la provincia solo funcionaba A Coruña (15) y el resto de Galicia caía a la captura del visor (parcela rellena de azul, no vale:
   tapa la ortofoto). Corregido 2026-11-12; caché de fichas subida a `sigpac_v3` para regenerar las fichas azules.
@@ -117,6 +124,11 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
   `--visible` solo si hay un captcha o hay que depurar un cambio del visor, y solo a petición del usuario.
 
 ## PENDIENTE DE VERIFICAR
+0. De la revisión 2026-11-12: (a) la caché no caduca ni guarda la fecha de consulta: un informe puede llevar fecha de hoy con datos
+   de días atrás (necesario para la trazabilidad del dossier); (b) el ZIP duplica peso (informe.pdf + PDF sueltos, ~120 MB con 31
+   fincas); (c) fuera de Galicia la ficha SIGPAC es siempre la captura con relleno (no hay plano de contorno); (d) no se compara la
+   superficie de SIXPAC con la del Catastro; (e) 'por uso' agrupa por la cadena de cultivos, no por subparcela; (f) la superficie
+   total no aplica la cuota del cliente; (g) esperas fijas en el visor (~1 min/parcela); (h) '1,234' se lee como 1,234 m² (se avisa).
 1. Parcela inexistente en SIGPAC (monte/forestal): se supone que la etiqueta pol:parc nunca aparece y se marca
    NO ENCONTRADA tras ~25 clics (lento); comprobar con un caso real.
 2. Polígonos/parcelas con letras (no numéricos) se marcan NO ENCONTRADA en SIGPAC sin consultar.
