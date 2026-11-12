@@ -71,19 +71,45 @@ def test_informe_une_pdfs_con_indice_y_marcadores(tmp_path):
         r.sigpac = ResultadoSigpac("ENCONTRADA", refcat=r.catastro.refcat,
                                    pdf=f"{r.finca.nombre_base}_sigpac.pdf")
         _pdf(tmp_path / "pdf_sigpac" / r.sigpac.pdf, 2)
-    # la tercera finca no tiene ninguna ficha: debe aparecer en el índice pero no aportar páginas
-    ruta = escribir_informe(rs, tmp_path, "Lote de prueba", fecha="01/01/2026")
+    # la tercera finca no tiene ninguna ficha: lleva igualmente su hoja (con la incidencia), sin documentos
+    from fincas.modelos import Meta
+    ruta = escribir_informe(rs, tmp_path, "Lote de prueba", fecha="01/01/2026",
+                            meta=Meta(cliente="Cliente Uno", expediente="FER-2026-0007"))
     assert ruta == tmp_path / "informe.pdf" and ruta.exists()
     lector = PdfReader(str(ruta))
-    delanteras = len(lector.pages) - 2 * (1 + 2)
-    assert delanteras >= 2                                          # portada + índice
+    por_finca = [1 + 1 + 2, 1 + 1 + 2, 1]                      # hoja propia + Catastro + SIXPAC
+    delanteras = len(lector.pages) - sum(por_finca)
+    assert delanteras >= 3                                          # portada + índice + metodología
     titulos = [o.title for o in lector.outline]
-    assert titulos == ["Resumen e índice", "1. Ortigueira pol 34 parc 175", "2. Ortigueira pol 34 parc 176"]
-    # el marcador de la finca 1 apunta a su primera página: justo después de la parte frontal
+    assert titulos == ["Resumen e índice", "1. Ortigueira pol 34 parc 175", "2. Ortigueira pol 34 parc 176",
+                       "3. Ortigueira pol 34 parc 999"]
     assert lector.get_destination_page_number(lector.outline[1]) == delanteras
-    texto_indice = "\n".join(lector.pages[i].extract_text() for i in range(delanteras))
-    assert "Lote de prueba" in texto_indice and "999" in texto_indice
-    assert f"{delanteras + 1}" in texto_indice                      # nº de página de la finca 1
+    assert lector.get_destination_page_number(lector.outline[2]) == delanteras + 4
+    frente = "\n".join(lector.pages[i].extract_text() for i in range(delanteras))
+    assert "ferrados.com" in frente and "Cliente Uno" in frente and "FER-2026-0007" in frente
+    assert "Aviso legal" in frente and "no es una certificación" in frente.lower().replace("\n", " ")
+    # todas las páginas, también las fichas externas, llevan marca, expediente, pie y numeración
+    total = len(lector.pages)
+    for i, pag in enumerate(lector.pages, start=1):
+        t = pag.extract_text()
+        assert "ferrados.com" in t and "FER-2026-0007" in t, f"sin cabecera en la página {i}"
+        assert "Inversiones SHISO SL" in t and f"Página {i} de {total}" in t, f"sin pie en la página {i}"
+    hoja = lector.pages[delanteras].extract_text()
+    assert "Trazabilidad de las consultas" in hoja and "15062A03400175" in hoja
+    assert "No se obtuvo ningún documento" in lector.pages[total - 1].extract_text()
+
+
+def test_hoja_de_finca_muestra_fecha_de_consulta_e_incidencias(tmp_path):
+    r = _res(sup=799.0, cliente=159.0, control="REVISAR")
+    r.catastro.consultado = "2026-11-12T09:01"
+    r.avisos.append("aviso de prueba")
+    r.pdf_catastro = "a_catastro.pdf"
+    _pdf(tmp_path / "pdf_catastro" / r.pdf_catastro, 1)
+    r.sigpac = ResultadoSigpac("ENCONTRADA", refcat=r.catastro.refcat, pdf="", consultado="2026-11-10T18:30")
+    lector = PdfReader(str(escribir_informe([r], tmp_path, "L")))
+    hoja = next(p.extract_text() for p in lector.pages if "Trazabilidad" in p.extract_text())
+    assert "12/11/2026 09:01" in hoja and "10/11/2026 18:30" in hoja
+    assert "aviso de prueba" in hoja and "+403 %" in hoja and "SIXPAC" in hoja
 
 
 def test_informe_omite_pdf_corrupto_y_sin_pdf(tmp_path):

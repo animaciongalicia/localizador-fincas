@@ -27,6 +27,14 @@ class Cache:
             return None
         return datos if isinstance(datos, dict) else None
 
+    def fecha(self, ns: str, clave: str) -> str:
+        """Cuándo se guardó ese dato (ISO, minutos): es la fecha real de la consulta. '' si no existe."""
+        from datetime import datetime
+        try:
+            return datetime.fromtimestamp(self._ruta(ns, clave, ".json").stat().st_mtime).isoformat(timespec="minutes")
+        except OSError:
+            return ""
+
     def borrar(self, ns: str, clave: str) -> None:
         for ext in (".json", ".pdf"):
             try:
