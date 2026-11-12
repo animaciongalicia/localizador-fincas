@@ -30,6 +30,8 @@ def _parser() -> argparse.ArgumentParser:
                    help="solo lee y valida la entrada y muestra el plan. NO hace ninguna consulta.")
     p.add_argument("--sin-sigpac", action="store_true", help="saltar el paso SIGPAC")
     p.add_argument("--sin-pdf-catastro", action="store_true", help="no descargar el PDF del Catastro")
+    p.add_argument("--sin-inventario", action="store_true",
+                   help="no consultar el Inventario Forestal Continuo de Galicia (cobertura actual)")
     p.add_argument("--sin-mapa", action="store_true", help="no generar el mapa de conjunto de las fincas")
     p.add_argument("--sin-informe", action="store_true", help="no generar informe.pdf (resumen + todas las fichas)")
     p.add_argument("--sin-cache", action="store_true", help="ignorar la caché (vuelve a consultar)")
@@ -91,7 +93,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     op = Opciones(nombre_trabajo=args.nombre or Path(args.entrada).stem, salidas=salidas,
                   prueba=args.prueba, usar_sigpac=not args.sin_sigpac,
                   usar_pdf_catastro=not args.sin_pdf_catastro,
-                  informe=not args.sin_informe, mapa=not args.sin_mapa)
+                  informe=not args.sin_informe, mapa=not args.sin_mapa,
+                  inventario=not args.sin_inventario)
     if args.simular:
         _plan(fincas[: args.prueba] if args.prueba else fincas, problemas, op)
         return 0
@@ -132,7 +135,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         sigpac = None if args.sin_sigpac else ServicioSigpac(nav, limitador, log=reg.info)
         from .mapa import ServicioMapa
         mapa = None if (args.sin_mapa or args.sin_sigpac) else ServicioMapa(nav, cache, log=reg.info)
-        srv = Servicios(ResolutorCodigos(catastro, cache), catastro, sigpac, cache, mapa=mapa)
+        from .inventario import ServicioInventario
+        inventario = None if args.sin_inventario else ServicioInventario(ClienteHttp(limitador, log=reg.info),
+                                                                         log=reg.info)
+        srv = Servicios(ResolutorCodigos(catastro, cache), catastro, sigpac, cache, mapa=mapa,
+                        inventario=inventario)
         try:
             carpeta = ejecutar(fincas, op, srv, reg, preguntar=_preguntar)
         except Ambiguo as e:

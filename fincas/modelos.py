@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from .utils import slug
 
@@ -79,6 +79,20 @@ class ResultadoSigpac:
 
 
 @dataclass
+class DatosInventario:
+    """Cobertura actual de la parcela según el Inventario Forestal Continuo de Galicia (última edición)."""
+    anio: int = 0                       # edición del inventario
+    superficie_m2: float = 0.0          # superficie con datos
+    coberturas: Dict[str, float] = field(default_factory=dict)   # 'Eucaliptos' -> m²
+    dominante: str = ""
+    uso: str = ""                       # p. ej. 'FORESTAL ARBOLADO'
+    volumen_m3: Optional[float] = None  # estimación PROVISIONAL del propio inventario (suele venir vacía)
+    recintos: int = 0
+    historico: Dict[str, Dict[str, float]] = field(default_factory=dict)   # '2022' -> coberturas
+    consultado: str = ""                # fecha y hora de la consulta (ISO, minutos)
+
+
+@dataclass
 class Resultado:
     finca: Finca
     codigos: Optional[Codigos] = None
@@ -87,6 +101,9 @@ class Resultado:
     sigpac: Optional[ResultadoSigpac] = None
     control_superficie: str = ""
     coincide: str = ""          # SI | NO | NO ENCONTRADA
+    inventario: Optional[DatosInventario] = None
+    contraste: str = ""         # cultivo Catastro vs inventario: COHERENTE | REVISAR | NO COMPARABLE | SIN DATO
+    contraste_detalle: str = ""
     avisos: List[str] = field(default_factory=list)
     errores: List[str] = field(default_factory=list)
 

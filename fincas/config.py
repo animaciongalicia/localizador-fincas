@@ -33,6 +33,10 @@ SIXPAC_VISOR_URL = os.environ.get("FINCAS_SIXPAC_URL", "https://sixpac.xunta.gal
 # Servicios de datos del visor SIXPAC (geometría de parcela y ortofoto) para dibujar el plano de la ficha
 SIXPAC_SERVICIOS = os.environ.get("FINCAS_SIXPAC_SERVICIOS", "https://vispac.xunta.gal")
 
+# --- Inventario Forestal Continuo de Galicia (Xunta): cobertura actual por referencia catastral (ArcGIS REST)
+INVEGA_SERVICIOS = os.environ.get("FINCAS_INVEGA_SERVICIOS", "https://ideg.xunta.gal/servizos/rest/services")
+INVEGA_VISOR_URL = "https://invega.xunta.gal/invega/visor-gis"
+
 # --- Comportamiento
 PAUSA_MIN_S = 3.0
 PAUSA_MAX_S = 5.0

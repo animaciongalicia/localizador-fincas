@@ -18,6 +18,9 @@ class Resumen:
     por_uso: List[Tuple[str, int, float]] = field(default_factory=list)
     control: Dict[str, int] = field(default_factory=dict)    # OK / REVISAR / SIN DATO CLIENTE
     coincide: Dict[str, int] = field(default_factory=dict)   # SI / NO / NO ENCONTRADA ...
+    contraste: Dict[str, int] = field(default_factory=dict)  # cultivo Catastro vs inventario forestal
+    por_cobertura: List[Tuple[str, int, float]] = field(default_factory=list)  # (cobertura, nº fincas donde domina, m²)
+    edicion_inventario: int = 0
     cuotas_parciales: int = 0
     con_errores: int = 0
 
@@ -31,6 +34,7 @@ def calcular(resultados: Sequence[Resultado]) -> Resumen:
     r = Resumen(total=len(resultados))
     mun: Dict[str, List[float]] = {}
     uso: Dict[str, List[float]] = {}
+    cob: Dict[str, List[float]] = {}
     for x in resultados:
         c = x.catastro
         sup = float(c.superficie_m2) if c and c.superficie_m2 else 0.0
@@ -47,12 +51,21 @@ def calcular(resultados: Sequence[Resultado]) -> Resumen:
             r.control[x.control_superficie] = r.control.get(x.control_superficie, 0) + 1
         if x.coincide:
             r.coincide[x.coincide] = r.coincide.get(x.coincide, 0) + 1
+        if x.contraste:
+            r.contraste[x.contraste] = r.contraste.get(x.contraste, 0) + 1
+        if x.inventario:
+            r.edicion_inventario = max(r.edicion_inventario, x.inventario.anio)
+            for nombre, m2 in x.inventario.coberturas.items():
+                fila = cob.setdefault(nombre, [0, 0.0])
+                fila[0] += 1 if nombre == x.inventario.dominante else 0
+                fila[1] += m2
         if not x.finca.cuota.completa:
             r.cuotas_parciales += 1
         if x.errores:
             r.con_errores += 1
     r.por_municipio = _ordenado(mun)
     r.por_uso = _ordenado(uso)
+    r.por_cobertura = _ordenado(cob)
     return r
 
 
