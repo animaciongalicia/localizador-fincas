@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import shutil
 from dataclasses import asdict, dataclass, field
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
@@ -16,7 +16,7 @@ from .catastro import CatastroError, ParcelaNoEncontrada, RequiereCaptcha
 from .codigos import Ambiguo, NoEncontrado, _partes, clave_nombre
 from .excel import escribir_excel
 from .informe import escribir_informe
-from .modelos import Codigos, DatosCatastro, Finca, Resultado, ResultadoSigpac
+from .modelos import Codigos, DatosCatastro, Finca, Meta, Resultado, ResultadoSigpac
 from .registro import Registro
 from .sigpac import coincide_refcat
 from .superficie import control_superficie
@@ -31,6 +31,8 @@ class Opciones:
     usar_sigpac: bool = True
     usar_pdf_catastro: bool = True
     mapa: bool = True      # mapa de conjunto de todas las fincas (solo Galicia)
+    cliente: str = ""      # nombre del cliente tal cual (para el dossier)
+    expediente: str = ""   # nº de expediente del informe
     informe: bool = True   # informe.pdf único con resumen, índice y todas las fichas
     fecha: Optional[str] = None
 
@@ -43,6 +45,15 @@ class Servicios:
     cache: Cache
     mapa: Optional[object] = None  # .generar(resultados, raiz, titulo) -> Conjunto | None
     usados: Dict[str, str] = field(default_factory=dict)  # nombre de fichero -> clave (detecta colisiones)
+
+
+def _ahora() -> str:
+    return datetime.now().isoformat(timespec="minutes")
+
+
+def meta_de(op: Opciones) -> Meta:
+    return Meta(cliente=op.cliente or op.nombre_trabajo, expediente=op.expediente,
+                fecha=date.today().strftime("%d/%m/%Y"))
 
 
 def carpeta_trabajo(op: Opciones) -> Path:
@@ -74,6 +85,8 @@ def ejecutar(fincas: Sequence[Finca], op: Opciones, srv: Servicios, reg: Registr
     d_cat.mkdir(parents=True, exist_ok=True)
     d_sig.mkdir(parents=True, exist_ok=True)
     reg.info(f"Carpeta de trabajo: {raiz}  ({len(fincas)} parcelas)")
+    if op.expediente:
+        reg.info(f"Expediente {op.expediente} · cliente: {op.cliente or op.nombre_trabajo}")
 
     # 0) códigos: se resuelven todos antes, para preguntar las ambigüedades al principio
     codigos: Dict[Tuple[str, str], Optional[Codigos]] = {}
@@ -102,7 +115,7 @@ def ejecutar(fincas: Sequence[Finca], op: Opciones, srv: Servicios, reg: Registr
     resultados: List[Resultado] = []
 
     def _volcar() -> None:  # Excel + registro a disco; un fallo aquí no debe tumbar el lote
-        for fn in (lambda: escribir_excel(resultados, raiz / "resultados.xlsx", op.nombre_trabajo),
+        for fn in (lambda: escribir_excel(resultados, raiz / "resultados.xlsx", op.nombre_trabajo, meta=meta_de(op)),
                    lambda: reg.escribir(raiz / "registro.txt")):
             try:
                 fn()
@@ -135,14 +148,14 @@ def ejecutar(fincas: Sequence[Finca], op: Opciones, srv: Servicios, reg: Registr
             if conjunto and conjunto.pdf:
                 reg.info("Mapa de conjunto: mapa_conjunto.pdf generado")
             if conjunto and len(conjunto.puntos) >= 2:
-                escribir_excel(resultados, raiz / "resultados.xlsx", op.nombre_trabajo, conjunto)
+                escribir_excel(resultados, raiz / "resultados.xlsx", op.nombre_trabajo, conjunto, meta=meta_de(op))
         except Exception as e:  # noqa: BLE001  el mapa es un extra: no debe impedir el informe ni el ZIP
             reg.info(f"No se pudo generar el mapa de conjunto ({e})")
 
     if op.informe:
         try:
             extras = [("Mapa de conjunto", conjunto.pdf)] if conjunto and conjunto.pdf else []
-            if escribir_informe(resultados, raiz, op.nombre_trabajo, log=reg.info, extras=extras):
+            if escribir_informe(resultados, raiz, op.nombre_trabajo, log=reg.info, extras=extras, meta=meta_de(op)):
                 reg.info("Informe: informe.pdf generado")
         except Exception as e:  # noqa: BLE001  el informe es un extra: no debe impedir el ZIP
             reg.info(f"No se pudo generar informe.pdf ({e})")
@@ -228,7 +241,9 @@ def _catastro_datos(res, srv, cod, clave, reg) -> Optional[DatosCatastro]:
     cacheado = srv.cache.leer("catastro", clave)
     if cacheado:
         try:
-            return DatosCatastro(**cacheado)
+            d = DatosCatastro(**cacheado)
+            d.consultado = d.consultado or srv.cache.fecha("catastro", clave)
+            return d
         except (TypeError, ValueError):  # caché de otro esquema o corrupta: se descarta y se reconsulta
             srv.cache.borrar("catastro", clave)
     try:
@@ -245,6 +260,7 @@ def _catastro_datos(res, srv, cod, clave, reg) -> Optional[DatosCatastro]:
         res.errores.append(f"Catastro: {e}")
         reg.error(f.etiqueta, f"Catastro: {e!r}")
         return None
+    datos.consultado = _ahora()
     srv.cache.guardar("catastro", clave, asdict(datos))
     return datos
 
@@ -257,6 +273,7 @@ def _sigpac(res, srv, cod, clave, d_sig, base, reg) -> ResultadoSigpac:
     if cacheado and en_cache_pdf:
         try:
             r = ResultadoSigpac(**cacheado)
+            r.consultado = r.consultado or srv.cache.fecha("sigpac_v3", clave)
             shutil.copyfile(en_cache_pdf, destino)
             return r
         except (TypeError, ValueError, OSError):
@@ -268,6 +285,7 @@ def _sigpac(res, srv, cod, clave, d_sig, base, reg) -> ResultadoSigpac:
         res.errores.append(f"SIGPAC: {e}")
         reg.error(f.etiqueta, f"SIGPAC: {e}")
         return ResultadoSigpac("ERROR", detalle=str(e))
+    r.consultado = r.consultado or _ahora()
     if r.respaldo:
         res.avisos.append("Ficha SIXPAC/SIGPAC con captura de respaldo (parcela rellena): repetir para obtener el contorno")
         reg.aviso(f.etiqueta, "ficha con captura de respaldo (parcela rellena, tapa la ortofoto); no se guarda en caché")

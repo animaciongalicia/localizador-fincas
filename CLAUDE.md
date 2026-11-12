@@ -44,6 +44,14 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- **Dossier con marca (2026-11-12).** `informe.pdf` = portada (marca `ferrados.com` en verde oscuro, cliente, expediente, fecha) +
+  resumen + índice + metodología y aviso legal + mapa + por finca una HOJA propia (identificación, comprobaciones, incidencias y
+  TRAZABILIDAD: fuente, fecha y hora de cada consulta, enlace a la Sede) y sus fichas. Cabecera y pie en TODAS las páginas (las fichas
+  externas se reducen ~8 % para que no las pisen). Marca, color y pie en `config.py` (`FINCAS_MARCA`, `FINCAS_PIE`...).
+- **Expediente** `FER-AAAA-NNNN` correlativo por año, generado al lanzar el lote (`--expediente` lo fuerza). Libro de expedientes en
+  `<carpeta clientes>/expedientes.csv` (fuera del repo): no borrarlo, de él sale la numeración. Cada relanzamiento gasta un número.
+- **Fecha de consulta**: `consultado` en `DatosCatastro` y `ResultadoSigpac` (se guarda en la caché; en entradas antiguas se usa la
+  fecha del fichero de caché). El dossier y el Excel muestran la fecha REAL de la consulta, no la de emisión.
 - **Revisión de código 2026-11-12** (PR "revisión entrada y robustez"). Entrada: separador CSV por recuento (el Sniffer fallaba
   con una línea de título), cabeceras por palabra clave ('Polígono nº', 'Superficie parcela', '% propiedad'), superficie en ha/áreas
   convertida a m² con aviso, ferrados/fanegas SIN conversión (varía por concello: no se inventa), filas sin municipio/provincia se
@@ -124,8 +132,8 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
   `--visible` solo si hay un captcha o hay que depurar un cambio del visor, y solo a petición del usuario.
 
 ## PENDIENTE DE VERIFICAR
-0. De la revisión 2026-11-12: (a) la caché no caduca ni guarda la fecha de consulta: un informe puede llevar fecha de hoy con datos
-   de días atrás (necesario para la trazabilidad del dossier); (b) el ZIP duplica peso (informe.pdf + PDF sueltos, ~120 MB con 31
+0. De la revisión 2026-11-12: (a) la caché no caduca (la fecha de consulta ya se guarda y se muestra, pero un dato antiguo no se
+   refresca solo: usar --sin-cache si hace falta); (b) el ZIP duplica peso (informe.pdf + PDF sueltos, ~120 MB con 31
    fincas); (c) fuera de Galicia la ficha SIGPAC es siempre la captura con relleno (no hay plano de contorno); (d) no se compara la
    superficie de SIXPAC con la del Catastro; (e) 'por uso' agrupa por la cadena de cultivos, no por subparcela; (f) la superficie
    total no aplica la cuota del cliente; (g) esperas fijas en el visor (~1 min/parcela); (h) '1,234' se lee como 1,234 m² (se avisa).

@@ -46,3 +46,11 @@ CARPETA_HERRAMIENTA = Path(__file__).resolve().parent.parent
 CARPETA_CLIENTES = Path(os.environ.get(
     "FINCAS_CLIENTES", str(Path.home() / "Desktop" / "BUSQUEDAS FERRADOS-CLAUDE")))
 CARPETA_CACHE = str(CARPETA_HERRAMIENTA / ".cache")  # única para todos los clientes, ejecutes desde donde ejecutes
+
+# --- Dossier (marca y pie de página de quien emite el informe; cambiables por variable de entorno)
+MARCA = os.environ.get("FINCAS_MARCA", "ferrados.com")
+MARCA_COLOR = os.environ.get("FINCAS_MARCA_COLOR", "#1B5E20")  # verde oscuro
+PIE_INFORME = os.environ.get(
+    "FINCAS_PIE", "Ferrados.com - Inversiones SHISO SL. CIF B70319223 - Ronda de Montealto, 4 - 15002 - Coruña")
+PREFIJO_EXPEDIENTE = os.environ.get("FINCAS_PREFIJO_EXPEDIENTE", "FER")
+LIBRO_EXPEDIENTES = Path(os.environ.get("FINCAS_LIBRO_EXPEDIENTES", str(CARPETA_CLIENTES / "expedientes.csv")))

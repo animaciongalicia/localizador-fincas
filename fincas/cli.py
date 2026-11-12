@@ -25,6 +25,7 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--cliente", help="nombre del cliente: las salidas van a "
                    "<carpeta de clientes>/<cliente>/salidas/ (ver config.CARPETA_CLIENTES)")
     p.add_argument("--salidas", default=None, help="carpeta base de salidas (def.: salidas, o la del cliente)")
+    p.add_argument("--expediente", help="nº de expediente del informe (por defecto se genera: FER-AAAA-NNNN)")
     p.add_argument("--simular", action="store_true",
                    help="solo lee y valida la entrada y muestra el plan. NO hace ninguna consulta.")
     p.add_argument("--sin-sigpac", action="store_true", help="saltar el paso SIGPAC")
@@ -94,6 +95,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.simular:
         _plan(fincas[: args.prueba] if args.prueba else fincas, problemas, op)
         return 0
+
+    op.cliente = args.cliente or ""
+    if args.expediente:
+        op.expediente = args.expediente
+    elif not args.sin_informe:
+        from . import expedientes
+        try:
+            op.expediente = expedientes.siguiente(config.LIBRO_EXPEDIENTES, op.cliente or op.nombre_trabajo,
+                                                  op.nombre_trabajo, config.PREFIJO_EXPEDIENTE)
+        except OSError as e:
+            print(f"Aviso: no se pudo anotar el expediente ({e}); el informe saldrá sin número", file=sys.stderr)
 
     # --- a partir de aquí SÍ hay consultas reales ---
     from .cache import Cache

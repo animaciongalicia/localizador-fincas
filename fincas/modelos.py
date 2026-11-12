@@ -65,6 +65,7 @@ class DatosCatastro:
     paraje: str = ""
     referencias_completas: List[str] = field(default_factory=list)  # 20 car. por subparcela
     avisos: List[str] = field(default_factory=list)
+    consultado: str = ""        # fecha y hora de la consulta al Catastro (ISO, minutos)
 
 
 @dataclass
@@ -73,6 +74,7 @@ class ResultadoSigpac:
     refcat: str = ""
     pdf: str = ""
     detalle: str = ""
+    consultado: str = ""        # fecha y hora de la consulta al visor (ISO, minutos)
     respaldo: bool = False      # True si la ficha lleva la captura del visor (relleno) y no el plano de contorno
 
 
@@ -87,3 +89,20 @@ class Resultado:
     coincide: str = ""          # SI | NO | NO ENCONTRADA
     avisos: List[str] = field(default_factory=list)
     errores: List[str] = field(default_factory=list)
+
+
+@dataclass
+class Meta:
+    """Datos de emisión del informe (trazabilidad)."""
+    cliente: str = ""
+    expediente: str = ""
+    fecha: str = ""             # fecha de emisión dd/mm/aaaa
+
+
+def fecha_legible(iso: str) -> str:
+    """'2026-11-12T09:01' -> '12/11/2026 09:01'. Vacío si no hay dato."""
+    try:
+        from datetime import datetime
+        return datetime.fromisoformat(iso).strftime("%d/%m/%Y %H:%M")
+    except (TypeError, ValueError):
+        return ""

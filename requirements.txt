@@ -3,5 +3,5 @@ openpyxl>=3.1
 python-docx>=1.1
 playwright>=1.44
 pytest>=8
-pypdf>=4.0
+pypdf>=5.0,<7
 reportlab>=4.0,<5

@@ -12,7 +12,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 from . import config
-from .modelos import Resultado
+from .modelos import Meta, Resultado, fecha_legible
 from .mapa import Conjunto, formato_dist, matriz_distancias
 from .resumen import calcular, formato_ha, formato_m2
 from .superficie import explicar_control
@@ -23,7 +23,8 @@ COLUMNAS = [
     ("superficie del cliente (m²)", 14), ("control de superficie", 14),
     ("detalle del control", 44),
     ("ref. catastral SIGPAC", 22), ("coincide con Catastro", 14),
-    ("PDF Catastro", 36), ("PDF SIGPAC", 36), ("ficha web Catastro", 18), ("notas", 50),
+    ("PDF Catastro", 36), ("PDF SIGPAC", 36), ("ficha web Catastro", 18),
+    ("consulta Catastro", 17), ("consulta SIGPAC", 17), ("notas", 50),
 ]
 AMARILLO = PatternFill("solid", fgColor="FFF2CC")
 ROJO = PatternFill("solid", fgColor="F8CBAD")
@@ -52,7 +53,8 @@ def _fila(r: Resultado) -> List[object]:
         c.refcat if c else "", c.superficie_m2 if c else None, c.uso if c else "",
         f.superficie_m2, r.control_superficie, detalle,
         s.refcat if s else "", r.coincide,
-        r.pdf_catastro, s.pdf if s else "", "Abrir en la Sede" if _enlace_sede(r) else "", notas,
+        r.pdf_catastro, s.pdf if s else "", "Abrir en la Sede" if _enlace_sede(r) else "",
+        fecha_legible(c.consultado) if c else "", fecha_legible(s.consultado) if s else "", notas,
     ]]
 
 
@@ -110,7 +112,7 @@ def _hoja_fincas(ws, resultados: List[Resultado]) -> None:
     ws.auto_filter.ref = ws.dimensions
 
 
-def _hoja_resumen(ws, resultados: List[Resultado], titulo: str) -> None:
+def _hoja_resumen(ws, resultados: List[Resultado], titulo: str, meta: Optional[Meta] = None) -> None:
     rs = calcular(resultados)
     ws.column_dimensions["A"].width = 38
     ws.column_dimensions["B"].width = 16
@@ -125,6 +127,12 @@ def _hoja_resumen(ws, resultados: List[Resultado], titulo: str) -> None:
 
     ws.append([_seguro(titulo)])
     ws["A1"].font = Font(bold=True, size=14)
+    if meta and (meta.expediente or meta.cliente):
+        ws.append([_seguro(config.MARCA)])
+        ws.cell(row=ws.max_row, column=1).font = Font(bold=True, color=config.MARCA_COLOR.lstrip("#"))
+        ws.append(["Expediente", _seguro(meta.expediente or "—")])
+        ws.append(["Cliente", _seguro(meta.cliente)])
+        ws.append(["Fecha de emisión", meta.fecha])
     titulo_seccion("Totales")
     ws.append(["Fincas del lote", rs.total])
     ws.append(["Con datos del Catastro", rs.con_catastro])
@@ -175,11 +183,11 @@ def _hoja_distancias(ws, conjunto: Conjunto) -> None:
 
 
 def escribir_excel(resultados: List[Resultado], ruta: Path, titulo: Optional[str] = None,
-                   conjunto: Optional[Conjunto] = None) -> Path:
+                   conjunto: Optional[Conjunto] = None, meta: Optional[Meta] = None) -> Path:
     wb = Workbook()
     ws_res = wb.active
     ws_res.title = "Resumen"
-    _hoja_resumen(ws_res, resultados, titulo or "Resumen del lote")
+    _hoja_resumen(ws_res, resultados, titulo or "Resumen del lote", meta)
     _hoja_fincas(wb.create_sheet("Fincas"), resultados)
     if conjunto and len(conjunto.puntos) >= 2:
         _hoja_distancias(wb.create_sheet("Distancias"), conjunto)
