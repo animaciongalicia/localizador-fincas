@@ -38,12 +38,25 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 | `resumen.py` | Cifras del lote (totales, por municipio/uso, controles). Puro, sin red |
 | `mapa.py` | Mapa de conjunto de todas las fincas (solo Galicia): 1 petición `parcelabox` por finca (caché `bbox_sixpac`) + ortofoto SIXPAC; distancias, grupos cercanos (≤2,5 km encadenadas, máx. 8 mapas). Geometría pura + `ServicioMapa` con red inyectable |
 | `informe.py` | `informe.pdf`: portada+resumen, índice y todas las fichas con marcadores. Une PDF ya descargados (pypdf + reportlab) |
+| `inventario.py` | Inventario Forestal Continuo de Galicia (Xunta): cobertura ACTUAL por referencia catastral y contraste con el cultivo del Catastro. Parsers puros + `ServicioInventario` con HTTP inyectable |
 | `superficie.py` | Control de superficie (margen 10 %, cuota) |
 | `pipeline.py` | Orquestación; servicios inyectados (testeable sin red) |
 | `red.py` / `navegador.py` / `cache.py` / `registro.py` | pausas+reintentos+HTTP / Chromium compartido / caché / registro.txt |
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- **Inventario forestal (2026-11-12).** El cultivo del Catastro suele estar desfasado (en 12 parcelas reales de A Coruña, 7 no
+  cuadraban). Se cruza con el Inventario Forestal Continuo de Galicia (INVEGA), NO con el IFN (el IFN4 de Galicia es de 2011 y no
+  baja a parcela). Servicio público verificado: `https://ideg.xunta.gal/servizos/rest/services/INVEGA/InvegaRecintos/MapServer/0/query?where=REFCAT='<14>'&outFields=*&returnGeometry=false&f=json`.
+  Un registro por recinto y edición (ADM_FECINI = 1 de enero de 2022/2023/2024); se usa la última y se guarda el histórico.
+  Columnas (textos del visor, `appdata/locales/es.json`): S01 eucaliptos, S02 coníferas, S03 frondosas, S04+S41-43 cortas,
+  S05+S51-53 regeneración, S06 prado o cultivo, S07 matorral, S08 suelo desnudo, S09 antrópico, S10 agua, S11+S111-113 incendios,
+  S12+S121-123 área quemada; la suma = SUTIL. `Vm3`/`Vm3_ha` (volumen) vienen vacías y el visor las llama "provisionales": se
+  muestran solo si traen dato y rotuladas como provisionales. Contraste: COHERENTE si lo que declara el Catastro ocupa ≥50 %;
+  REVISAR si no, o si hay cortas/incendio ≥20 % con cultivo arbolado; NO COMPARABLE; SIN DATO. Solo avisa. Solo Galicia.
+  1 consulta más por finca (~4 s con la pausa), caché `inventario`. `--sin-inventario` lo omite. Si falla, aviso y se sigue.
+  El mismo servidor tiene más capas sin usar todavía: especies (`InvegaUsosSueloEspecies`), densidad, restricciones legales y
+  técnicas, y `ParcelasCatastrais/SIXPAC_2022/MapServer/1/query` (búsqueda de parcela por prov/mun/pol/parc sin visor).
 - **Dossier con marca (2026-11-12).** `informe.pdf` = portada (marca `ferrados.com` en verde oscuro, cliente, expediente, fecha) +
   resumen + índice + metodología y aviso legal + mapa + por finca una HOJA propia (identificación, comprobaciones, incidencias y
   TRAZABILIDAD: fuente, fecha y hora de cada consulta, enlace a la Sede) y sus fichas. Cabecera y pie en TODAS las páginas (las fichas

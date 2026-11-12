@@ -13,6 +13,7 @@ from openpyxl.utils import get_column_letter
 
 from . import config
 from .modelos import Meta, Resultado, fecha_legible
+from .inventario import evolucion, texto_reparto
 from .mapa import Conjunto, formato_dist, matriz_distancias
 from .resumen import calcular, formato_ha, formato_m2
 from .superficie import explicar_control
@@ -23,6 +24,8 @@ COLUMNAS = [
     ("superficie del cliente (m²)", 14), ("control de superficie", 14),
     ("detalle del control", 44),
     ("ref. catastral SIGPAC", 22), ("coincide con Catastro", 14),
+    ("cobertura actual (inventario forestal)", 18), ("detalle cobertura", 48), ("edición inventario", 10),
+    ("contraste con cultivo catastral", 15),
     ("PDF Catastro", 36), ("PDF SIGPAC", 36), ("ficha web Catastro", 18),
     ("consulta Catastro", 17), ("consulta SIGPAC", 17), ("notas", 50),
 ]
@@ -48,11 +51,19 @@ def _fila(r: Resultado) -> List[object]:
     notas = " | ".join(x for x in [f.notas, *r.avisos, *r.errores] if x)
     detalle = explicar_control(c.superficie_m2 if c else None, f.superficie_m2, f.cuota,
                                r.control_superficie)
+    inv = r.inventario
+    det_inv = ""
+    if inv:
+        det_inv = " | ".join(x for x in [
+            texto_reparto(inv), f"Evolución: {evolucion(inv)}" if evolucion(inv) else "",
+            f"Volumen estimado provisional: {inv.volumen_m3:,.0f} m³".replace(",", ".") if inv.volumen_m3 else "",
+            r.contraste_detalle] if x)
     return [_seguro(x) for x in [
         f.municipio, f.paraje or (c.paraje if c else ""), f.poligono, f.parcela, f.cuota.texto,
         c.refcat if c else "", c.superficie_m2 if c else None, c.uso if c else "",
         f.superficie_m2, r.control_superficie, detalle,
         s.refcat if s else "", r.coincide,
+        inv.dominante if inv else "", det_inv, inv.anio if inv else None, r.contraste,
         r.pdf_catastro, s.pdf if s else "", "Abrir en la Sede" if _enlace_sede(r) else "",
         fecha_legible(c.consultado) if c else "", fecha_legible(s.consultado) if s else "", notas,
     ]]
@@ -94,6 +105,11 @@ def _hoja_fincas(ws, resultados: List[Resultado]) -> None:
             co.fill = ROJO
         elif r.coincide == "SI":
             co.fill = VERDE
+        ct = ws.cell(row=n, column=col["contraste con cultivo catastral"])
+        if r.contraste == "REVISAR":
+            ct.fill = ROJO
+        elif r.contraste == "COHERENTE":
+            ct.fill = VERDE
         # enlaces: PDF (ruta relativa al Excel) y ficha web de la Sede
         for nombre, carpeta in (("PDF Catastro", "pdf_catastro"), ("PDF SIGPAC", "pdf_sigpac")):
             cel = ws.cell(row=n, column=col[nombre])
@@ -105,7 +121,7 @@ def _hoja_fincas(ws, resultados: List[Resultado]) -> None:
             cel = ws.cell(row=n, column=col["ficha web Catastro"])
             cel.hyperlink = url
             cel.font = ENLACE
-        for nombre in ("detalle del control", "notas"):
+        for nombre in ("detalle del control", "detalle cobertura", "notas"):
             ws.cell(row=n, column=col[nombre]).alignment = Alignment(wrap_text=True, vertical="top")
 
     ws.freeze_panes = "A2"
@@ -152,6 +168,18 @@ def _hoja_resumen(ws, resultados: List[Resultado], titulo: str, meta: Optional[M
     for k, v in sorted(rs.coincide.items()):
         ws.append([k, v])
         ws.cell(row=ws.max_row, column=1).fill = VERDE if k == "SI" else ROJO
+
+    if rs.por_cobertura:
+        titulo_seccion("Cobertura actual según el Inventario Forestal de Galicia")
+        ws.append([f"Edición {rs.edicion_inventario} (teledetección, orientativo)", "Fincas donde domina", "Superficie"])
+        for nombre, n, m2 in rs.por_cobertura:
+            ws.append([nombre, n, formato_m2(m2)])
+        titulo_seccion("Cultivo del Catastro frente a cobertura actual")
+        ws.append(["Concepto", "Fincas"])
+        for k in ("COHERENTE", "REVISAR", "NO COMPARABLE", "SIN DATO"):
+            if rs.contraste.get(k):
+                ws.append([k, rs.contraste[k]])
+                ws.cell(row=ws.max_row, column=1).fill = {"COHERENTE": VERDE, "REVISAR": ROJO}.get(k, AMARILLO)
 
     titulo_seccion("Por municipio")
     ws.append(["Municipio", "Fincas", "Superficie catastral"])

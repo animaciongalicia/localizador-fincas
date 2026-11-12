@@ -16,6 +16,7 @@ from typing import Callable, List, Optional, Sequence, Tuple
 from xml.sax.saxutils import escape
 
 from . import config
+from .inventario import evolucion, texto_reparto
 from .modelos import Meta, Resultado, fecha_legible
 from .resumen import calcular, formato_ha, formato_m2
 from .superficie import explicar_control
@@ -40,6 +41,14 @@ METODOLOGIA = [
     ("Coincidencia Catastro / SIXPAC-SIGPAC",
      "Se compara la referencia catastral obtenida del Catastro con la que el visor asocia a la parcela. "
      "«SI»: coinciden. «NO»: difieren. «NO ENCONTRADA»: la parcela no aparece en el visor (por ejemplo, monte)."),
+    ("Cobertura forestal actual (solo Galicia)",
+     "El cultivo que figura en el Catastro puede no estar actualizado. Por eso se contrasta con el Inventario "
+     "Forestal Continuo de Galicia (Xunta de Galicia, con las universidades de Vigo y Santiago), que cada año "
+     "clasifica el terreno por teledetección: eucaliptos, coníferas, frondosas, cortas, regeneración, matorral, "
+     "prado o cultivo. «COHERENTE»: lo declarado en el Catastro ocupa al menos la mitad de la parcela. "
+     "«REVISAR»: no es así, o se detecta una corta o un incendio en una quinta parte o más. «NO COMPARABLE»: "
+     "el cultivo catastral no tiene equivalencia. Es un dato orientativo que no sustituye la visita a la finca; "
+     "no mide edad, densidad ni calidad de la madera."),
     ("Qué no incluye",
      "No se consultan titulares, valor catastral ni cargas: son datos protegidos o registrales que no ofrece "
      "la consulta pública."),
@@ -244,6 +253,21 @@ def _hoja_finca(e: _Entrada, total: int, titulo: str) -> bytes:
          [f"Referencia según {visor.split(' ')[0]}", P(s.refcat if s else "")],
          ["Coincide con Catastro", P(r.coincide)]],
         [50 * mm, 125 * mm], cabecera=False, clave=True))
+    inv = r.inventario
+    if inv:
+        filas_inv = [["Cobertura actual", P(texto_reparto(inv))]]
+        if evolucion(inv):
+            filas_inv.append(["Evolución", P(evolucion(inv))])
+        if inv.volumen_m3:
+            filas_inv.append(["Volumen de madera", P(f"{inv.volumen_m3:,.0f} m³".replace(",", ".") +
+                                                     " (estimación provisional del inventario, pendiente de validar)")])
+        filas_inv.append(["Frente al cultivo del Catastro",
+                          P(r.contraste + (f" — {r.contraste_detalle}" if r.contraste_detalle else ""))])
+        el += [Paragraph(f"Cobertura actual (Inventario Forestal de Galicia, edición {inv.anio})", e_["h2"]),
+               _tabla(filas_inv, [50 * mm, 125 * mm], cabecera=False, clave=True)]
+    elif r.contraste == "SIN DATO":
+        el += [Paragraph("Cobertura actual (Inventario Forestal de Galicia)", e_["h2"]),
+               Paragraph("La parcela no figura en el inventario.", e_["c"])]
     incid = [x for x in [f.notas, *r.avisos, *r.errores] if x]
     if incid:
         el.append(Paragraph("Observaciones e incidencias", e_["h2"]))
@@ -260,6 +284,12 @@ def _hoja_finca(e: _Entrada, total: int, titulo: str) -> bytes:
              [P("Plano, ortofoto y referencia"), P(f"Visor {visor}"),
               P(fecha_legible(s.consultado) if s and s.estado != "ERROR" else "no obtenida"),
               P(s.pdf if s else "")]]
+    if inv:
+        filas.append([P("Cobertura forestal actual"),
+                      P(f"Inventario Forestal Continuo de Galicia (Xunta), edición {inv.anio}"),
+                      P(fecha_legible(inv.consultado) or "sin fecha"),
+                      Paragraph(f'<link href="{escape(config.INVEGA_VISOR_URL)}" color="#0563C1">'
+                                "<u>Visor del inventario</u></link>", e_["c"])])
     el.append(_tabla(filas, [40 * mm, 48 * mm, 37 * mm, 50 * mm]))
     el += [Spacer(1, 3 * mm),
            Paragraph("Las páginas siguientes reproducen los documentos obtenidos de cada fuente."

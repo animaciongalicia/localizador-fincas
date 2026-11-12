@@ -16,9 +16,10 @@ from .catastro import CatastroError, ParcelaNoEncontrada, RequiereCaptcha
 from .codigos import Ambiguo, NoEncontrado, _partes, clave_nombre
 from .excel import escribir_excel
 from .informe import escribir_informe
-from .modelos import Codigos, DatosCatastro, Finca, Meta, Resultado, ResultadoSigpac
+from .inventario import aviso_alteracion, contrastar
+from .modelos import Codigos, DatosCatastro, DatosInventario, Finca, Meta, Resultado, ResultadoSigpac
 from .registro import Registro
-from .sigpac import coincide_refcat
+from .sigpac import GALICIA, coincide_refcat
 from .superficie import control_superficie
 from .utils import slug
 
@@ -30,6 +31,7 @@ class Opciones:
     prueba: Optional[int] = None
     usar_sigpac: bool = True
     usar_pdf_catastro: bool = True
+    inventario: bool = True  # cobertura actual según el Inventario Forestal Continuo de Galicia
     mapa: bool = True      # mapa de conjunto de todas las fincas (solo Galicia)
     cliente: str = ""      # nombre del cliente tal cual (para el dossier)
     expediente: str = ""   # nº de expediente del informe
@@ -43,6 +45,7 @@ class Servicios:
     catastro: object    # .consulta_parcela(), .descargar_pdf()
     sigpac: Optional[object]  # .consultar()
     cache: Cache
+    inventario: Optional[object] = None  # .consultar(refcat) -> DatosInventario | None
     mapa: Optional[object] = None  # .generar(resultados, raiz, titulo) -> Conjunto | None
     usados: Dict[str, str] = field(default_factory=dict)  # nombre de fichero -> clave (detecta colisiones)
 
@@ -219,6 +222,10 @@ def _procesar(res: Resultado, op: Opciones, srv: Servicios, d_cat: Path, d_sig: 
         reg.aviso(f.etiqueta, f"superficie catastral {sup} vs cliente {f.superficie_m2} "
                               f"(cuota {f.cuota.texto}) -> REVISAR")
 
+    # ---- Inventario forestal (solo Galicia): cobertura actual frente al cultivo del Catastro
+    if datos and op.inventario and srv.inventario is not None and cod.cod_provincia in GALICIA:
+        _inventario(res, srv, clave, reg)
+
     # ---- SIGPAC
     if op.usar_sigpac and srv.sigpac is not None:
         res.sigpac = _sigpac(res, srv, cod, clave, d_sig, base, reg)
@@ -263,6 +270,40 @@ def _catastro_datos(res, srv, cod, clave, reg) -> Optional[DatosCatastro]:
     datos.consultado = _ahora()
     srv.cache.guardar("catastro", clave, asdict(datos))
     return datos
+
+
+def _inventario(res: Resultado, srv: Servicios, clave: str, reg: Registro) -> None:
+    """Anota cobertura actual y contraste. Es un extra: si falla, se avisa y la finca sigue adelante."""
+    f, datos = res.finca, res.catastro
+    inv: Optional[DatosInventario] = None
+    cacheado = srv.cache.leer("inventario", clave)
+    if cacheado:
+        try:
+            inv = DatosInventario(**cacheado)
+        except (TypeError, ValueError):
+            srv.cache.borrar("inventario", clave)
+    if inv is None:
+        try:
+            inv = srv.inventario.consultar(datos.refcat)
+        except Exception as e:  # noqa: BLE001
+            res.avisos.append("Inventario forestal: no se pudo consultar")
+            reg.aviso(f.etiqueta, f"inventario forestal: no se pudo consultar ({e})")
+            return
+        if inv is not None:
+            inv.consultado = _ahora()
+            srv.cache.guardar("inventario", clave, asdict(inv))
+    res.inventario = inv
+    res.contraste, res.contraste_detalle = contrastar(datos.uso, inv)
+    if inv is None:
+        reg.info(f"{f.etiqueta}: no figura en el Inventario Forestal de Galicia")
+        return
+    if res.contraste == "REVISAR":
+        reg.aviso(f.etiqueta, f"cultivo catastral y cobertura actual no cuadran -> REVISAR. {res.contraste_detalle}")
+    else:
+        alt = aviso_alteracion(inv)
+        if alt:
+            res.avisos.append(alt)
+            reg.aviso(f.etiqueta, alt)
 
 
 def _sigpac(res, srv, cod, clave, d_sig, base, reg) -> ResultadoSigpac:

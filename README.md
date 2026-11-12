@@ -43,7 +43,7 @@ rellena hacia abajo. Un mismo fichero puede mezclar municipios. Ejemplo: `tests/
 ```
 
 Opciones: `--cliente` (salidas en `~/Desktop/BUSQUEDAS FERRADOS-CLAUDE/<cliente>/salidas/`), `--nombre`, `--municipio`, `--provincia`, `--prueba N`, `--salidas DIR`, `--simular`, `--sin-sigpac`,
-`--sin-pdf-catastro`, `--sin-cache`, `--expediente`, `--sin-mapa`, `--sin-informe`, `--visible`, `--pausa-min`, `--pausa-max`.
+`--sin-pdf-catastro`, `--sin-cache`, `--expediente`, `--sin-mapa`, `--sin-inventario`, `--sin-informe`, `--visible`, `--pausa-min`, `--pausa-max`.
 
 ## Salida
 ```
