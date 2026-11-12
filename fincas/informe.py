@@ -27,45 +27,35 @@ BANDA_SUP, BANDA_INF, LATERAL = 36.0, 34.0, 14.0   # puntos reservados a cabecer
 
 METODOLOGIA = [
     ("Qué contiene este informe",
-     "Para cada finca de la lista facilitada por el cliente se ha consultado su identificación catastral "
-     "(referencia, superficie y uso o cultivo) y su representación en el sistema de información de parcelas "
-     "agrícolas (SIXPAC en Galicia, SIGPAC en el resto de España), con plano sobre ortofoto."),
+     "Para cada finca de la lista del cliente: identificación catastral (referencia, superficie y uso o cultivo) "
+     "y su plano sobre ortofoto en el sistema de parcelas agrícolas (SIXPAC en Galicia, SIGPAC en el resto)."),
     ("Fuentes",
-     "Sede Electrónica del Catastro (Dirección General del Catastro): servicio público de consulta de datos "
-     "catastrales no protegidos y consulta descriptiva y gráfica. Visor SIXPAC (Xunta de Galicia, FOGGA) o "
-     "visor SIGPAC (FEGA). La fecha y hora de cada consulta figuran en la hoja de cada finca."),
+     "Sede Electrónica del Catastro (consulta pública de datos no protegidos), visor SIXPAC (Xunta de Galicia) o "
+     "SIGPAC (FEGA) y servicios cartográficos de la Xunta. La fecha y hora de cada consulta figuran en la hoja "
+     "de cada finca."),
     ("Control de superficie",
-     "Se compara la superficie catastral con la indicada por el cliente, con un margen del 10 %. Como no "
-     "siempre se sabe si la superficie facilitada es la de la finca entera o la de la cuota, se admiten ambas "
-     "lecturas. «OK» significa que coincide con alguna; «REVISAR», que no coincide con ninguna y conviene "
-     "comprobarlo; «SIN DATO CLIENTE», que no se facilitó superficie. Es un aviso: no se descarta ninguna finca."),
+     "Se compara la superficie catastral con la indicada por el cliente (margen del 10 %), admitiendo que sea la "
+     "de la finca entera o la de la cuota. «OK»: coincide. «REVISAR»: no coincide y conviene comprobarlo. "
+     "«SIN DATO CLIENTE»: no se facilitó superficie. Es un aviso: no se descarta ninguna finca."),
     ("Coincidencia Catastro / SIXPAC-SIGPAC",
-     "Se compara la referencia catastral obtenida del Catastro con la que el visor asocia a la parcela. "
-     "«SI»: coinciden. «NO»: difieren. «NO ENCONTRADA»: la parcela no aparece en el visor (por ejemplo, monte)."),
+     "Se compara la referencia catastral del Catastro con la que el visor asocia a la parcela. «SI»: coinciden. "
+     "«NO»: difieren. «NO ENCONTRADA»: la parcela no aparece en el visor."),
     ("Cobertura forestal actual (solo Galicia)",
-     "El cultivo que figura en el Catastro puede no estar actualizado. Por eso se contrasta con el Inventario "
-     "Forestal Continuo de Galicia (Xunta de Galicia, con las universidades de Vigo y Santiago), que cada año "
-     "clasifica el terreno por teledetección: eucaliptos, coníferas, frondosas, cortas, regeneración, matorral, "
-     "prado o cultivo. «COHERENTE»: lo declarado en el Catastro ocupa al menos la mitad de la parcela. "
-     "«REVISAR»: no es así, o se detecta una corta o un incendio en una quinta parte o más. «NO COMPARABLE»: "
-     "el cultivo catastral no tiene equivalencia. El inventario indica además si la parcela figura como monte vecinal en mano común o monte público. Es un dato orientativo que no sustituye la visita a la finca; "
-     "no mide edad, densidad ni calidad de la madera."),
-    ("Condicionantes de una corta de madera (solo Galicia)",
-     "Se comprueba si la parcela toca alguna de las capas que la Xunta de Galicia publica como afecciones a los "
-     "aprovechamientos forestales: aguas, carreteras, costas, patrimonio cultural, Camino de Santiago, espacios "
-     "naturales protegidos y zona demarcada por el nematodo del pino. Se consulta también el registro forestal "
-     "de la Xunta (montes vecinales en mano común, montes de utilidad pública, montes con instrumento de "
-     "ordenación y masas consolidadas de frondosas autóctonas), la faja de protección de 50 m, las líneas "
-     "eléctricas y gasoductos, las zonas de concentración parcelaria y los incendios registrados entre 2010 y "
-     "2021 (un incendio fuera de esos años no aparecería). Se indica el organismo al que corresponde cada una. Se añade la dificultad de saca según el mapa de restricciones técnicas del Inventario Forestal "
-     "(pendiente, accesos), en celdas de 10 m. Es información orientativa para saber qué preguntar antes de "
-     "vender la madera: no indica si la corta está permitida ni qué trámite corresponde. Los aprovechamientos "
-     "madereros en montes de gestión privada se tramitan ante la Consellería do Medio Rural (sede electrónica de "
-     "la Xunta de Galicia), que es quien confirma el trámite aplicable. Que no se detecte ninguna afección no "
-     "garantiza que no exista."),
+     "El cultivo del Catastro puede estar desactualizado; se contrasta con el Inventario Forestal Continuo de "
+     "Galicia (Xunta de Galicia), que cada año clasifica el terreno por teledetección. «COHERENTE»: lo declarado "
+     "en el Catastro ocupa al menos la mitad de la parcela. «REVISAR»: no es así, o hay una corta o un incendio "
+     "en una quinta parte o más. «NO COMPARABLE»: el cultivo catastral no tiene equivalencia. Indica también si "
+     "figura como monte vecinal o público. Es orientativo: no mide edad, densidad ni calidad de la madera."),
+    ("Condicionantes de una corta o una venta (solo Galicia)",
+     "Se comprueba si la parcela toca alguna capa publicada por la Xunta de Galicia: aguas, carreteras, costas, "
+     "patrimonio cultural, Camino de Santiago, espacios naturales, nematodo del pino, registro forestal (montes "
+     "vecinales, de utilidad pública u ordenados, masas de frondosas autóctonas), faja de protección de 50 m, "
+     "líneas eléctricas y gasoductos, concentración parcelaria e incendios registrados de 2010 a 2021. Se indica "
+     "a quién corresponde cada una y la dificultad de saca (pendiente y accesos). Es orientativo: no indica si "
+     "la corta está permitida; el trámite lo confirma la Consellería do Medio Rural. Que no se detecte una "
+     "afección no garantiza que no exista."),
     ("Qué no incluye",
-     "No se consultan titulares, valor catastral ni cargas: son datos protegidos o registrales que no ofrece "
-     "la consulta pública."),
+     "Titulares, valor catastral y cargas: son datos protegidos o registrales que no ofrece la consulta pública."),
 ]
 AVISO_LEGAL = (
     "Este informe tiene carácter meramente informativo. No es una certificación catastral ni registral, no "
