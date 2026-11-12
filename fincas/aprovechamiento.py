@@ -45,7 +45,7 @@ SERVICIOS: List[Tuple[str, str, str]] = [
     ("Afeccions_outras_Forestal_Faixas", "Faja de protección de 50 m (gestión de la biomasa frente a incendios)",
      "Concello"),
     ("Afeccions_Enerxia", "Líneas eléctricas, gasoducto u oleoducto", "Titular de la instalación"),
-    ("Afeccions_ConcentracionsParcelarias", "Concentración parcelaria", MEDIO_RURAL),
+    ("Afeccions_ConcentracionsParcelarias", "Concentración parcelaria", "Consellería do Medio Rural"),
     ("CAMPANHAS_INCENDIOS", INCENDIO, "Dato informativo"),                 # 2020-2021, con fecha
     ("Afeccions_outras_AreasIncendiadas", INCENDIO, "Dato informativo"),   # 2010-2020, solo año
 ]
