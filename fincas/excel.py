@@ -13,6 +13,7 @@ from openpyxl.utils import get_column_letter
 
 from . import config
 from .modelos import Resultado
+from .mapa import Conjunto, formato_dist, matriz_distancias
 from .resumen import calcular, formato_ha, formato_m2
 from .superficie import explicar_control
 
@@ -155,12 +156,33 @@ def _hoja_resumen(ws, resultados: List[Resultado], titulo: str) -> None:
         ws.append([_seguro(nombre), n, formato_m2(m2)])
 
 
-def escribir_excel(resultados: List[Resultado], ruta: Path, titulo: Optional[str] = None) -> Path:
+def _hoja_distancias(ws, conjunto: Conjunto) -> None:
+    """Matriz de distancias en línea recta entre fincas (km), por número de finca."""
+    pts = sorted(conjunto.puntos, key=lambda p: p.n)
+    m = matriz_distancias(pts)
+    ws.append(["Distancias en línea recta entre centros de parcela (km). Nº = orden de la finca en el lote."])
+    ws["A1"].font = Font(bold=True)
+    ws.append(["Nº", "Finca"] + [p.n for p in pts])
+    for i in range(1, len(pts) + 3):
+        c = ws.cell(row=2, column=i)
+        c.font = Font(bold=True, color="FFFFFF")
+        c.fill = CABECERA
+    ws.column_dimensions["B"].width = 30
+    for i, p in enumerate(pts):
+        ws.append([p.n, _seguro(p.etiqueta)] + [round(d / 1000, 2) for d in m[i]])
+        ws.cell(row=ws.max_row, column=1).font = Font(bold=True)
+    ws.freeze_panes = "C3"
+
+
+def escribir_excel(resultados: List[Resultado], ruta: Path, titulo: Optional[str] = None,
+                   conjunto: Optional[Conjunto] = None) -> Path:
     wb = Workbook()
     ws_res = wb.active
     ws_res.title = "Resumen"
     _hoja_resumen(ws_res, resultados, titulo or "Resumen del lote")
     _hoja_fincas(wb.create_sheet("Fincas"), resultados)
+    if conjunto and len(conjunto.puntos) >= 2:
+        _hoja_distancias(wb.create_sheet("Distancias"), conjunto)
     ruta.parent.mkdir(parents=True, exist_ok=True)
     tmp = ruta.with_name(ruta.name + ".tmp")
     wb.save(tmp)

@@ -130,8 +130,10 @@ def _frontal(resultados: Sequence[Resultado], entradas: List[_Entrada], titulo: 
 
 def escribir_informe(resultados: Sequence[Resultado], raiz: Path, titulo: str,
                      fecha: Optional[str] = None,
-                     log: Optional[Callable[[str], None]] = None) -> Optional[Path]:
-    """Crea raiz/informe.pdf. Devuelve None si no hay ninguna ficha que incluir."""
+                     log: Optional[Callable[[str], None]] = None,
+                     extras: Sequence[Tuple[str, Path]] = ()) -> Optional[Path]:
+    """Crea raiz/informe.pdf. `extras` = páginas sueltas (p. ej. el mapa de conjunto) que van entre el
+    índice y las fichas. Devuelve None si no hay ninguna ficha que incluir."""
     from pypdf import PdfReader, PdfWriter
 
     fecha = fecha or date.today().strftime("%d/%m/%Y")
@@ -140,11 +142,15 @@ def escribir_informe(resultados: Sequence[Resultado], raiz: Path, titulo: str,
         if log:
             log("Informe: no hay PDF que unir, no se genera informe.pdf")
         return None
+    extras_ok = [(t, Path(r), _leer_paginas(Path(r), log)) for t, r in extras]
+    extras_ok = [x for x in extras_ok if x[2]]
+    n_extra = sum(n for _, _, n in extras_ok)
 
     # el índice cita la página de cada finca, que depende de cuántas páginas ocupa la parte frontal:
     # se genera una vez para contarlas y otra con los números definitivos
-    previas = len(PdfReader(io.BytesIO(_frontal(resultados, entradas, titulo, fecha, 0))).pages)
+    frontal_n = len(PdfReader(io.BytesIO(_frontal(resultados, entradas, titulo, fecha, 0))).pages)
     for _ in range(2):
+        previas = frontal_n + n_extra
         pagina = previas + 1
         for e in entradas:
             e.inicio = pagina - previas  # relativo; _frontal le suma `previas`
@@ -152,14 +158,19 @@ def escribir_informe(resultados: Sequence[Resultado], raiz: Path, titulo: str,
                 pagina += sum(n for _, n in e.paginas)
         frontal = _frontal(resultados, entradas, titulo, fecha, previas)
         real = len(PdfReader(io.BytesIO(frontal)).pages)
-        if real == previas:
+        if real == frontal_n:
             break
-        previas = real
+        frontal_n = real
 
     w = PdfWriter()
     for p in PdfReader(io.BytesIO(frontal)).pages:
         w.add_page(p)
     w.add_outline_item("Resumen e índice", 0)
+    for nombre, ruta, _ in extras_ok:
+        primera = len(w.pages)
+        for p in PdfReader(str(ruta)).pages:
+            w.add_page(p)
+        w.add_outline_item(nombre, primera)
     for e in entradas:
         if not e.paginas:
             continue

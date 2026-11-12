@@ -30,6 +30,7 @@ class Opciones:
     prueba: Optional[int] = None
     usar_sigpac: bool = True
     usar_pdf_catastro: bool = True
+    mapa: bool = True      # mapa de conjunto de todas las fincas (solo Galicia)
     informe: bool = True   # informe.pdf único con resumen, índice y todas las fichas
     fecha: Optional[str] = None
 
@@ -40,6 +41,7 @@ class Servicios:
     catastro: object    # .consulta_parcela(), .descargar_pdf()
     sigpac: Optional[object]  # .consultar()
     cache: Cache
+    mapa: Optional[object] = None  # .generar(resultados, raiz, titulo) -> Conjunto | None
     usados: Dict[str, str] = field(default_factory=dict)  # nombre de fichero -> clave (detecta colisiones)
 
 
@@ -122,9 +124,21 @@ def ejecutar(fincas: Sequence[Finca], op: Opciones, srv: Servicios, reg: Registr
     finally:
         _volcar()
 
+    conjunto = None
+    if op.mapa and srv.mapa is not None:
+        try:
+            conjunto = srv.mapa.generar(resultados, raiz, op.nombre_trabajo)
+            if conjunto and conjunto.pdf:
+                reg.info("Mapa de conjunto: mapa_conjunto.pdf generado")
+            if conjunto and len(conjunto.puntos) >= 2:
+                escribir_excel(resultados, raiz / "resultados.xlsx", op.nombre_trabajo, conjunto)
+        except Exception as e:  # noqa: BLE001  el mapa es un extra: no debe impedir el informe ni el ZIP
+            reg.info(f"No se pudo generar el mapa de conjunto ({e})")
+
     if op.informe:
         try:
-            if escribir_informe(resultados, raiz, op.nombre_trabajo, log=reg.info):
+            extras = [("Mapa de conjunto", conjunto.pdf)] if conjunto and conjunto.pdf else []
+            if escribir_informe(resultados, raiz, op.nombre_trabajo, log=reg.info, extras=extras):
                 reg.info("Informe: informe.pdf generado")
         except Exception as e:  # noqa: BLE001  el informe es un extra: no debe impedir el ZIP
             reg.info(f"No se pudo generar informe.pdf ({e})")
