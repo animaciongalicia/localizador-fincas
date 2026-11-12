@@ -154,3 +154,42 @@ def test_fuera_de_galicia_no_se_consulta(tmp_path):
     srv = Servicios(Madrid(), Catastro(), None, Cache(tmp_path / ".cache"), inventario=inv)
     ejecutar(fincas, Opciones("lote", salidas=tmp_path, fecha="2026-01-01", prueba=2), srv, Registro(eco=None))
     assert inv.llamadas == []
+
+
+def test_monte_vecinal_se_lee_de_la_ultima_edicion():
+    base = {"ADM_FECINI": 1704063600000, "SUTIL": 100.0, "S01": 100.0}
+    assert interpretar([dict(base, MVMC_MP=1)]).monte_vecinal is True
+    assert interpretar([dict(base, MVMC_MP=0)]).monte_vecinal is False
+    assert interpretar([base]).monte_vecinal is None          # entradas antiguas o sin el campo: no consta
+
+
+def test_informe_destaca_las_diferencias_con_el_catastro(tmp_path):
+    import io
+    from pypdf import PdfReader
+    from reportlab.pdfgen import canvas
+    from fincas.informe import escribir_informe
+    from fincas.modelos import Codigos, DatosCatastro, DatosInventario, Finca, Resultado
+
+    rs = []
+    for i, (uso, cob, mv) in enumerate([("PINAR MADERABLE", {"Eucaliptos": 900.0, "Coníferas": 100.0}, True),
+                                        ("EUCALIPTUS", {"Eucaliptos": 1000.0}, False)], 1):
+        r = Resultado(finca=Finca("Ortigueira", "A Coruña", "34", str(i)),
+                      codigos=Codigos("15", "X", "061", "62", "ORTIGUEIRA"),
+                      catastro=DatosCatastro(refcat=f"15062A034{i:05d}", superficie_m2=1000.0, uso=uso))
+        r.inventario = DatosInventario(anio=2024, superficie_m2=1000.0, coberturas=cob,
+                                       dominante=max(cob, key=cob.get), monte_vecinal=mv)
+        r.contraste, r.contraste_detalle = contrastar(uso, r.inventario)
+        r.pdf_catastro = f"{i}_c.pdf"
+        buf = io.BytesIO()
+        c = canvas.Canvas(buf)
+        c.drawString(100, 700, "x")
+        c.save()
+        (tmp_path / "pdf_catastro").mkdir(exist_ok=True)
+        (tmp_path / "pdf_catastro" / r.pdf_catastro).write_bytes(buf.getvalue())
+        rs.append(r)
+    texto = " ".join((p.extract_text() or "") for p in PdfReader(str(escribir_informe(rs, tmp_path, "T"))).pages)
+    texto = " ".join(texto.split())
+    assert "Cotejo con el Inventario Forestal Continuo de Galicia" in texto
+    assert "De 2 fincas cotejadas, 1 presentan diferencias" in texto
+    assert "Fincas sin diferencias apreciables: nº 2" in texto
+    assert "Figuran como monte vecinal o público en el inventario: nº 1" in texto

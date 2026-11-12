@@ -16,6 +16,7 @@ from typing import Callable, List, Optional, Sequence, Tuple
 from xml.sax.saxutils import escape
 
 from . import config
+from .aprovechamiento import texto_clases
 from .inventario import evolucion, texto_reparto
 from .modelos import Meta, Resultado, fecha_legible
 from .resumen import calcular, formato_ha, formato_m2
@@ -47,8 +48,21 @@ METODOLOGIA = [
      "clasifica el terreno por teledetección: eucaliptos, coníferas, frondosas, cortas, regeneración, matorral, "
      "prado o cultivo. «COHERENTE»: lo declarado en el Catastro ocupa al menos la mitad de la parcela. "
      "«REVISAR»: no es así, o se detecta una corta o un incendio en una quinta parte o más. «NO COMPARABLE»: "
-     "el cultivo catastral no tiene equivalencia. Es un dato orientativo que no sustituye la visita a la finca; "
+     "el cultivo catastral no tiene equivalencia. El inventario indica además si la parcela figura como monte vecinal en mano común o monte público. Es un dato orientativo que no sustituye la visita a la finca; "
      "no mide edad, densidad ni calidad de la madera."),
+    ("Condicionantes de una corta de madera (solo Galicia)",
+     "Se comprueba si la parcela toca alguna de las capas que la Xunta de Galicia publica como afecciones a los "
+     "aprovechamientos forestales: aguas, carreteras, costas, patrimonio cultural, Camino de Santiago, espacios "
+     "naturales protegidos y zona demarcada por el nematodo del pino. Se consulta también el registro forestal "
+     "de la Xunta (montes vecinales en mano común, montes de utilidad pública, montes con instrumento de "
+     "ordenación y masas consolidadas de frondosas autóctonas), la faja de protección de 50 m, las líneas "
+     "eléctricas y gasoductos, las zonas de concentración parcelaria y los incendios registrados entre 2010 y "
+     "2021 (un incendio fuera de esos años no aparecería). Se indica el organismo al que corresponde cada una. Se añade la dificultad de saca según el mapa de restricciones técnicas del Inventario Forestal "
+     "(pendiente, accesos), en celdas de 10 m. Es información orientativa para saber qué preguntar antes de "
+     "vender la madera: no indica si la corta está permitida ni qué trámite corresponde. Los aprovechamientos "
+     "madereros en montes de gestión privada se tramitan ante la Consellería do Medio Rural (sede electrónica de "
+     "la Xunta de Galicia), que es quien confirma el trámite aplicable. Que no se detecte ninguna afección no "
+     "garantiza que no exista."),
     ("Qué no incluye",
      "No se consultan titulares, valor catastral ni cargas: son datos protegidos o registrales que no ofrece "
      "la consulta pública."),
@@ -72,10 +86,11 @@ class _Entrada:
     control: str
     paginas: List[Tuple[Path, int]]   # (pdf, nº de páginas)
     inicio: int = 0                   # nº de página (1 = primera) donde empieza su hoja en el informe
+    hoja: int = 1                     # páginas que ocupa su hoja propia (casi siempre 1)
 
     @property
     def n_paginas(self) -> int:
-        return 1 + sum(n for _, n in self.paginas)   # su hoja + sus fichas
+        return self.hoja + sum(n for _, n in self.paginas)   # su hoja + sus fichas
 
 
 def _leer_paginas(ruta: Path, log: Optional[Callable[[str], None]]) -> int:
@@ -201,14 +216,62 @@ def _frontal(resultados: Sequence[Resultado], entradas: List[_Entrada], titulo: 
     filas = [["Nº", "Finca", "Ref. catastral", "Superficie", "Uso", "Control", "Pág."]]
     for e in entradas:
         filas.append([str(e.n), Paragraph(escape(e.etiqueta), e_["c"]), e.refcat, e.sup,
-                      Paragraph(escape(e.uso), e_["c"]), e.control, str(e.inicio + paginas_previas)])
-    el.append(_tabla(filas, [9 * mm, 48 * mm, 30 * mm, 24 * mm, 36 * mm, 20 * mm, 10 * mm]))
+                      Paragraph(escape(e.uso), e_["c"]), Paragraph(escape(e.control), e_["c"]),   # Paragraph: parte línea
+                      str(e.inicio + paginas_previas)])
+    el.append(_tabla(filas, [9 * mm, 46 * mm, 30 * mm, 24 * mm, 32 * mm, 26 * mm, 10 * mm]))
+    el += _cotejo(entradas, e_)
     el += [PageBreak(), Paragraph("Metodología y fuentes", e_["h2"])]
     for t, txt in METODOLOGIA:
         el += [Paragraph(escape(t), e_["h3"]), Paragraph(escape(txt), e_["p"])]
     el += [Paragraph("Aviso legal", e_["h3"]), Paragraph(escape(AVISO_LEGAL), e_["p"]),
            Paragraph(f"Emitido por {escape(config.PIE_INFORME)}.", e_["c"])]
     return _construir(el, titulo)
+
+
+def _cotejo(entradas: List[_Entrada], e_) -> list:
+    """Página 'Cotejo con el Inventario Forestal': qué fincas difieren del Catastro y en qué. [] si no hay cotejo."""
+    from reportlab.lib.units import mm
+    from reportlab.platypus import PageBreak, Paragraph, Spacer
+
+    cotejadas = [e for e in entradas if e.r.contraste]
+    if not cotejadas:
+        return []
+    grupos = {k: [e for e in cotejadas if e.r.contraste == k]
+              for k in ("REVISAR", "COHERENTE", "NO COMPARABLE", "SIN DATO")}
+    anio = max((e.r.inventario.anio for e in cotejadas if e.r.inventario), default=0)
+    edicion = f", edición {anio}" if anio else ""
+    dif, coh = grupos["REVISAR"], grupos["COHERENTE"]
+
+    def lista(es: List[_Entrada]) -> str:
+        return ", ".join(f"nº {e.n}" for e in es)
+
+    el = [PageBreak(), Paragraph("Cotejo con el Inventario Forestal Continuo de Galicia", e_["h2"]),
+          Paragraph(escape(
+              f"El cultivo que figura en el Catastro se ha cotejado, finca a finca, con el Inventario Forestal "
+              f"Continuo de Galicia (Xunta de Galicia{edicion}), que refleja lo que hay hoy sobre el terreno. "
+              f"De {len(cotejadas)} fincas cotejadas, {len(dif)} presentan diferencias con el Catastro y "
+              f"{len(coh)} son coherentes."), e_["p"])]
+    if dif:
+        filas = [["Nº", "Finca", "Según el Catastro", f"Según el inventario{' ' + str(anio) if anio else ''}"]]
+        for e in dif:
+            inv = e.r.inventario
+            filas.append([str(e.n), Paragraph(escape(e.etiqueta), e_["c"]), Paragraph(escape(e.uso), e_["c"]),
+                          Paragraph(escape(texto_reparto(inv) if inv else "—"), e_["c"])])
+        el += [Paragraph("Fincas con diferencias", e_["h3"]),
+               _tabla(filas, [9 * mm, 44 * mm, 50 * mm, 72 * mm]), Spacer(1, 3 * mm)]
+    for titulo, clave, texto in (
+            ("Fincas sin diferencias apreciables", "COHERENTE", ""),
+            ("No comparables", "NO COMPARABLE", " (el cultivo catastral no tiene equivalencia en el inventario)"),
+            ("Sin dato", "SIN DATO", " (la parcela no figura en el inventario)")):
+        if grupos[clave]:
+            el.append(Paragraph(f"<b>{titulo}:</b> {escape(lista(grupos[clave]) + texto)}.", e_["p"]))
+    vecinales = [e for e in cotejadas if e.r.inventario and e.r.inventario.monte_vecinal]
+    if vecinales:
+        el.append(Paragraph(f"<b>Figuran como monte vecinal o público en el inventario:</b> "
+                            f"{escape(lista(vecinales))}. Conviene confirmarlo antes de cualquier operación.", e_["p"]))
+    el.append(Paragraph("El inventario se elabora por teledetección y es orientativo: señala dónde conviene mirar, "
+                        "no sustituye la visita a la finca. El detalle de cada finca figura en su hoja.", e_["c"]))
+    return el
 
 
 def _enlace_sede(r: Resultado) -> str:
@@ -261,6 +324,10 @@ def _hoja_finca(e: _Entrada, total: int, titulo: str) -> bytes:
         if inv.volumen_m3:
             filas_inv.append(["Volumen de madera", P(f"{inv.volumen_m3:,.0f} m³".replace(",", ".") +
                                                      " (estimación provisional del inventario, pendiente de validar)")])
+        if inv.monte_vecinal is not None:
+            filas_inv.append(["Monte vecinal o público",
+                              P("SÍ figura como monte vecinal o público en el inventario: conviene confirmarlo"
+                                if inv.monte_vecinal else "No figura como tal en el inventario")])
         filas_inv.append(["Frente al cultivo del Catastro",
                           P(r.contraste + (f" — {r.contraste_detalle}" if r.contraste_detalle else ""))])
         el += [Paragraph(f"Cobertura actual (Inventario Forestal de Galicia, edición {inv.anio})", e_["h2"]),
@@ -268,11 +335,35 @@ def _hoja_finca(e: _Entrada, total: int, titulo: str) -> bytes:
     elif r.contraste == "SIN DATO":
         el += [Paragraph("Cobertura actual (Inventario Forestal de Galicia)", e_["h2"]),
                Paragraph("La parcela no figura en el inventario.", e_["c"])]
+    ap = r.aprovechamiento
+    if ap:
+        el.append(Paragraph("Si se plantea una corta o una venta: qué conviene saber", e_["h2"]))
+        if ap.afecciones:
+            el.append(_tabla([["Qué se ha detectado", "Detalle", "A quién corresponde"]] +
+                             [[P(a["tipo"]), P(a["detalle"]), P(a["organismo"])] for a in ap.afecciones[:8]],
+                             [50 * mm, 62 * mm, 63 * mm]))
+            if len(ap.afecciones) > 8:
+                el.append(Paragraph(f"… y {len(ap.afecciones) - 8} más (ver Excel).", e_["c"]))
+        else:
+            el.append(Paragraph("No se detecta ninguna afección en las capas consultadas (aguas, carreteras, "
+                                "costas, patrimonio cultural y natural, Camino de Santiago, nematodo del pino, "
+                                "registro forestal, faja de 50 m, líneas eléctricas, concentración parcelaria, "
+                                "incendios 2010-2021).", e_["c"]))
+        extra = []
+        if ap.saca:
+            extra.append(["Dificultad de saca", P(texto_clases(ap.saca) + " (pendiente y accesos, mapa de la Xunta)")])
+        if ap.integrada:
+            extra.append(["Disponibilidad técnica y legal", P(texto_clases(ap.integrada) + " (clasificación de la Xunta)")])
+        if ap.sin_consultar:
+            extra.append(["Sin consultar", P("No se pudo consultar: " + ", ".join(ap.sin_consultar))])
+        if extra:
+            el += [Spacer(1, 2 * mm), _tabla(extra, [50 * mm, 125 * mm], cabecera=False, clave=True)]
+        el.append(Paragraph("Orientativo: no indica si la corta está permitida. El trámite lo confirma la "
+                            "Consellería do Medio Rural.", e_["c"]))
     incid = [x for x in [f.notas, *r.avisos, *r.errores] if x]
     if incid:
         el.append(Paragraph("Observaciones e incidencias", e_["h2"]))
         el += [Paragraph("• " + escape(x), e_["p"]) for x in incid]
-    el.append(Paragraph("Trazabilidad de las consultas", e_["h2"]))
     url = _enlace_sede(r)
     enlace = (Paragraph(f'<link href="{escape(url)}" color="#0563C1"><u>Verificar en la Sede del Catastro</u></link>',
                         e_["c"]) if url else P(""))
@@ -290,7 +381,13 @@ def _hoja_finca(e: _Entrada, total: int, titulo: str) -> bytes:
                       P(fecha_legible(inv.consultado) or "sin fecha"),
                       Paragraph(f'<link href="{escape(config.INVEGA_VISOR_URL)}" color="#0563C1">'
                                 "<u>Visor del inventario</u></link>", e_["c"])])
-    el.append(_tabla(filas, [40 * mm, 48 * mm, 37 * mm, 50 * mm]))
+    if ap:
+        filas.append([P("Condicionantes de corta"),
+                      P("Capas de afecciones y de restricciones de la Xunta de Galicia (IDEG)"),
+                      P(fecha_legible(ap.consultado) or "sin fecha"), P("")])
+    from reportlab.platypus import KeepTogether
+    el.append(KeepTogether([Paragraph("Trazabilidad de las consultas", e_["h2"]),      # no se parte entre páginas
+                            _tabla(filas, [40 * mm, 48 * mm, 37 * mm, 50 * mm])]))
     el += [Spacer(1, 3 * mm),
            Paragraph("Las páginas siguientes reproducen los documentos obtenidos de cada fuente."
                      if e.paginas else "No se obtuvo ningún documento de las fuentes para esta finca.", e_["c"])]
@@ -384,6 +481,7 @@ def escribir_informe(resultados: Sequence[Resultado], raiz: Path, titulo: str,
     # se genera una vez para contarlas y otra con los números definitivos
     pagina = 1
     for e in entradas:
+        e.hoja = len(PdfReader(io.BytesIO(_hoja_finca(e, len(entradas), titulo))).pages)
         e.inicio = pagina                 # relativo a la primera finca; _frontal le suma las previas
         pagina += e.n_paginas
     frontal_n = len(PdfReader(io.BytesIO(_frontal(resultados, entradas, titulo, meta, 0))).pages)

@@ -17,7 +17,7 @@ from .codigos import Ambiguo, NoEncontrado, _partes, clave_nombre
 from .excel import escribir_excel
 from .informe import escribir_informe
 from .inventario import aviso_alteracion, contrastar
-from .modelos import Codigos, DatosCatastro, DatosInventario, Finca, Meta, Resultado, ResultadoSigpac
+from .modelos import Codigos, DatosAprovechamiento, DatosCatastro, DatosInventario, Finca, Meta, Resultado, ResultadoSigpac
 from .registro import Registro
 from .sigpac import GALICIA, coincide_refcat
 from .superficie import control_superficie
@@ -32,6 +32,7 @@ class Opciones:
     usar_sigpac: bool = True
     usar_pdf_catastro: bool = True
     inventario: bool = True  # cobertura actual según el Inventario Forestal Continuo de Galicia
+    aprovechamiento: bool = True  # condicionantes de corta: afecciones y dificultad de saca (solo Galicia)
     mapa: bool = True      # mapa de conjunto de todas las fincas (solo Galicia)
     cliente: str = ""      # nombre del cliente tal cual (para el dossier)
     expediente: str = ""   # nº de expediente del informe
@@ -46,6 +47,7 @@ class Servicios:
     sigpac: Optional[object]  # .consultar()
     cache: Cache
     inventario: Optional[object] = None  # .consultar(refcat) -> DatosInventario | None
+    aprovechamiento: Optional[object] = None  # .consultar(refcat) -> DatosAprovechamiento | None
     mapa: Optional[object] = None  # .generar(resultados, raiz, titulo) -> Conjunto | None
     usados: Dict[str, str] = field(default_factory=dict)  # nombre de fichero -> clave (detecta colisiones)
 
@@ -225,6 +227,8 @@ def _procesar(res: Resultado, op: Opciones, srv: Servicios, d_cat: Path, d_sig: 
     # ---- Inventario forestal (solo Galicia): cobertura actual frente al cultivo del Catastro
     if datos and op.inventario and srv.inventario is not None and cod.cod_provincia in GALICIA:
         _inventario(res, srv, clave, reg)
+    if datos and op.aprovechamiento and srv.aprovechamiento is not None and cod.cod_provincia in GALICIA:
+        _aprovechamiento(res, srv, clave, reg)
 
     # ---- SIGPAC
     if op.usar_sigpac and srv.sigpac is not None:
@@ -272,12 +276,42 @@ def _catastro_datos(res, srv, cod, clave, reg) -> Optional[DatosCatastro]:
     return datos
 
 
+def _aprovechamiento(res: Resultado, srv: Servicios, clave: str, reg: Registro) -> None:
+    """Afecciones a una corta y dificultad de saca. Es un extra: si falla, se avisa y la finca sigue adelante."""
+    f = res.finca
+    d: Optional[DatosAprovechamiento] = None
+    cacheado = srv.cache.leer("aprovechamiento_v2", clave)
+    if cacheado:
+        try:
+            d = DatosAprovechamiento(**cacheado)
+        except (TypeError, ValueError):
+            srv.cache.borrar("aprovechamiento_v2", clave)
+    if d is None:
+        try:
+            d = srv.aprovechamiento.consultar(res.catastro.refcat)
+        except Exception as e:  # noqa: BLE001
+            reg.aviso(f.etiqueta, f"condicionantes de corta: no se pudieron consultar ({e})")
+            return
+        if d is None:
+            reg.info(f"{f.etiqueta}: sin geometría en el inventario, no se consultan condicionantes de corta")
+            return
+        d.consultado = _ahora()
+        if not d.sin_consultar:              # solo se cachea la consulta completa
+            srv.cache.guardar("aprovechamiento_v2", clave, asdict(d))
+    res.aprovechamiento = d
+    if d.afecciones:
+        tipos = "; ".join(dict.fromkeys(a["tipo"].split(" (")[0] for a in d.afecciones))
+        reg.info(f"{f.etiqueta}: afecciones a tener en cuenta en una corta: {tipos}")
+    if d.sin_consultar:
+        reg.aviso(f.etiqueta, "condicionantes de corta: no se pudo consultar " + ", ".join(d.sin_consultar))
+
+
 def _inventario(res: Resultado, srv: Servicios, clave: str, reg: Registro) -> None:
     """Anota cobertura actual y contraste. Es un extra: si falla, se avisa y la finca sigue adelante."""
     f, datos = res.finca, res.catastro
     inv: Optional[DatosInventario] = None
     cacheado = srv.cache.leer("inventario", clave)
-    if cacheado:
+    if cacheado and "monte_vecinal" in cacheado:   # las entradas anteriores a ese dato se vuelven a consultar
         try:
             inv = DatosInventario(**cacheado)
         except (TypeError, ValueError):
@@ -297,6 +331,9 @@ def _inventario(res: Resultado, srv: Servicios, clave: str, reg: Registro) -> No
     if inv is None:
         reg.info(f"{f.etiqueta}: no figura en el Inventario Forestal de Galicia")
         return
+    if inv.monte_vecinal:
+        res.avisos.append("Figura como monte vecinal o público en el Inventario Forestal: conviene confirmarlo")
+        reg.aviso(f.etiqueta, "figura como monte vecinal o público en el inventario forestal")
     if res.contraste == "REVISAR":
         reg.aviso(f.etiqueta, f"cultivo catastral y cobertura actual no cuadran -> REVISAR. {res.contraste_detalle}")
     else:
