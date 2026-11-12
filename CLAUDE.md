@@ -36,6 +36,7 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 | `plano.py` | Plano de la ficha SIXPAC: geometría + ortofoto de los servicios del visor, dibujado en SVG (funciones puras testeables) |
 | `excel.py` | `resultados.xlsx`: hoja Resumen + hoja Fincas (enlaces a PDF y a la Sede, detalle del control) |
 | `resumen.py` | Cifras del lote (totales, por municipio/uso, controles). Puro, sin red |
+| `mapa.py` | Mapa de conjunto de todas las fincas (solo Galicia): 1 petición `parcelabox` por finca (caché `bbox_sixpac`) + ortofoto SIXPAC; distancias, grupos cercanos (≤2,5 km encadenadas, máx. 8 mapas). Geometría pura + `ServicioMapa` con red inyectable |
 | `informe.py` | `informe.pdf`: portada+resumen, índice y todas las fichas con marcadores. Une PDF ya descargados (pypdf + reportlab) |
 | `superficie.py` | Control de superficie (margen 10 %, cuota) |
 | `pipeline.py` | Orquestación; servicios inyectados (testeable sin red) |
@@ -43,6 +44,9 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- `mapa_conjunto.pdf` y hoja `Distancias` del Excel (`--sin-mapa` lo omite). Distancias en línea recta entre centros de la caja de
+  cada parcela (orientativas). Fincas sin geometría o fuera de Galicia se omiten con aviso. Verificado con 31 fincas reales
+  (31 peticiones + ~20 teselas, ~1 min). Si hay números solapados en zonas densas, es esperable (posición = centro de la caja).
 - `informe.pdf` se genera al final de cada lote (`--sin-informe` lo omite). Pesa lo que suman los PDF (~60 MB con 31 fincas).
   reportlab fijado a <5 (la 5.x exige Python 3.10; el proyecto es 3.9).
 - Python 3.9 compatible (`from __future__ import annotations`). Entorno: `.venv`.

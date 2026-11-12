@@ -43,7 +43,7 @@ rellena hacia abajo. Un mismo fichero puede mezclar municipios. Ejemplo: `tests/
 ```
 
 Opciones: `--cliente` (salidas en `~/Desktop/BUSQUEDAS FERRADOS-CLAUDE/<cliente>/salidas/`), `--nombre`, `--municipio`, `--provincia`, `--prueba N`, `--salidas DIR`, `--simular`, `--sin-sigpac`,
-`--sin-pdf-catastro`, `--sin-cache`, `--sin-informe`, `--visible`, `--pausa-min`, `--pausa-max`.
+`--sin-pdf-catastro`, `--sin-cache`, `--sin-mapa`, `--sin-informe`, `--visible`, `--pausa-min`, `--pausa-max`.
 
 ## Salida
 ```
@@ -67,4 +67,4 @@ salidas/2026-11-11_cliente-perez.zip
 ```
 
 ## Salida
-`resultados.xlsx` (hoja **Resumen** con totales y hoja **Fincas** con enlaces a cada PDF y a la Sede del Catastro), `pdf_catastro/`, `pdf_sigpac/`, `registro.txt`, **`informe.pdf`** (portada con resumen, índice y todas las fichas, con marcadores) y el ZIP.
+`resultados.xlsx` (hoja **Resumen** con totales y hoja **Fincas** con enlaces a cada PDF y a la Sede del Catastro), `pdf_catastro/`, `pdf_sigpac/`, `registro.txt`, **`mapa_conjunto.pdf`** (todas las fincas en un mapa sobre la ortofoto de SIXPAC, con números, leyenda y vecina más cercana; solo Galicia; la hoja *Distancias* del Excel trae la matriz en km), **`informe.pdf`** (portada con resumen, índice y todas las fichas, con marcadores) y el ZIP.
