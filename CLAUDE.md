@@ -41,12 +41,31 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas de España de 
 | `inventario.py` | Inventario Forestal Continuo de Galicia (Xunta): cobertura ACTUAL por referencia catastral y contraste con el cultivo del Catastro. Parsers puros + `ServicioInventario` con HTTP inyectable |
 | `aprovechamiento.py` | Condicionantes de una corta (solo Galicia): afecciones sectoriales que toca la parcela (capas VISAF de la Xunta) con su organismo, y dificultad de saca (restricciones técnicas INVEGA). Parsers puros + `ServicioAprovechamiento` con HTTP inyectable |
 | `geologia.py` | Contexto geológico y minero (toda España): hoja y litología MAGNA, indicios y explotaciones BDMIN a ≤5 km y Atlas Geoquímico (IGME-CSIC); derechos mineros vigentes de la Xunta (solo Galicia). Parsers puros + `ServicioGeologia` con HTTP inyectable |
+| `precios.py` | Precio medio comarcal de la tierra rústica (Xunta, Observatorio de Mobilidade de Terras). Sin red: tablas en `fincas/datos/` |
+| `colindantes.py` | Parcelas colindantes y acceso a dominio público según SIXPAC (solo Galicia). Parser puro + `ServicioColindantes` con HTTP inyectable |
 | `superficie.py` | Control de superficie (margen 10 %, cuota) |
 | `pipeline.py` | Orquestación; servicios inyectados (testeable sin red) |
 | `red.py` / `navegador.py` / `cache.py` / `registro.py` | pausas+reintentos+HTTP / Chromium compartido / caché / registro.txt |
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- **Composición del informe (2026-11-13, rediseño pedido por el usuario).** Orden: portada con 4 cifras en recuadros (`_tarjetas`) ·
+  Contenido (índice general con páginas + índice de fincas) · Resumen ejecutivo (una tabla con marcas verde/ámbar/rojo; rojo solo
+  para monte vecinal) · mapa · Resumen para la compraventa · Precio de referencia de la zona · Afecciones · Cotejo forestal ·
+  fincas · anexos (construcciones, geología, fuentes y fechas, metodología y aviso legal: la metodología va AL FINAL).
+  `escribir_informe` monta piezas ("propia"|"externa", título, contenido) y genera el frontal al final con las páginas reales.
+- **Precio de referencia (2026-11-13).** `precios.py`, SIN red: tablas en `fincas/datos/` (públicas). `precios_tierra_galicia.json` =
+  precio medio de compraventa 2021-2023 por comarca, monte y SAU, del informe anual 2024 del Observatorio Galego de Mobilidade de
+  Terras (AGADER, con datos de ATRIGA); 44 comarcas, 9 sin dato. `comarcas_galicia.json` = comarca de cada concello por código INE
+  (capa `PBA/Mapa_Base_PBA_2020/MapServer/144`, campo `Comarca`). Usar el municipio INE, NO el del Catastro. Tipo de terreno = lo que
+  hay hoy (inventario) y, si no, el Catastro. DECISIÓN: el precio NUNCA se multiplica por la superficie de la finca (se leería como
+  tasación); solo €/m² y €/ha de la comarca. No aplica a urbanos. Actualizar las tablas a mano cuando salga un informe nuevo.
+- **Colindantes (2026-11-13).** `colindantes.py`: `ParcelasCatastrais/SIXPAC_<año>/MapServer/1` (se elige el año más reciente, 1
+  petición por lote). `query` por PROVINCIA/MUNICIPIO(Catastro)/POLIGONO/PARCELA con geometría y luego `query` espacial POST con
+  `esriSpatialRelIntersects` + `distance=1` (con `Touches` devuelve 0). Parcelas ≥ 9000 = dominio público (camino, vía o cauce):
+  se cuentan como "acceso", no como vecinas. Solo referencias, nunca titulares. Solo rústicas de Galicia. Caché `colindantes_v1`,
+  `--sin-colindantes`. La capa trae además `DN_SURFACE` (superficie SIXPAC), aún sin usar.
+- **Urbanismo (clasificación del suelo): NO verificado.** No se encontró servicio público consultable (SIOTUGA); no añadir sin probarlo.
 - **Estructura del informe (2026-11-13, decisión del usuario).** La HOJA de cada finca no lleva geología (la alargaba y "rompía" el
   informe). Orden: portada+resumen, índice (con los anexos y su página), cotejo forestal, página "Afecciones y limitaciones detectadas"
   (resumen del lote con lo que ya consta en cada hoja; el monte vecinal/utilidad pública va aparte y primero porque afecta a la

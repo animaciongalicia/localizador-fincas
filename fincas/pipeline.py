@@ -17,7 +17,7 @@ from .codigos import Ambiguo, NoEncontrado, _partes, clave_nombre
 from .excel import escribir_excel
 from .informe import escribir_informe
 from .inventario import aviso_alteracion, contrastar
-from .modelos import Codigos, DatosAprovechamiento, DatosCatastro, DatosGeologia, DatosInventario, Finca, Meta, Resultado, ResultadoSigpac
+from .modelos import Codigos, DatosAprovechamiento, DatosCatastro, DatosColindantes, DatosGeologia, DatosInventario, Finca, Meta, Resultado, ResultadoSigpac
 from .registro import Registro
 from .sigpac import GALICIA, coincide_refcat
 from .superficie import control_superficie
@@ -34,6 +34,7 @@ class Opciones:
     inventario: bool = True  # cobertura actual según el Inventario Forestal Continuo de Galicia
     aprovechamiento: bool = True  # condicionantes de corta: afecciones y dificultad de saca (solo Galicia)
     geologia: bool = True  # contexto geológico y minero (IGME; derechos mineros solo Galicia)
+    colindantes: bool = True  # parcelas colindantes y acceso (solo Galicia, rústicas)
     mapa: bool = True      # mapa de conjunto de todas las fincas (solo Galicia)
     cliente: str = ""      # nombre del cliente tal cual (para el dossier)
     expediente: str = ""   # nº de expediente del informe
@@ -50,6 +51,7 @@ class Servicios:
     inventario: Optional[object] = None  # .consultar(refcat) -> DatosInventario | None
     aprovechamiento: Optional[object] = None  # .consultar(refcat) -> DatosAprovechamiento | None
     geologia: Optional[object] = None  # .consultar(lon, lat, galicia) -> DatosGeologia
+    colindantes: Optional[object] = None  # .consultar(prov, mun_catastro, pol, par) -> DatosColindantes | None
     mapa: Optional[object] = None  # .generar(resultados, raiz, titulo) -> Conjunto | None
     usados: Dict[str, str] = field(default_factory=dict)  # nombre de fichero -> clave (detecta colisiones)
 
@@ -237,6 +239,9 @@ def _procesar(res: Resultado, op: Opciones, srv: Servicios, d_cat: Path, d_sig: 
 
     if datos and op.geologia and srv.geologia is not None:
         _geologia(res, srv, cod, clave, reg)
+    if (datos and op.colindantes and srv.colindantes is not None and cod.cod_provincia in GALICIA
+            and f.poligono.isdigit() and f.parcela.isdigit()):
+        _colindantes(res, srv, cod, clave, reg)
 
     # ---- SIGPAC
     if f.por_referencia:   # el visor busca por polígono y parcela: un inmueble urbano no tiene
@@ -289,6 +294,31 @@ def _catastro_datos(res, srv, cod, clave, reg) -> Optional[DatosCatastro]:
     datos.consultado = _ahora()
     srv.cache.guardar("catastro", clave, asdict(datos))
     return datos
+
+
+def _colindantes(res: Resultado, srv: Servicios, cod: Codigos, clave: str, reg: Registro) -> None:
+    """Parcelas vecinas y acceso. Es un extra: si falla, se avisa y la finca sigue adelante."""
+    f = res.finca
+    cacheado = srv.cache.leer("colindantes_v1", clave)
+    if cacheado:
+        try:
+            res.colindantes = DatosColindantes(**cacheado)
+            return
+        except (TypeError, ValueError):
+            srv.cache.borrar("colindantes_v1", clave)
+    try:
+        d = srv.colindantes.consultar(cod.cod_provincia, cod.cod_municipio_catastro, f.poligono, f.parcela)
+    except Exception as e:  # noqa: BLE001
+        reg.aviso(f.etiqueta, f"colindantes: no se pudieron consultar ({e})")
+        return
+    if d is None:
+        reg.info(f"{f.etiqueta}: no está en la capa de parcelas de SIXPAC, sin colindantes")
+        return
+    d.consultado = _ahora()
+    srv.cache.guardar("colindantes_v1", clave, asdict(d))
+    res.colindantes = d
+    reg.info(f"{f.etiqueta}: {len(d.parcelas)} parcelas colindantes; "
+             + ("linda con dominio público" if d.dominio_publico else "no consta que linde con camino público"))
 
 
 def _geologia(res: Resultado, srv: Servicios, cod: Codigos, clave: str, reg: Registro) -> None:

@@ -1,0 +1,228 @@
+{
+"fuente": "Informe anual sobre prezos e mobilidade da terra rústica en Galicia 2024. Observatorio Galego de Mobilidade de Terras (AGADER, Xunta de Galicia), con datos de compraventas declaradas a la Axencia Tributaria de Galicia",
+"url": "https://agader.xunta.gal/sites/default/files/documentacion/Observatorio/20250513_informe_anual_2024_vf.pdf",
+"periodo": "2021-2023",
+"unidad": "euros por metro cuadrado",
+"precios": {
+"A Barcala": {
+"monte": 0.59,
+"sau": 0.94,
+"total": 0.73
+},
+"A Coruña": {
+"monte": 1.79,
+"sau": 4.89,
+"total": 2.92
+},
+"A Fonsagrada": {
+"monte": 0.36,
+"sau": 0.47,
+"total": 0.4
+},
+"A Mariña Central": {
+"monte": 0.37,
+"sau": 1.64,
+"total": 0.58
+},
+"A Mariña Occidental": {
+"monte": 0.47,
+"sau": 2.08,
+"total": 0.6
+},
+"A Mariña Oriental": {
+"monte": 0.39,
+"sau": 1.18,
+"total": 0.54
+},
+"A Ulloa": {
+"monte": 0.45,
+"sau": 0.99,
+"total": 0.67
+},
+"Arzúa": {
+"monte": 1.4,
+"sau": 1.65,
+"total": 1.46
+},
+"Baixa Limia": {
+"monte": null,
+"sau": 0.79,
+"total": 0.32
+},
+"Barbanza": {
+"monte": 4.58,
+"sau": 5.22,
+"total": 4.83
+},
+"Bergantiños": {
+"monte": 0.68,
+"sau": 1.31,
+"total": 0.88
+},
+"Betanzos": {
+"monte": 0.81,
+"sau": 1.25,
+"total": 0.98
+},
+"Caldas": {
+"monte": 0.78,
+"sau": 2.75,
+"total": 1.33
+},
+"Chantada": {
+"monte": 0.6,
+"sau": 1.06,
+"total": 0.84
+},
+"Deza": {
+"monte": 0.64,
+"sau": 1.44,
+"total": 0.95
+},
+"Eume": {
+"monte": 0.53,
+"sau": 1.36,
+"total": 0.81
+},
+"Ferrol": {
+"monte": 0.71,
+"sau": 1.99,
+"total": 1.05
+},
+"Fisterra": {
+"monte": 0.69,
+"sau": 1.71,
+"total": 1.0
+},
+"Lugo": {
+"monte": 0.61,
+"sau": 1.91,
+"total": 1.17
+},
+"Meira": {
+"monte": 0.51,
+"sau": 0.75,
+"total": 0.62
+},
+"Muros": {
+"monte": 3.1,
+"sau": 5.9,
+"total": 4.43
+},
+"Noia": {
+"monte": 1.15,
+"sau": 3.71,
+"total": 1.87
+},
+"O Baixo Miño": {
+"monte": 3.35,
+"sau": 2.74,
+"total": 3.26
+},
+"O Morrazo": {
+"monte": 12.56,
+"sau": 12.12,
+"total": 12.33
+},
+"O Ribeiro": {
+"monte": 3.16,
+"sau": 3.97,
+"total": 3.02
+},
+"O Salnés": {
+"monte": 7.04,
+"sau": 7.72,
+"total": 7.42
+},
+"O Sar": {
+"monte": 2.0,
+"sau": 3.13,
+"total": 2.26
+},
+"Ordes": {
+"monte": 1.09,
+"sau": 1.55,
+"total": 1.32
+},
+"Ortegal": {
+"monte": 0.56,
+"sau": 0.75,
+"total": 0.59
+},
+"Os Ancares": {
+"monte": 0.49,
+"sau": 0.59,
+"total": 0.53
+},
+"Ourense": {
+"monte": 1.44,
+"sau": 6.33,
+"total": 6.66
+},
+"Pontevedra": {
+"monte": 1.95,
+"sau": 3.55,
+"total": 2.05
+},
+"Quiroga": {
+"monte": 0.54,
+"sau": 0.71,
+"total": 0.3
+},
+"Santiago": {
+"monte": 1.09,
+"sau": 2.36,
+"total": 1.45
+},
+"Sarria": {
+"monte": 0.56,
+"sau": 1.0,
+"total": 0.85
+},
+"Tabeirós-Terra de Montes": {
+"monte": 0.92,
+"sau": 2.1,
+"total": 1.47
+},
+"Terra Chá": {
+"monte": 0.66,
+"sau": 1.04,
+"total": 0.83
+},
+"Terra de Lemos": {
+"monte": 0.97,
+"sau": 1.48,
+"total": 1.17
+},
+"Terra de Melide": {
+"monte": 1.22,
+"sau": 1.52,
+"total": 1.29
+},
+"Terra de Soneira": {
+"monte": 0.61,
+"sau": 1.17,
+"total": 0.8
+},
+"Valdeorras": {
+"monte": null,
+"sau": 2.52,
+"total": 0.68
+},
+"Verín": {
+"monte": null,
+"sau": 3.1,
+"total": 2.2
+},
+"Vigo": {
+"monte": null,
+"sau": 14.94,
+"total": 10.65
+},
+"Xallas": {
+"monte": 0.96,
+"sau": 1.36,
+"total": 1.14
+}
+}
+}
