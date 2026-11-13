@@ -1146,7 +1146,12 @@ def escribir_informe(resultados: Sequence[Resultado], raiz: Path, titulo: str,
     # frontal se genera al final, cuando ya se sabe cuánto ocupa todo.
     e_ = _estilos()
     afe, cot = _afecciones(entradas, e_), _cotejo(entradas, e_)
-    cuadros = (afe + cot[1:]) if (afe and cot) else (afe or cot)
+    if afe and cot:      # juntos en un apartado: el cotejo entra como segundo título, separado del cuadro anterior
+        from reportlab.lib.units import mm as _mm
+        from reportlab.platypus import Paragraph as _Par, Spacer as _Esp
+        cuadros = afe + [_Esp(1, 7 * _mm), _Par("Cotejo con el Inventario Forestal Continuo de Galicia", e_["h2"])] + cot[2:]
+    else:
+        cuadros = afe or cot
     nombre_cuadros = ("Afecciones y cotejo con el inventario forestal" if (afe and cot) else
                       "Afecciones y limitaciones detectadas" if afe else "Cotejo con el Inventario Forestal de Galicia")
     partes = [
