@@ -41,12 +41,46 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas de España de 
 | `inventario.py` | Inventario Forestal Continuo de Galicia (Xunta): cobertura ACTUAL por referencia catastral y contraste con el cultivo del Catastro. Parsers puros + `ServicioInventario` con HTTP inyectable |
 | `aprovechamiento.py` | Condicionantes de una corta (solo Galicia): afecciones sectoriales que toca la parcela (capas VISAF de la Xunta) con su organismo, y dificultad de saca (restricciones técnicas INVEGA). Parsers puros + `ServicioAprovechamiento` con HTTP inyectable |
 | `geologia.py` | Contexto geológico y minero (toda España): hoja y litología MAGNA, indicios y explotaciones BDMIN a ≤5 km y Atlas Geoquímico (IGME-CSIC); derechos mineros vigentes de la Xunta (solo Galicia). Parsers puros + `ServicioGeologia` con HTTP inyectable |
+| `precios.py` | Precio medio comarcal de la tierra rústica (Xunta, Observatorio de Mobilidade de Terras). Sin red: tablas en `fincas/datos/` |
+| `colindantes.py` | Parcelas colindantes y acceso a dominio público según SIXPAC (solo Galicia). Parser puro + `ServicioColindantes` con HTTP inyectable |
 | `superficie.py` | Control de superficie (margen 10 %, cuota) |
 | `pipeline.py` | Orquestación; servicios inyectados (testeable sin red) |
 | `red.py` / `navegador.py` / `cache.py` / `registro.py` | pausas+reintentos+HTTP / Chromium compartido / caché / registro.txt |
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- **Orden definitivo en CUATRO PARTES (2026-11-13, decisión del usuario: primero se enseña el trabajo, luego se interpreta).**
+  1 Lo esencial (resumen ejecutivo, mapa) · 2 Las fincas, una a una · 3 Para decidir (resumen para la compraventa, qué puede valer y
+  qué cuesta vender, afecciones + cotejo forestal en UN apartado) · 4 Anexos. Las partes 2-4 abren con una página separadora
+  (`_separador`, textos en `PARTES`). El Contenido y el índice de fincas son ENLACES a su página: `_ancla` anota la posición de cada
+  fila al dibujar el frontal y `escribir_informe` añade después las anotaciones con pypdf (`Link`). La portada solo lleva las 4 cifras
+  y cómo está organizado el informe; las tablas por municipio y por uso pasaron al resumen ejecutivo. Esto sustituye al orden del
+  punto siguiente.
+- **Composición del informe (2026-11-13, rediseño pedido por el usuario).** Orden: portada con 4 cifras en recuadros (`_tarjetas`) ·
+  Contenido (índice general con páginas + índice de fincas) · Resumen ejecutivo (una tabla con marcas verde/ámbar/rojo; rojo solo
+  para monte vecinal) · mapa · Resumen para la compraventa · Precio de referencia de la zona · Afecciones · Cotejo forestal ·
+  fincas · anexos (construcciones, geología, fuentes y fechas, metodología y aviso legal: la metodología va AL FINAL).
+  `escribir_informe` monta piezas ("propia"|"externa", título, contenido) y genera el frontal al final con las páginas reales.
+- **"Qué puede valer y qué cuesta vender" (2026-11-13, decisión del usuario).** Sustituye al apartado de precio medio comarcal, que
+  el usuario descartó: el cliente lo leería como el precio de su finca y en Galicia se vende por lo que pague el comprador. El
+  apartado da (a) precios de la madera EN PIE como horquilla con fuente y fecha (`fincas/datos/madera_galicia.json`, de Campo Galego
+  y un maderista; caducan: revisar 2-3 veces al año y cambiar `revisado`); (b) a quién suele interesar cada finca y sus colindantes;
+  (c) la tasa de movilidad de la tierra de la comarca (`movilidad_total` en `precios_tierra_galicia.json`, mismo informe de la Xunta).
+  NUNCA calcula toneladas ni dinero de una finca: no se conoce edad ni densidad. Sin tabla de toneladas por edad: solo el crecimiento
+  publicado (10-40 m³/ha·año, media 20, USC); una tabla por edades y por rebrote/plantado necesita validarla un ingeniero forestal.
+  ferrados.com también hace ofertas de compra: el aviso legal lo dice, y las cifras van como horquillas con fuente, no sesgadas a la baja.
+- **Precio de referencia (2026-11-13; ya NO se muestra en el informe, ver arriba).** `precios.py`, SIN red: tablas en `fincas/datos/` (públicas). `precios_tierra_galicia.json` =
+  precio medio de compraventa 2021-2023 por comarca, monte y SAU, del informe anual 2024 del Observatorio Galego de Mobilidade de
+  Terras (AGADER, con datos de ATRIGA); 44 comarcas, 9 sin dato. `comarcas_galicia.json` = comarca de cada concello por código INE
+  (capa `PBA/Mapa_Base_PBA_2020/MapServer/144`, campo `Comarca`). Usar el municipio INE, NO el del Catastro. Tipo de terreno = lo que
+  hay hoy (inventario) y, si no, el Catastro. DECISIÓN: el precio NUNCA se multiplica por la superficie de la finca (se leería como
+  tasación); solo €/m² y €/ha de la comarca. No aplica a urbanos. Actualizar las tablas a mano cuando salga un informe nuevo.
+- **Colindantes (2026-11-13).** `colindantes.py`: `ParcelasCatastrais/SIXPAC_<año>/MapServer/1` (se elige el año más reciente, 1
+  petición por lote). `query` por PROVINCIA/MUNICIPIO(Catastro)/POLIGONO/PARCELA con geometría y luego `query` espacial POST con
+  `esriSpatialRelIntersects` + `distance=1` (con `Touches` devuelve 0). Parcelas ≥ 9000 = dominio público (camino, vía o cauce):
+  se cuentan como "acceso", no como vecinas. Solo referencias, nunca titulares. Solo rústicas de Galicia. Caché `colindantes_v1`,
+  `--sin-colindantes`. La capa trae además `DN_SURFACE` (superficie SIXPAC), aún sin usar.
+- **Urbanismo (clasificación del suelo): NO verificado.** No se encontró servicio público consultable (SIOTUGA); no añadir sin probarlo.
 - **Estructura del informe (2026-11-13, decisión del usuario).** La HOJA de cada finca no lleva geología (la alargaba y "rompía" el
   informe). Orden: portada+resumen, índice (con los anexos y su página), cotejo forestal, página "Afecciones y limitaciones detectadas"
   (resumen del lote con lo que ya consta en cada hoja; el monte vecinal/utilidad pública va aparte y primero porque afecta a la
@@ -56,6 +90,8 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas de España de 
   dice si algo está en ruina: no se aventura, solo se avisa de que hay que verlo en visita.
   La trazabilidad (fuente y fecha de cada consulta, enlace a la Sede) ya NO va en cada hoja: es el último anexo, "Fuentes y fechas
   de consulta", una fila por finca. Así la hoja de cada finca cabe en una página.
+  Primer anexo: "Resumen para la compraventa" (`puntos_a_comprobar`): por finca, qué es, qué hay hoy y qué conviene aclarar. SOLO
+  hechos que ya constan en el resto del informe; no valora ni recomienda. Sin consultas nuevas.
   `_tabla` convierte toda cadena suelta en párrafo: ningún texto se sale de su celda (antes los rótulos largos de la 1ª columna se
   salían). Si una cabecera se parte a mitad de palabra, ensanchar la columna. Para revisar el PDF a ojo sin poppler: separar páginas
   con pypdf y `sips -s format png` (las fichas SIXPAC salen con fondo negro en esa conversión: es del conversor, no del PDF).

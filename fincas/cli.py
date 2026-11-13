@@ -30,6 +30,8 @@ def _parser() -> argparse.ArgumentParser:
                    help="solo lee y valida la entrada y muestra el plan. NO hace ninguna consulta.")
     p.add_argument("--sin-sigpac", action="store_true", help="saltar el paso SIGPAC")
     p.add_argument("--sin-pdf-catastro", action="store_true", help="no descargar el PDF del Catastro")
+    p.add_argument("--sin-colindantes", action="store_true",
+                   help="No consultar las parcelas colindantes (solo Galicia)")
     p.add_argument("--sin-geologia", action="store_true",
                    help="No consultar el contexto geológico y minero (IGME y derechos mineros de la Xunta)")
     p.add_argument("--sin-corta", action="store_true",
@@ -100,7 +102,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                   informe=not args.sin_informe, mapa=not args.sin_mapa,
                   inventario=not args.sin_inventario,
                   aprovechamiento=not args.sin_corta,
-                  geologia=not args.sin_geologia)
+                  geologia=not args.sin_geologia, colindantes=not args.sin_colindantes)
     if args.simular:
         _plan(fincas[: args.prueba] if args.prueba else fincas, problemas, op)
         return 0
@@ -149,8 +151,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             ClienteHttp(limitador, log=reg.info), log=reg.info)
         from .geologia import ServicioGeologia
         geologia = None if args.sin_geologia else ServicioGeologia(ClienteHttp(limitador, log=reg.info), log=reg.info)
+        from .colindantes import ServicioColindantes
+        colindantes = None if args.sin_colindantes else ServicioColindantes(
+            ClienteHttp(limitador, log=reg.info), log=reg.info)
         srv = Servicios(ResolutorCodigos(catastro, cache), catastro, sigpac, cache, mapa=mapa,
-                        inventario=inventario, aprovechamiento=aprovechamiento, geologia=geologia)
+                        inventario=inventario, aprovechamiento=aprovechamiento, geologia=geologia,
+                        colindantes=colindantes)
         try:
             carpeta = ejecutar(fincas, op, srv, reg, preguntar=_preguntar)
         except Ambiguo as e:

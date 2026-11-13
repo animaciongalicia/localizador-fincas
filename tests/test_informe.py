@@ -78,17 +78,31 @@ def test_informe_une_pdfs_con_indice_y_marcadores(tmp_path):
     assert ruta == tmp_path / "informe.pdf" and ruta.exists()
     lector = PdfReader(str(ruta))
     por_finca = [1 + 1 + 2, 1 + 1 + 2, 1]                      # hoja propia + Catastro + SIXPAC
-    delanteras = len(lector.pages) - sum(por_finca) - 1      # la última página es el anexo de fuentes
-    assert delanteras >= 3                                          # portada + índice + metodología
     titulos = [o.title for o in lector.outline]
-    assert titulos == ["Resumen e índice", "1. Ortigueira pol 34 parc 175", "2. Ortigueira pol 34 parc 176",
-                       "3. Ortigueira pol 34 parc 999",
-                       "Anexo. Fuentes y fechas de consulta"]
-    assert lector.get_destination_page_number(lector.outline[1]) == delanteras
-    assert lector.get_destination_page_number(lector.outline[2]) == delanteras + 4
-    frente = "\n".join(lector.pages[i].extract_text() for i in range(delanteras))
+    assert titulos == ["Portada y contenido", "Resumen ejecutivo", "Parte 2 · Las fincas, una a una",
+                       "1. Ortigueira pol 34 parc 175", "2. Ortigueira pol 34 parc 176", "3. Ortigueira pol 34 parc 999",
+                       "Parte 3 · Para decidir", "Resumen para la compraventa", "Qué puede valer y qué cuesta vender",
+                       "Parte 4 · Anexos", "Anexo. Fuentes y fechas de consulta", "Anexo. Metodología y aviso legal"]
+    pos = {x: lector.get_destination_page_number(o) for x, o in zip(titulos, lector.outline)}
+    delanteras = pos["1. Ortigueira pol 34 parc 175"]         # todo lo que va antes de la primera finca
+    assert delanteras == pos["Parte 2 · Las fincas, una a una"] + 1 >= 4   # las fincas van tras lo esencial
+    assert pos["2. Ortigueira pol 34 parc 176"] == delanteras + 4
+    assert pos["Parte 3 · Para decidir"] == delanteras + sum(por_finca)    # lo complementario, después de las fincas
+    textos = [pag.extract_text() for pag in lector.pages]
+    frente = "\n".join(textos[:2])
     assert "ferrados.com" in frente and "Cliente Uno" in frente and "FER-2026-0007" in frente
-    assert "Aviso legal" in frente and "no es una certificación" in frente.lower().replace("\n", " ")
+    assert "Contenido" in textos[1] and "Índice de fincas" in textos[1]
+    # el contenido cita la página real de cada apartado y de cada finca, y cada fila es un enlace a ella
+    plano = " ".join(textos[1].split())
+    assert f"Resumen ejecutivo {pos['Resumen ejecutivo'] + 1}" in plano
+    assert f"Parte 3 · Para decidir {pos['Parte 3 · Para decidir'] + 1}" in plano
+    destinos = set()
+    for an in lector.pages[1]["/Annots"]:
+        o = an.get_object()
+        destinos.add(lector.get_page_number(o["/Dest"][0].get_object()))
+    assert {pos["Resumen ejecutivo"], delanteras, pos["3. Ortigueira pol 34 parc 999"],
+            pos["Anexo. Metodología y aviso legal"]} <= destinos
+    assert "Aviso legal" in textos[-1] and "no es una certificación" in textos[-1].lower().replace("\n", " ")
     # todas las páginas, también las fichas externas, llevan marca, expediente, pie y numeración
     total = len(lector.pages)
     for i, pag in enumerate(lector.pages, start=1):
@@ -97,9 +111,8 @@ def test_informe_une_pdfs_con_indice_y_marcadores(tmp_path):
         assert "Inversiones SHISO SL" in t and f"Página {i} de {total}" in t, f"sin pie en la página {i}"
     hoja = lector.pages[delanteras].extract_text()
     assert "Trazabilidad" not in hoja and "15062A03400175" in hoja         # las fuentes van en un anexo final
-    textos = [pag.extract_text() for pag in lector.pages]
     assert any("No se obtuvo ningún documento" in x for x in textos)
-    assert "Fuentes y fechas de consulta" in textos[total - 1]
+    assert any("Fuentes y fechas de consulta" in x and "Sede del Catastro" in " ".join(x.split()) for x in textos)
 
 
 def test_hoja_de_finca_muestra_fecha_de_consulta_e_incidencias(tmp_path):
@@ -112,9 +125,7 @@ def test_hoja_de_finca_muestra_fecha_de_consulta_e_incidencias(tmp_path):
     lector = PdfReader(str(escribir_informe([r], tmp_path, "L")))
     hoja = next(p.extract_text() for p in lector.pages if "Finca 1 de 1" in p.extract_text())
     assert "aviso de prueba" in hoja and "+403 %" in hoja and "SIXPAC" in hoja
-    fuentes = next(p.extract_text() for p in lector.pages if "Fuentes y fechas de consulta" in p.extract_text()
-                   and "Fuentes" in p.extract_text() and "Finca 1 de 1" not in p.extract_text()
-                   and "Índice de fincas" not in p.extract_text())
+    fuentes = next(p.extract_text() for p in lector.pages if "Fecha y hora en que se consultó" in p.extract_text())
     assert "12/11/2026 09:01" in fuentes and "10/11/2026 18:30" in fuentes     # fecha real de cada consulta
 
 
@@ -171,7 +182,7 @@ def test_anexos_al_final_y_hoja_de_finca_sin_geologia(tmp_path):
     textos = [" ".join((p.extract_text() or "").split()) for p in PdfReader(str(destino)).pages]
     hoja = next(t for t in textos if "Finca 1 de 3" in t)
     assert "Mina De Ejemplo" not in hoja and "Granito de ejemplo" not in hoja      # la hoja vuelve a ser la de antes
-    afe = next(t for t in textos if "Afecciones y limitaciones detectadas" in t)
+    afe = next(t for t in textos if "Afecciones y limitaciones detectadas" in t and "Castro de ejemplo" in t)
     assert "Monte de Ejemplo" in afe and "Castro de ejemplo" in afe and "nº 1" in afe
     geo = next(i for i, t in enumerate(textos) if "Informe geológico y minero" in t and "Mina De Ejemplo" in t)
     cons = next(i for i, t in enumerate(textos) if "Construcciones e inmuebles urbanos" in t and "VIVIENDA" in t)
@@ -179,7 +190,11 @@ def test_anexos_al_final_y_hoja_de_finca_sin_geologia(tmp_path):
     assert ultima_finca < cons < geo                                              # anexos después de las fincas
     assert "15062A034001770001XX" in textos[cons]                                 # construcción en parcela rústica
     indice = next(t for t in textos if "Índice de fincas" in t)
-    assert "Anexo. Informe geológico y minero" in indice and str(geo + 1) in indice.split("geológico y minero")[1][:8]
+    assert f"Anexo. Informe geológico y minero {geo + 1}" in indice           # el contenido cita su página real
+    afe_i = next(i for i, t in enumerate(textos) if "Afecciones y limitaciones detectadas" in t and "Castro" in t)
+    assert ultima_finca < afe_i < cons             # orden: fincas, después lo complementario y al final los anexos
+    assert next(i for i, t in enumerate(textos) if "Resumen ejecutivo" in t and "Hoy sobre el terreno" in t) < \
+        min(i for i, t in enumerate(textos) if "Finca 1 de 3" in t)            # el resumen ejecutivo sí va delante
 
 
 def test_sin_geologia_ni_construcciones_no_hay_anexos(tmp_path):
@@ -189,3 +204,44 @@ def test_sin_geologia_ni_construcciones_no_hay_anexos(tmp_path):
     textos = " ".join(p.extract_text() or "" for p in PdfReader(str(escribir_informe([a], tmp_path, "lote"))).pages)
     assert "Informe geológico y minero" not in textos and "Construcciones e inmuebles" not in textos
     assert "Afecciones y limitaciones" not in textos and "Fuentes y fechas de consulta" in textos
+
+
+def test_puntos_a_comprobar_solo_hechos():
+    from fincas.informe import puntos_a_comprobar
+    from fincas.modelos import DatosAprovechamiento, DatosGeologia
+    assert puntos_a_comprobar(_res()) == []                                   # finca sin nada destacable
+    r = _res(sup=799.0, cliente=159.0, control="REVISAR", cuota=Cuota("1/2", 1, 2, False))
+    r.contraste, r.contraste_detalle = "REVISAR", "El Catastro declara MATORRAL; domina eucaliptos"
+    r.aprovechamiento = DatosAprovechamiento(
+        afecciones=[{"tipo": "Patrimonio cultural", "detalle": "Castro de ejemplo", "organismo": "Patrimonio"},
+                    {"tipo": "Patrimonio cultural", "detalle": "Contorno", "organismo": "Patrimonio"}],
+        saca={"Desfavorable": 0.6, "Favorable": 0.4})
+    r.geologia = DatosGeologia(derechos_parcela=[{"numero": "XX/1", "nombre": "Manantial", "tipo": "Autorización",
+                                                  "recursos": "Agua"}])
+    p = puntos_a_comprobar(r)
+    assert any("cuota (1/2)" in x for x in p) and any("superficie no cuadra" in x for x in p)
+    assert any("domina eucaliptos" in x for x in p) and any("XX/1 Manantial" in x for x in p)
+    assert sum("Patrimonio cultural" in x for x in p) == 1                      # una línea por tipo, con sus detalles
+    assert any("Castro de ejemplo; Contorno" in x for x in p) and any("60 %" in x for x in p)
+    sin = Resultado(finca=Finca("X", "Y", "", "", sin_datos="SIN DATOS"), errores=["SIN DATOS: falta referencia"])
+    assert "falta referencia" in puntos_a_comprobar(sin)[0]
+
+
+def test_apartado_de_mercado_no_calcula_el_valor_de_ninguna_finca(tmp_path):
+    """Horquillas de madera con fuente, colindantes y movilidad; nunca el precio medio comarcal ni importes por finca."""
+    from fincas.modelos import DatosColindantes, DatosInventario
+    a = _res(sup=10000.0, uso="MATORRAL")
+    a.pdf_catastro = "a_catastro.pdf"
+    _pdf(tmp_path / "pdf_catastro" / "a_catastro.pdf")
+    a.inventario = DatosInventario(anio=2024, coberturas={"Eucaliptos": 8000.0, "Matorral": 2000.0}, dominante="Eucaliptos")
+    a.colindantes = DatosColindantes(parcelas=[{"poligono": "34", "parcela": "9", "refcat": "X", "superficie_m2": 1}], anio=2026)
+    b = _res(par="176", uso="MATORRAL")
+    textos = [" ".join((p.extract_text() or "").split()) for p in PdfReader(str(escribir_informe([a, b], tmp_path, "L"))).pages]
+    m = next(t for t in textos if "Qué puede valer y qué cuesta vender" in t and "Precio en pie" in t)
+    assert "Eucalipto glóbulus" in m and "24 a 35 €/t" in m                     # horquilla, no una cifra
+    assert "Maderistas" in m and "Polígono 34: parcelas 9" in m and "Sin acceso por camino público" in m
+    assert "vale lo que uno de ellos quiera pagar" in m                         # la finca sin arbolado
+    todo = " ".join(textos)
+    assert "2,54 %" in todo and "Ortegal" in todo                               # movilidad de la comarca (Xunta)
+    assert "€/m²" not in todo and "€/ha" not in todo                            # el precio medio comarcal ya no sale
+    assert "puede presentar ofertas de compra" in todo                          # conflicto de intereses, a la vista

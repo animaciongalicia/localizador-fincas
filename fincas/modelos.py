@@ -155,6 +155,15 @@ class DatosGeologia:
 
 
 @dataclass
+class DatosColindantes:
+    """Parcelas que lindan con la finca según SIXPAC (referencias, nunca titulares)."""
+    parcelas: List[Dict[str, object]] = field(default_factory=list)   # {'poligono','parcela','refcat','superficie_m2'}
+    dominio_publico: int = 0      # tramos de camino, vía o cauce (parcelas 9000+) que la tocan
+    anio: int = 0                 # edición de SIXPAC
+    consultado: str = ""
+
+
+@dataclass
 class Resultado:
     finca: Finca
     codigos: Optional[Codigos] = None
@@ -168,6 +177,7 @@ class Resultado:
     contraste_detalle: str = ""
     aprovechamiento: Optional[DatosAprovechamiento] = None   # condicionantes de corta (solo Galicia)
     geologia: Optional[DatosGeologia] = None   # contexto geológico y minero (orientativo)
+    colindantes: Optional[DatosColindantes] = None   # parcelas vecinas y acceso (solo Galicia, rústicas)
     avisos: List[str] = field(default_factory=list)
     errores: List[str] = field(default_factory=list)
 

@@ -168,7 +168,11 @@ def test_informe_con_extras_ajusta_indice_y_marcadores(tmp_path):
     ruta = escribir_informe(rs, tmp_path, "T", extras=[("Mapa de conjunto", tmp_path / "mapa.pdf")])
     lector = PdfReader(str(ruta))
     titulos = [o.title for o in lector.outline]
-    assert titulos[:2] == ["Resumen e índice", "Mapa de conjunto"]
-    pos_mapa = lector.get_destination_page_number(lector.outline[1])
-    pos_f1 = lector.get_destination_page_number(lector.outline[2])
-    assert pos_f1 == pos_mapa + 2 and len(lector.pages) == pos_f1 + 2 * 2 + 1   # cada finca: su hoja + 1 ficha; al final, el anexo de fuentes
+    assert titulos[:3] == ["Portada y contenido", "Resumen ejecutivo", "Mapa de conjunto"]
+    pos_mapa = lector.get_destination_page_number(lector.outline[2])
+    pos_sig = lector.get_destination_page_number(lector.outline[3])
+    assert pos_sig == pos_mapa + 2                                   # el mapa ocupa sus 2 páginas
+    pos_f1 = lector.get_destination_page_number(lector.outline[titulos.index(next(x for x in titulos if x.startswith("1. ")))])
+    contenido = " ".join(lector.pages[1].extract_text().split())
+    assert f"Mapa de conjunto {pos_mapa + 1}" in contenido
+    assert titulos[3] == "Parte 2 · Las fincas, una a una" and pos_f1 == pos_sig + 1    # las fincas, tras el mapa
