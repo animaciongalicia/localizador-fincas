@@ -2,10 +2,30 @@
 "nota": "Precios de la madera EN PIE en Galicia (lo que cobra el propietario por tonelada). Recogidos de publicaciones del sector; caducan en pocos meses: revisar dos o tres veces al año y cambiar 'revisado'.",
 "revisado": "noviembre de 2026",
 "precios": [
-{"producto": "Eucalipto glóbulus", "min": 24, "max": 35, "detalle": "24-29 €/t con menos de 35 cm de diámetro; 30-35 €/t por encima. La parte alta solo en lotes grandes, certificados y de saca fácil"},
-{"producto": "Eucalipto nitens", "min": 20, "max": 32, "detalle": "20-23 €/t con menos de 35 cm de diámetro; 24-32 €/t por encima. Se paga entre 4 y 9 €/t menos que el glóbulus"},
-{"producto": "Pino grueso para sierra (rolla)", "min": 48, "max": 50, "detalle": "Norte de A Coruña y Lugo. Madera de buen diámetro y sin nudos"},
-{"producto": "Pino delgado (puntal, trituración)", "min": 22, "max": 30, "detalle": "Corta a hecho. El procedente de claras se paga menos (10-16 €/t)"}
+{
+"producto": "Eucalipto glóbulus",
+"min": 24,
+"max": 35,
+"detalle": "24-29 €/t con menos de 35 cm de diámetro; 30-35 €/t por encima. La parte alta solo en lotes grandes, certificados y de saca fácil"
+},
+{
+"producto": "Eucalipto nitens",
+"min": 20,
+"max": 32,
+"detalle": "20-23 €/t con menos de 35 cm de diámetro; 24-32 €/t por encima. Se paga entre 4 y 9 €/t menos que el glóbulus"
+},
+{
+"producto": "Pino grueso para sierra (rolla)",
+"min": 48,
+"max": 50,
+"detalle": "Norte de A Coruña y Lugo. Madera de buen diámetro y sin nudos"
+},
+{
+"producto": "Pino delgado (puntal, trituración)",
+"min": 22,
+"max": 30,
+"detalle": "Corta a hecho. El procedente de claras se paga menos (10-16 €/t)"
+}
 ],
 "sin_dato": "Roble, castaño, abedul y otras frondosas: no hay un precio de referencia publicado; depende de la calidad de cada pie y suele venderse como leña o por piezas.",
 "factores": [
@@ -14,11 +34,64 @@
 "Diámetro y edad: cortar antes de tiempo sale caro; el eucalipto de menos de 35 cm se paga varios euros menos por tonelada.",
 "Certificación forestal (PEFC o FSC): suma entre 1 y 3 €/t."
 ],
-"crecimiento": "Una plantación de eucalipto en Galicia crece entre 10 y 40 m³ por hectárea y año según la calidad del terreno y los cuidados, con una media en torno a 20. Un eucaliptal nacido de rebrote y sin cuidar da bastante menos que uno plantado y atendido.",
+"crecimiento": "En Galicia una hectárea de eucalipto crece entre 10 y 40 m³ de madera al año según la calidad del terreno, con una media en torno a 20.",
 "fuentes": [
-{"nombre": "Campo Galego, «A suba da enerxía trasládase ao monte» (1 de junio de 2026)", "url": "https://www.campogalego.gal/suba-da-enerxia-trasladase-ao-monte-o-eucalipto-nitens-baixa-un-euro-e-o-puntal-de-pineiro-dous"},
-{"nombre": "Campo Galego, «Prezos da madeira: estabilidade no eucalipto e aumento das cortas de piñeiro» (enero de 2026)", "url": "https://www.campogalego.gal/prezos-da-madeira-estabilidade-no-eucalipto-e-aumento-das-cortas-de-pineiro/"},
-{"nombre": "Maderera Frouxeira, precios de contratos en A Coruña y Lugo (3 de noviembre de 2026)", "url": "https://madererafrouxeira.com/compramos-madera-precio-del-eucalipto/"},
-{"nombre": "Universidade de Santiago de Compostela, estudio de biomasa en masas de eucalipto y pino de Galicia (crecimiento)", "url": "https://revistas.usc.gal/index.php/rr/article/view/5337/5714"}
+{
+"nombre": "Campo Galego, «A suba da enerxía trasládase ao monte» (1 de junio de 2026)",
+"url": "https://www.campogalego.gal/suba-da-enerxia-trasladase-ao-monte-o-eucalipto-nitens-baixa-un-euro-e-o-puntal-de-pineiro-dous"
+},
+{
+"nombre": "Campo Galego, «Prezos da madeira: estabilidade no eucalipto e aumento das cortas de piñeiro» (enero de 2026)",
+"url": "https://www.campogalego.gal/prezos-da-madeira-estabilidade-no-eucalipto-e-aumento-das-cortas-de-pineiro/"
+},
+{
+"nombre": "Maderera Frouxeira, precios de contratos en A Coruña y Lugo (3 de noviembre de 2026)",
+"url": "https://madererafrouxeira.com/compramos-madera-precio-del-eucalipto/"
+},
+{
+"nombre": "Universidade de Santiago de Compostela, estudio de biomasa en masas de eucalipto y pino de Galicia (crecimiento)",
+"url": "https://revistas.usc.gal/index.php/rr/article/view/5337/5714"
+},
+{
+"nombre": "Asociación Forestal de Galicia, «Caderno técnico: montes de eucalipto» (2020), producción por hectárea",
+"url": "https://asociacionforestal.gal/wp-content/uploads/2021/03/Caderno_tecnico_montes_eucalipto.pdf"
+}
+],
+"revisado_iso": "2026-11",
+"produccion": {
+"titulo": "Madera que da una hectárea de eucalipto bien llevada, en m³",
+"nota": "Simulaciones de la Asociación Forestal de Galicia (2020) para montes con densidad correcta y matorral controlado. El rebrote de cepa da prácticamente lo mismo que la plantación si se seleccionan los brotes (unos 1.000 por hectárea); un monte abandonado, con huecos o sin esos cuidados da menos. La calidad del terreno puede multiplicar o dividir la cifra por tres.",
+"columnas": [
+"Calidad del terreno",
+"Glóbulus de rebrote, 15 años",
+"Glóbulus plantado, 15 años",
+"Nitens plantado, 13 años"
+],
+"filas": [
+[
+"Alta",
+352,
+353,
+530
+],
+[
+"Media",
+231,
+237,
+418
+],
+[
+"Baja",
+164,
+167,
+318
+],
+[
+"Muy baja",
+95,
+95,
+190
 ]
+]
+}
 }

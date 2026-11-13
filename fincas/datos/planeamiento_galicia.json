@@ -1,0 +1,1885 @@
+{
+"fuente": "SIOTUGA, Sistema de Información de Ordenación do Territorio e Urbanismo de Galicia (Xunta de Galicia)",
+"url": "https://siotuga.xunta.gal/siotuga/urb?lang=es_ES",
+"consultado": "2026-11-13",
+"concellos": {
+"15001": {
+"concello": "Abegondo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2023-10-19",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"15002": {
+"concello": "Ames",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2002-06-28",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15003": {
+"concello": "Aranga",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2013-12-16",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15004": {
+"concello": "Ares",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2020-02-05",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"15005": {
+"concello": "Arteixo",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1995-03-23",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15006": {
+"concello": "Arzúa",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2008-10-06",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15007": {
+"concello": "Baña, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-06-26",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15008": {
+"concello": "Bergondo",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1992-10-28",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15009": {
+"concello": "Betanzos",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1996-06-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15010": {
+"concello": "Boimorto",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2007-02-06",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15011": {
+"concello": "Boiro",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-05-20",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15012": {
+"concello": "Boqueixón",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1996-05-15",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15013": {
+"concello": "Brión",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-06-26",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15014": {
+"concello": "Cabana de Bergantiños",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1999-06-09",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15015": {
+"concello": "Cabanas",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1987-11-13",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15016": {
+"concello": "Camariñas",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2012-12-26",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15017": {
+"concello": "Cambre",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1994-07-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15018": {
+"concello": "Capela, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2006-05-18",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15019": {
+"concello": "Carballo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2016-02-04",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15020": {
+"concello": "Carnota",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1996-06-08",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15021": {
+"concello": "Carral",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1993-11-18",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15022": {
+"concello": "Cedeira",
+"figura": "Plan general de ordenación urbana",
+"fecha": "1995-01-25",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15023": {
+"concello": "Cee",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1995-02-23",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15024": {
+"concello": "Cerceda",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1996-06-26",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15025": {
+"concello": "Cerdido",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2006-07-21",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15027": {
+"concello": "Coirós",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2002-09-19",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15028": {
+"concello": "Corcubión",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1989-01-13",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15029": {
+"concello": "Coristanco",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2015-12-03",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15030": {
+"concello": "Coruña, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2013-02-25",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15031": {
+"concello": "Culleredo",
+"figura": "Plan general de ordenación urbana",
+"fecha": "1987-07-29",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15032": {
+"concello": "Curtis",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2007-09-19",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15033": {
+"concello": "Dodro",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2010-12-27",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15034": {
+"concello": "Dumbría",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"15035": {
+"concello": "Fene",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-01-23",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15036": {
+"concello": "Ferrol",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2000-12-28",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15037": {
+"concello": "Fisterra",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2019-08-05",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15038": {
+"concello": "Frades",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2018-01-09",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15039": {
+"concello": "Irixoa",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2012-07-12",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15040": {
+"concello": "Laxe",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2009-10-30",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15041": {
+"concello": "Laracha, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-06-30",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15042": {
+"concello": "Lousame",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2004-12-29",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15043": {
+"concello": "Malpica de Bergantiños",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1995-02-23",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15044": {
+"concello": "Mañón",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2016-05-18",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15045": {
+"concello": "Mazaricos",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1995-05-04",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15046": {
+"concello": "Melide",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1994-04-07",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15047": {
+"concello": "Mesía",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2012-12-26",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15048": {
+"concello": "Miño",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2002-08-08",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15049": {
+"concello": "Moeche",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1996-10-24",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15050": {
+"concello": "Monfero",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"15051": {
+"concello": "Mugardos",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1999-10-19",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15052": {
+"concello": "Muxía",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1995-05-04",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15053": {
+"concello": "Muros",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2010-12-10",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15054": {
+"concello": "Narón",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2002-04-22",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15055": {
+"concello": "Neda",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1992-07-22",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15056": {
+"concello": "Negreira",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1999-05-18",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15057": {
+"concello": "Noia",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1990-11-06",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15058": {
+"concello": "Oleiros",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2014-12-11",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15059": {
+"concello": "Ordes",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2023-12-13",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"15060": {
+"concello": "Oroso",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2005-02-16",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15061": {
+"concello": "Ortigueira",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1993-05-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15062": {
+"concello": "Outes",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2011-01-11",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15064": {
+"concello": "Paderne",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2009-04-08",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15065": {
+"concello": "Padrón",
+"figura": "Plan general de ordenación urbana",
+"fecha": "1994-07-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15066": {
+"concello": "Pino, O",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-06-30",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15067": {
+"concello": "Pobra do Caramiñal, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2007-03-01",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15068": {
+"concello": "Ponteceso",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2015-05-06",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15069": {
+"concello": "Pontedeume",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2016-05-27",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15070": {
+"concello": "Pontes de García Rodríguez, As",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1985-12-09",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15071": {
+"concello": "Porto do Son",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2016-04-28",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15072": {
+"concello": "Rianxo",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1985-07-11",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15073": {
+"concello": "Ribeira",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2002-12-17",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15074": {
+"concello": "Rois",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2002-01-21",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15075": {
+"concello": "Sada",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2017-10-11",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15076": {
+"concello": "San Sadurniño",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1992-03-23",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15077": {
+"concello": "Santa Comba",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2001-04-05",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15078": {
+"concello": "Santiago de Compostela",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2007-10-03",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15079": {
+"concello": "Santiso",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2014-11-21",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15080": {
+"concello": "Sobrado",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2009-04-08",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15081": {
+"concello": "Somozas, As",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2006-03-13",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15082": {
+"concello": "Teo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2010-06-04",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15083": {
+"concello": "Toques",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2007-12-21",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15084": {
+"concello": "Tordoia",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2018-12-07",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15085": {
+"concello": "Touro",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2010-02-09",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15086": {
+"concello": "Trazo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2017-10-26",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15087": {
+"concello": "Valdoviño",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1993-10-28",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15088": {
+"concello": "Val do Dubra",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1997-04-15",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15089": {
+"concello": "Vedra",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2007-01-30",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15090": {
+"concello": "Vilasantar",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1998-07-24",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15091": {
+"concello": "Vilarmaior",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2006-05-29",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15092": {
+"concello": "Vimianzo",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1994-07-01",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15093": {
+"concello": "Zas",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2007-09-07",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"15901": {
+"concello": "Cariño",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2000-02-17",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"15902": {
+"concello": "Oza-Cesuras",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1997-03-03",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27001": {
+"concello": "Abadín",
+"figura": "Delimitación de suelo urbano",
+"fecha": "1992-01-24",
+"estado": "Sin planeamiento general"
+},
+"27002": {
+"concello": "Alfoz",
+"figura": "Plan Básico Municipal",
+"fecha": "2025-05-28",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"27003": {
+"concello": "Antas de Ulla",
+"figura": "Delimitación de suelo urbano",
+"fecha": "1977-03-14",
+"estado": "Sin planeamiento general"
+},
+"27004": {
+"concello": "Baleira",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1988-07-14",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27005": {
+"concello": "Barreiros",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1994-10-28",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27006": {
+"concello": "Becerreá",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1995-04-28",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27007": {
+"concello": "Begonte",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1997-04-04",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27008": {
+"concello": "Bóveda",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1990-06-05",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27009": {
+"concello": "Carballedo",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1991-01-10",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27010": {
+"concello": "Castro de Rei",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2020-07-10",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27011": {
+"concello": "Castroverde",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2008-03-14",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27012": {
+"concello": "Cervantes",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2022-04-21",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"27013": {
+"concello": "Cervo",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1978-07-12",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27014": {
+"concello": "Corgo, O",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2015-05-19",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27015": {
+"concello": "Cospeito",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1997-04-14",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27016": {
+"concello": "Chantada",
+"figura": "Plan general de ordenación urbana",
+"fecha": "1985-07-29",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27017": {
+"concello": "Folgoso do Courel",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2021-11-03",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"27018": {
+"concello": "Fonsagrada, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2019-07-03",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"27019": {
+"concello": "Foz",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2018-09-18",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27020": {
+"concello": "Friol",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1990-09-19",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27021": {
+"concello": "Xermade",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-04-29",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27022": {
+"concello": "Guitiriz",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2020-06-01",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27023": {
+"concello": "Guntín",
+"figura": "Delimitación de suelo urbano",
+"fecha": "1979-04-06",
+"estado": "Sin planeamiento general"
+},
+"27024": {
+"concello": "Incio, O",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2023-03-14",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"27025": {
+"concello": "Xove",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2012-06-12",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27026": {
+"concello": "Láncara",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2013-02-22",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27027": {
+"concello": "Lourenzá",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1995-01-31",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27028": {
+"concello": "Lugo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2011-04-29",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27029": {
+"concello": "Meira",
+"figura": "Plan general de ordenación urbana",
+"fecha": "1977-12-29",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27030": {
+"concello": "Mondoñedo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2016-06-13",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27031": {
+"concello": "Monforte de Lemos",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1985-10-01",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27032": {
+"concello": "Monterroso",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1996-11-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27033": {
+"concello": "Muras",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1987-09-18",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27034": {
+"concello": "Navia de Suarna",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2024-02-09",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"27035": {
+"concello": "Negueira de Muñiz",
+"figura": "Delimitación de suelo urbano",
+"fecha": "1987-12-18",
+"estado": "Sin planeamiento general"
+},
+"27037": {
+"concello": "Nogais, As",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2016-09-21",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27038": {
+"concello": "Ourol",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1984-10-09",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27039": {
+"concello": "Outeiro de Rei",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1992-10-30",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27040": {
+"concello": "Palas de Rei",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1994-11-30",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27041": {
+"concello": "Pantón",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"27042": {
+"concello": "Paradela",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2007-04-10",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27043": {
+"concello": "Páramo, O",
+"figura": "Plan Básico Municipal",
+"fecha": "2023-02-13",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"27044": {
+"concello": "Pastoriza, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2013-08-09",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27045": {
+"concello": "Pedrafita do Cebreiro",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2010-02-03",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27046": {
+"concello": "Pol",
+"figura": "Delimitación de suelo urbano",
+"fecha": "1980-07-01",
+"estado": "Sin planeamiento general"
+},
+"27047": {
+"concello": "Pobra do Brollón, A",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"27048": {
+"concello": "Pontenova, A",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1985-04-23",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27049": {
+"concello": "Portomarín",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1983-10-24",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27050": {
+"concello": "Quiroga",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2019-03-08",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27051": {
+"concello": "Ribadeo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2014-11-14",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27052": {
+"concello": "Ribas de Sil",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2009-03-17",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27053": {
+"concello": "Ribeira de Piquín",
+"figura": "Plan Básico Municipal",
+"fecha": "2022-10-26",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"27054": {
+"concello": "Riotorto",
+"figura": "Plan Básico Municipal",
+"fecha": "2022-08-31",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"27055": {
+"concello": "Samos",
+"figura": "Delimitación de suelo urbano",
+"fecha": "1995-09-29",
+"estado": "Sin planeamiento general"
+},
+"27056": {
+"concello": "Rábade",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1977-12-29",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27057": {
+"concello": "Sarria",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1986-07-30",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27058": {
+"concello": "Saviñao, O",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1983-12-16",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27059": {
+"concello": "Sober",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2013-04-05",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"27060": {
+"concello": "Taboada",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1994-07-26",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27061": {
+"concello": "Trabada",
+"figura": "Plan Básico Municipal",
+"fecha": "2022-08-05",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"27062": {
+"concello": "Triacastela",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"27063": {
+"concello": "Valadouro, O",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1993-09-28",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27064": {
+"concello": "Vicedo, O",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2001-02-23",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27065": {
+"concello": "Vilalba",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1984-03-13",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27066": {
+"concello": "Viveiro",
+"figura": "Normas subsidiarias de planeamiento (suspendidas)",
+"fecha": "1997-09-02",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27901": {
+"concello": "Baralla",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1986-06-18",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"27902": {
+"concello": "Burela",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2014-03-31",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32001": {
+"concello": "Allariz",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-04-09",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32002": {
+"concello": "Amoeiro",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2007-09-07",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32003": {
+"concello": "Arnoia, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2010-10-06",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32004": {
+"concello": "Avión",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2007-09-03",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32005": {
+"concello": "Baltar",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2024-08-14",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"32006": {
+"concello": "Bande",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1987-04-28",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32007": {
+"concello": "Baños de Molgas",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2020-07-31",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"32008": {
+"concello": "Barbadás",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2002-07-19",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32009": {
+"concello": "Barco de Valdeorras, O",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-06-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32010": {
+"concello": "Beade",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2011-04-01",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32011": {
+"concello": "Beariz",
+"figura": "Delimitación de suelo urbano",
+"fecha": "1994-05-11",
+"estado": "Sin planeamiento general"
+},
+"32012": {
+"concello": "Blancos, Os",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32013": {
+"concello": "Boborás",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2022-09-13",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32014": {
+"concello": "Bola, A",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32015": {
+"concello": "Bolo, O",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32016": {
+"concello": "Calvos de Randín",
+"figura": "Proyecto de ordenación del medio rural",
+"fecha": "1999-08-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32017": {
+"concello": "Carballeda de Valdeorras",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1995-02-15",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32018": {
+"concello": "Carballeda de Avia",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-03-21",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32019": {
+"concello": "Carballiño, O",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1999-03-11",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32020": {
+"concello": "Cartelle",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32021": {
+"concello": "Castrelo do Val",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2008-12-16",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32022": {
+"concello": "Castrelo de Miño",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2022-01-27",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"32023": {
+"concello": "Castro Caldelas",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1999-05-19",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32024": {
+"concello": "Celanova",
+"figura": "Plan general de ordenación urbana",
+"fecha": "1995-05-09",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32025": {
+"concello": "Cenlle",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2011-03-28",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32026": {
+"concello": "Coles",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2018-09-26",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"32027": {
+"concello": "Cortegada",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2012-02-28",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32028": {
+"concello": "Cualedro",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2010-11-22",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32029": {
+"concello": "Chandrexa de Queixa",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32030": {
+"concello": "Entrimo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2014-08-29",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32031": {
+"concello": "Esgos",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2009-03-24",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32032": {
+"concello": "Xinzo de Limia",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-05-12",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32033": {
+"concello": "Gomesende",
+"figura": "Delimitación de suelo urbano",
+"fecha": "1982-06-23",
+"estado": "Sin planeamiento general"
+},
+"32034": {
+"concello": "Gudiña, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2002-04-29",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32035": {
+"concello": "Irixo, O",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1993-07-30",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32036": {
+"concello": "Xunqueira de Ambía",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2005-10-10",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32037": {
+"concello": "Xunqueira de Espadanedo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2013-04-19",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32038": {
+"concello": "Larouco",
+"figura": "Delimitación de suelo urbano",
+"fecha": "1992-11-18",
+"estado": "Sin planeamiento general"
+},
+"32039": {
+"concello": "Laza",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2008-02-26",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32040": {
+"concello": "Leiro",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2012-06-25",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32041": {
+"concello": "Lobeira",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32042": {
+"concello": "Lobios",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2001-11-12",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32043": {
+"concello": "Maceda",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2002-04-12",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32044": {
+"concello": "Manzaneda",
+"figura": "Proyecto de ordenación del medio rural",
+"fecha": "2003-06-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32045": {
+"concello": "Maside",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1985-10-29",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32046": {
+"concello": "Melón",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32047": {
+"concello": "Merca, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-06-30",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32048": {
+"concello": "Mezquita, A",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32049": {
+"concello": "Montederramo",
+"figura": "Delimitación de suelo urbano",
+"fecha": "1994-06-21",
+"estado": "Sin planeamiento general"
+},
+"32050": {
+"concello": "Monterrei",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1989-09-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32051": {
+"concello": "Muíños",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2012-06-15",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32052": {
+"concello": "Nogueira de Ramuín",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2001-11-13",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32053": {
+"concello": "Oímbra",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2016-09-21",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32054": {
+"concello": "Ourense",
+"figura": "Plan general de ordenación urbana",
+"fecha": "1986-09-16",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32055": {
+"concello": "Paderne de Allariz",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2008-09-15",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32056": {
+"concello": "Padrenda",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32057": {
+"concello": "Parada de Sil",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1985-10-29",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32058": {
+"concello": "Pereiro de Aguiar, O",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2000-05-13",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32059": {
+"concello": "Peroxa, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1999-07-07",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32060": {
+"concello": "Petín",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2014-07-31",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32061": {
+"concello": "Piñor",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32062": {
+"concello": "Porqueira",
+"figura": "Plan Básico Municipal",
+"fecha": "2026-04-14",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"32063": {
+"concello": "Pobra de Trives, A",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1994-07-12",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32064": {
+"concello": "Pontedeva",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2015-03-13",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32065": {
+"concello": "Punxín",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32066": {
+"concello": "Quintela de Leirado",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1987-01-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32067": {
+"concello": "Rairiz de Veiga",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2010-09-23",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32068": {
+"concello": "Ramirás",
+"figura": "Proyecto de ordenación del medio rural",
+"fecha": "1998-07-31",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32069": {
+"concello": "Ribadavia",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2019-11-29",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32070": {
+"concello": "San Xoán de Río",
+"figura": "Plan Básico Municipal",
+"fecha": "2026-05-06",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"32071": {
+"concello": "Riós",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2001-11-30",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32072": {
+"concello": "Rúa, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2016-02-25",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32073": {
+"concello": "Rubiá",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2020-09-25",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32074": {
+"concello": "San Amaro",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32075": {
+"concello": "San Cibrao das Viñas",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2004-12-30",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32076": {
+"concello": "San Cristovo de Cea",
+"figura": "Delimitación de suelo urbano",
+"fecha": "1994-03-11",
+"estado": "Sin planeamiento general"
+},
+"32077": {
+"concello": "Sandiás",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2007-07-13",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32078": {
+"concello": "Sarreaus",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32079": {
+"concello": "Taboadela",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2008-07-11",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32080": {
+"concello": "Teixeira, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2019-04-12",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"32081": {
+"concello": "Toén",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-06-30",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32082": {
+"concello": "Trasmiras",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2019-01-08",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32083": {
+"concello": "Veiga, A",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1997-04-15",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32084": {
+"concello": "Verea",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1996-09-24",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32085": {
+"concello": "Verín",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1986-05-28",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32086": {
+"concello": "Viana do Bolo",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"32087": {
+"concello": "Vilamarín",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2002-09-30",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32088": {
+"concello": "Vilamartín de Valdeorras",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2013-12-13",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32089": {
+"concello": "Vilar de Barrio",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2009-06-18",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32090": {
+"concello": "Vilar de Santos",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2001-12-17",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"32091": {
+"concello": "Vilardevós",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2008-12-16",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"32092": {
+"concello": "Vilariño de Conso",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"36001": {
+"concello": "Arbo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1998-06-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36002": {
+"concello": "Barro",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-05-23",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36003": {
+"concello": "Baiona",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2014-06-04",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36004": {
+"concello": "Bueu",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2017-09-22",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36005": {
+"concello": "Caldas de Reis",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2018-10-11",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36006": {
+"concello": "Cambados",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1994-07-20",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36007": {
+"concello": "Campo Lameiro",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1996-07-10",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36008": {
+"concello": "Cangas",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1993-12-20",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36009": {
+"concello": "Cañiza, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-06-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36010": {
+"concello": "Catoira",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1993-09-10",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36013": {
+"concello": "Covelo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1999-05-19",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36014": {
+"concello": "Crecente",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1994-11-23",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36015": {
+"concello": "Cuntis",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1990-05-31",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36016": {
+"concello": "Dozón",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"36017": {
+"concello": "Estrada, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2013-06-03",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36018": {
+"concello": "Forcarei",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2002-06-21",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36019": {
+"concello": "Fornelos de Montes",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-06-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36020": {
+"concello": "Agolada",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1987-05-14",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36021": {
+"concello": "Gondomar",
+"figura": "Plan Básico Autonómico",
+"fecha": "",
+"estado": "Sin planeamiento general"
+},
+"36022": {
+"concello": "Grove, O",
+"figura": "Normas subsidiarias de planeamiento (suspendidas)",
+"fecha": "1996-04-25",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36023": {
+"concello": "Guarda, A",
+"figura": "Plan general de ordenación urbana",
+"fecha": "1993-07-29",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36024": {
+"concello": "Lalín",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1999-02-05",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36025": {
+"concello": "Lama, A",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1997-03-26",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36026": {
+"concello": "Marín",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2012-06-27",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36027": {
+"concello": "Meaño",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1999-12-28",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36028": {
+"concello": "Meis",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-05-23",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36029": {
+"concello": "Moaña",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2016-11-22",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36030": {
+"concello": "Mondariz",
+"figura": "Proyecto de ordenación del medio rural",
+"fecha": "1999-02-26",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36031": {
+"concello": "Mondariz-Balneario",
+"figura": "Proyecto de ordenación del medio rural",
+"fecha": "2001-01-17",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36032": {
+"concello": "Moraña",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2001-08-03",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36033": {
+"concello": "Mos",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2017-01-18",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36034": {
+"concello": "Neves, As",
+"figura": "Plan general de ordenación municipal",
+"fecha": "1999-11-13",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36035": {
+"concello": "Nigrán",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1991-05-16",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36036": {
+"concello": "Oia",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1996-03-14",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36037": {
+"concello": "Pazos de Borbén",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1993-03-12",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36038": {
+"concello": "Pontevedra",
+"figura": "Plan general de ordenación urbana",
+"fecha": "1989-12-18",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36039": {
+"concello": "Porriño, O",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-06-26",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36040": {
+"concello": "Portas",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2021-05-10",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"36041": {
+"concello": "Poio",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2000-07-28",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36042": {
+"concello": "Ponteareas",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2021-09-30",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36043": {
+"concello": "Ponte Caldelas",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1993-02-12",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36044": {
+"concello": "Pontecesures",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-06-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36045": {
+"concello": "Redondela",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1987-11-06",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36046": {
+"concello": "Ribadumia",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2001-03-13",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36047": {
+"concello": "Rodeiro",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2009-03-02",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36048": {
+"concello": "Rosal, O",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1997-04-12",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36049": {
+"concello": "Salceda de Caselas",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1997-02-28",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36050": {
+"concello": "Salvaterra de Miño",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1993-06-12",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36051": {
+"concello": "Sanxenxo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2003-02-27",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36052": {
+"concello": "Silleda",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2023-01-02",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36053": {
+"concello": "Soutomaior",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2017-03-13",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36054": {
+"concello": "Tomiño",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2001-03-29",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36055": {
+"concello": "Tui",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2011-01-26",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36056": {
+"concello": "Valga",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2010-10-15",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36057": {
+"concello": "Vigo",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2025-05-26",
+"estado": "Planeamiento general adaptado a la LSG"
+},
+"36058": {
+"concello": "Vilaboa",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2019-02-25",
+"estado": "Planeamiento general adaptado a la LOUG"
+},
+"36059": {
+"concello": "Vila de Cruces",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1993-02-12",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36060": {
+"concello": "Vilagarcía de Arousa",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2000-02-04",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36061": {
+"concello": "Vilanova de Arousa",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1997-03-14",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36901": {
+"concello": "Illa de Arousa, A",
+"figura": "Plan general de ordenación municipal",
+"fecha": "2002-02-14",
+"estado": "Planeamiento general no adaptado a la LOUG"
+},
+"36902": {
+"concello": "Cerdedo-Cotobade",
+"figura": "Normas subsidiarias de planeamiento",
+"fecha": "1997-02-25",
+"estado": "Planeamiento general no adaptado a la LOUG"
+}
+}
+}

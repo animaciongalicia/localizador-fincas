@@ -94,3 +94,12 @@ def test_movilidad_y_tabla_de_madera():
     assert precios.movilidad(_res(prov="28", ine="079")) is None
     md = precios.madera()
     assert all(x["min"] < x["max"] for x in md["precios"]) and md["revisado"] and len(md["fuentes"]) >= 3
+
+
+def test_planeamiento_del_municipio_y_caducidad_de_precios():
+    from datetime import date
+    pl = precios.planeamiento("15", "61")
+    assert pl["concello"] == "Ortigueira" and pl["figura"] and pl["estado"]
+    assert precios.planeamiento("28", "079") is None
+    assert precios.meses_sin_revisar_madera(date(2026, 11, 30)) == 0
+    assert precios.meses_sin_revisar_madera(date(2027, 6, 1)) == 7           # a partir de 6 meses la CLI avisa

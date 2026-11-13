@@ -49,6 +49,15 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas de España de 
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- **Producción de eucalipto, planeamiento y precios caducados (2026-11-13).** (a) `madera_galicia.json` lleva `produccion`: m³/ha a
+  turno por calidad del terreno, para glóbulus de rebrote, glóbulus plantado (15 años) y nitens plantado (13), del «Caderno técnico:
+  montes de eucalipto» de la Asociación Forestal de Galicia (2020). OJO: según esa fuente el rebrote BIEN LLEVADO (selección a ~1.000
+  brotes/ha) da lo mismo que la plantación; no afirmar que "el rebrote da menos" sin más. Va en m³ (la fuente no da toneladas; no se
+  inventa la conversión). Sigue sin estimarse la madera de ninguna finca. Pino y otras edades: sin fuente todavía. (b) Planeamiento:
+  `planeamiento_galicia.json` = instrumento, fecha y situación de los 313 concellos (tabla de SIOTUGA, consultada 2026-11-13;
+  actualizar a mano). Es dato MUNICIPAL: la clasificación del suelo de cada finca NO se consulta porque el propio SIOTUGA avisa de que
+  su cartografía está en revisión y no tiene validez legal; el informe remite al ayuntamiento. (c) La CLI avisa en el registro si
+  `revisado_iso` de la tabla de madera tiene más de 6 meses. Anexos: fuentes, metodología (compacta) y aviso legal van en UNO.
 - **Orden definitivo en CUATRO PARTES (2026-11-13, decisión del usuario: primero se enseña el trabajo, luego se interpreta).**
   1 Lo esencial (resumen ejecutivo, mapa) · 2 Las fincas, una a una · 3 Para decidir (resumen para la compraventa, qué puede valer y
   qué cuesta vender, afecciones + cotejo forestal en UN apartado) · 4 Anexos. Las partes 2-4 abren con una página separadora
