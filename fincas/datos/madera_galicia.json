@@ -53,14 +53,18 @@
 "url": "https://revistas.usc.gal/index.php/rr/article/view/5337/5714"
 },
 {
-"nombre": "Asociación Forestal de Galicia, «Caderno técnico: montes de eucalipto» (2020), producción por hectárea",
+"nombre": "Asociación Forestal de Galicia, «Caderno técnico: montes de eucalipto» (2020)",
 "url": "https://asociacionforestal.gal/wp-content/uploads/2021/03/Caderno_tecnico_montes_eucalipto.pdf"
+},
+{
+"nombre": "Asociación Forestal de Galicia, «Caderno técnico: montes de coníferas» (2020)",
+"url": "https://asociacionforestal.gal/wp-content/uploads/2021/03/Caderno_tecnico_montes_coniferas.pdf"
 }
 ],
 "revisado_iso": "2026-11",
-"produccion": {
-"titulo": "Madera que da una hectárea de eucalipto bien llevada, en m³",
-"nota": "Simulaciones de la Asociación Forestal de Galicia (2020) para montes con densidad correcta y matorral controlado. El rebrote de cepa da prácticamente lo mismo que la plantación si se seleccionan los brotes (unos 1.000 por hectárea); un monte abandonado, con huecos o sin esos cuidados da menos. La calidad del terreno puede multiplicar o dividir la cifra por tres.",
+"producciones": [
+{
+"titulo": "Eucalipto: madera en la corta final, en m³ por hectárea",
 "columnas": [
 "Calidad del terreno",
 "Glóbulus de rebrote, 15 años",
@@ -93,5 +97,42 @@
 190
 ]
 ]
+},
+{
+"titulo": "Pino: madera a lo largo de todo el turno (claras incluidas), en m³ por hectárea",
+"columnas": [
+"Calidad del terreno",
+"Pino del país de regeneración natural, 35 años",
+"Pino del país plantado, 35 años",
+"Pino radiata plantado, 25 años"
+],
+"filas": [
+[
+"Muy alta",
+711,
+732,
+547
+],
+[
+"Alta",
+493,
+499,
+393
+],
+[
+"Media",
+312,
+340,
+275
+],
+[
+"Baja",
+143,
+152,
+162
+]
+]
 }
+],
+"produccion_nota": "Simulaciones de la Asociación Forestal de Galicia (2020) para montes bien llevados: densidad correcta, matorral controlado y, en el pino, dos claras y poda. El rebrote de eucalipto o el pino nacido solo dan prácticamente lo mismo que la plantación si se seleccionan los pies a tiempo; un monte abandonado, con huecos o sin esos cuidados da menos. La calidad del terreno cambia la cifra hasta cinco veces. Para roble, castaño y otras frondosas no hay una tabla equivalente publicada."
 }

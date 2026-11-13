@@ -238,7 +238,8 @@ def test_apartado_de_mercado_no_calcula_el_valor_de_ninguna_finca(tmp_path):
     a.colindantes = DatosColindantes(parcelas=[{"poligono": "34", "parcela": "9", "refcat": "X", "superficie_m2": 1}], anio=2026)
     b = _res(par="176", uso="MATORRAL")
     textos = [" ".join((p.extract_text() or "").split()) for p in PdfReader(str(escribir_informe([a, b], tmp_path, "L"))).pages]
-    m = next(t for t in textos if "Qué puede valer y qué cuesta vender" in t and "Precio en pie" in t)
+    i = next(i for i, t in enumerate(textos) if "Qué puede valer y qué cuesta vender" in t and "Precio en pie" in t)
+    m = " ".join(textos[i:i + 3])                                               # el apartado ocupa varias páginas
     assert "Eucalipto glóbulus" in m and "24 a 35 €/t" in m                     # horquilla, no una cifra
     assert "Maderistas" in m and "Polígono 34: parcelas 9" in m and "Sin acceso por camino público" in m
     assert "vale lo que uno de ellos quiera pagar" in m                         # la finca sin arbolado
@@ -255,5 +256,6 @@ def test_produccion_de_eucalipto_y_planeamiento_con_fuente(tmp_path):
     todo = " ".join(" ".join((p.extract_text() or "").split())
                     for p in PdfReader(str(escribir_informe([a], tmp_path, "L"))).pages)
     assert "Glóbulus de rebrote, 15 años" in todo and "231 m³" in todo and "Asociación Forestal de Galicia" in todo
+    assert "Pino radiata plantado, 25 años" in todo and "493 m³" in todo and "claras incluidas" in todo
     assert "no estima la madera de ninguna finca" in todo
     assert "Ortigueira" in todo and "lo informa el ayuntamiento" in todo        # planeamiento: dato del municipio

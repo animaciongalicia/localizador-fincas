@@ -403,15 +403,18 @@ def _seccion_mercado(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
           Paragraph(escape(md["sin_dato"]), e_["c"]), Spacer(1, 2 * mm),
           Paragraph("<b>Lo que baja o sube ese precio:</b>", e_["p"])]
     el += [Paragraph("• " + escape(x), e_["p"]) for x in md["factores"]]
-    pr = md.get("produccion")
-    if pr:
-        el += [Paragraph(f"<b>Cuánta madera puede haber.</b> {escape(md['crecimiento'])} {escape(pr['titulo'])}:", e_["p"]),
-               Spacer(1, 1 * mm),
-               _tabla([pr["columnas"]] + [[str(x) if i == 0 else f"{x} m³" for i, x in enumerate(f)] for f in pr["filas"]],
-                      [42 * mm, 45 * mm, 45 * mm, 45 * mm]),
-               Paragraph(escape(pr["nota"]) + " El maderista paga por tonelada, que pesa al cargar. Este informe no "
-                         "estima la madera de ninguna finca: depende de la edad, el diámetro y la densidad de su "
-                         "arbolado, y eso solo se sabe midiéndolo en el monte.", e_["c"])]
+    tablas = md.get("producciones") or []
+    if tablas:
+        el.append(Paragraph(f"<b>Cuánta madera puede haber.</b> {escape(md['crecimiento'])} Lo que da una hectárea "
+                            "bien llevada, según la calidad del terreno:", e_["p"]))
+        for pr in tablas:
+            el += [Paragraph(f"<b>{escape(pr['titulo'])}</b>", e_["c"]), Spacer(1, 1 * mm),
+                   _tabla([pr["columnas"]] + [[str(x) if i == 0 else f"{x} m³" for i, x in enumerate(f)]
+                                              for f in pr["filas"]], [36 * mm, 47 * mm, 47 * mm, 47 * mm]),
+                   Spacer(1, 2 * mm)]
+        el.append(Paragraph(escape(md.get("produccion_nota", "")) + " El maderista paga por tonelada, que pesa al "
+                            "cargar. Este informe no estima la madera de ninguna finca: depende de la edad, el diámetro "
+                            "y la densidad de su arbolado, y eso solo se sabe midiéndolo en el monte.", e_["c"]))
 
     filas = [["Nº", "Finca", "Hoy sobre el terreno", "A quién suele interesar", "Linda con"]]
     for e in con:
