@@ -128,6 +128,12 @@ def meses_sin_revisar_madera(hoy=None) -> int:
     return (hoy.year - anio) * 12 + hoy.month - mes
 
 
+@lru_cache(maxsize=1)
+def gastos() -> dict:
+    """Gastos orientativos de una compraventa de finca rústica en Galicia: quién paga cada uno y cuánto."""
+    return json.loads((DATOS / "gastos_compraventa.json").read_text(encoding="utf-8"))
+
+
 def euros_m2(v: Optional[float]) -> str:
     return "sin dato publicado" if v is None else f"{v:.2f} €/m²".replace(".", ",")
 

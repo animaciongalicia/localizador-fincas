@@ -49,11 +49,18 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas de España de 
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- **RETIRADO por decisión del usuario (2026-11-13): tablas de producción y fuentes impresas.** El informe NO lleva ninguna tabla de
+  producción de madera (ni eucalipto ni pino ni otras): el usuario las quitó expresamente; no volver a añadirlas. Tampoco se imprime
+  el párrafo de fuentes de los precios (siguen guardadas en `madera_galicia.json` para uso interno). En su lugar, "Lo que cuesta la
+  operación": tabla de gastos orientativos de una compraventa (`fincas/datos/gastos_compraventa.json`: notaría 90 € y registro 24 €
+  de arancel hasta 6.010 € de valor, verificados en el BOE, RD 1426/1989 y 1427/1989; ITP 8 % con deducción del 100 % en suelo
+  rústico, art. 16.Cinco del DL 1/2011 de Galicia, tomado de fuente secundaria: reconfirmar; IRPF 19-28 % de la ganancia; plusvalía
+  municipal no aplica a rústico). Lo que sigue sobre producción queda solo como historial.
 - **Producción de eucalipto, planeamiento y precios caducados (2026-11-13).** (a) `madera_galicia.json` lleva `produccion`: m³/ha a
   turno por calidad del terreno, para glóbulus de rebrote, glóbulus plantado (15 años) y nitens plantado (13), del «Caderno técnico:
   montes de eucalipto» de la Asociación Forestal de Galicia (2020). OJO: según esa fuente el rebrote BIEN LLEVADO (selección a ~1.000
   brotes/ha) da lo mismo que la plantación; no afirmar que "el rebrote da menos" sin más. Va en m³ (la fuente no da toneladas; no se
-  inventa la conversión). Sigue sin estimarse la madera de ninguna finca. Pino y otras edades: sin fuente todavía. (b) Planeamiento:
+  inventa la conversión). Sigue sin estimarse la madera de ninguna finca. Pino: `producciones` lleva también pinaster (regeneración natural y plantado, 35 años) y radiata (25 años), del «Caderno técnico: montes de coníferas» de la misma asociación; ahí la cifra es la producción de TODO el turno, claras incluidas. Frondosas: sin tabla publicada (la página de precios de la AFG es solo para socios). (b) Planeamiento:
   `planeamiento_galicia.json` = instrumento, fecha y situación de los 313 concellos (tabla de SIOTUGA, consultada 2026-11-13;
   actualizar a mano). Es dato MUNICIPAL: la clasificación del suelo de cada finca NO se consulta porque el propio SIOTUGA avisa de que
   su cartografía está en revisión y no tiene validez legal; el informe remite al ayuntamiento. (c) La CLI avisa en el registro si

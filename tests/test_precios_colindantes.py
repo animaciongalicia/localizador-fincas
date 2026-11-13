@@ -94,6 +94,8 @@ def test_movilidad_y_tabla_de_madera():
     assert precios.movilidad(_res(prov="28", ine="079")) is None
     md = precios.madera()
     assert all(x["min"] < x["max"] for x in md["precios"]) and md["revisado"] and len(md["fuentes"]) >= 3
+    g = precios.gastos()
+    assert len(g["filas"]) >= 5 and all(len(f) == 3 for f in g["filas"]) and g["revisado"]
 
 
 def test_planeamiento_del_municipio_y_caducidad_de_precios():
