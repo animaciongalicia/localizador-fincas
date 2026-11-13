@@ -39,8 +39,9 @@ METODOLOGIA = [
                    "registro forestal, líneas eléctricas, concentración parcelaria, incendios) y a qué organismo "
                    "corresponden. No indica si una actuación está permitida."),
     ("Colindantes", "Parcelas que tocan la finca según SIXPAC, por polígono y parcela, y si linda con dominio público."),
-    ("Mercado", "Precios de la madera en pie y producción por hectárea de publicaciones del sector; movilidad de la "
-                "tierra del Observatorio Galego de Mobilidade de Terras. Son referencias generales, no de la finca."),
+    ("Mercado", "Precios de la madera en pie de publicaciones del sector; movilidad de la tierra del Observatorio "
+                "Galego de Mobilidade de Terras; gastos según los aranceles notarial y registral y la normativa fiscal "
+                "vigente. Son referencias generales, no de la finca."),
     ("Planeamiento", "Instrumento de planeamiento del municipio según el inventario SIOTUGA de la Xunta. La "
                      "clasificación de cada finca la informa el ayuntamiento."),
     ("Geología y minería", "Mapa Geológico, indicios mineros a menos de 5 km y Atlas Geoquímico del IGME-CSIC; derechos "
@@ -403,18 +404,8 @@ def _seccion_mercado(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
           Paragraph(escape(md["sin_dato"]), e_["c"]), Spacer(1, 2 * mm),
           Paragraph("<b>Lo que baja o sube ese precio:</b>", e_["p"])]
     el += [Paragraph("• " + escape(x), e_["p"]) for x in md["factores"]]
-    tablas = md.get("producciones") or []
-    if tablas:
-        el.append(Paragraph(f"<b>Cuánta madera puede haber.</b> {escape(md['crecimiento'])} Lo que da una hectárea "
-                            "bien llevada, según la calidad del terreno:", e_["p"]))
-        for pr in tablas:
-            el += [Paragraph(f"<b>{escape(pr['titulo'])}</b>", e_["c"]), Spacer(1, 1 * mm),
-                   _tabla([pr["columnas"]] + [[str(x) if i == 0 else f"{x} m³" for i, x in enumerate(f)]
-                                              for f in pr["filas"]], [36 * mm, 47 * mm, 47 * mm, 47 * mm]),
-                   Spacer(1, 2 * mm)]
-        el.append(Paragraph(escape(md.get("produccion_nota", "")) + " El maderista paga por tonelada, que pesa al "
-                            "cargar. Este informe no estima la madera de ninguna finca: depende de la edad, el diámetro "
-                            "y la densidad de su arbolado, y eso solo se sabe midiéndolo en el monte.", e_["c"]))
+    el.append(Paragraph("<b>Cuánta madera hay</b> solo se sabe midiéndola en el monte: depende de la edad, el diámetro "
+                        "y la densidad del arbolado. Este informe no la estima.", e_["p"]))
 
     filas = [["Nº", "Finca", "Hoy sobre el terreno", "A quién suele interesar", "Linda con"]]
     for e in con:
@@ -483,17 +474,18 @@ def _seccion_mercado(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
             "madera y alguna explotación de la zona. Encontrar comprador puede llevar meses o años.",
             "<b>Manda el comprador.</b> Con tan poca demanda, el precio lo acaba fijando lo que ofrece quien tiene "
             "interés, no lo que el propietario cree que vale.",
-            "<b>Vender tiene gastos.</b> Notaría, Registro, impuestos y, si hace falta, regularizar la documentación. "
-            "En fincas de poco valor pueden llevarse una parte apreciable del precio.",
             "<b>Las medias oficiales no sirven para una finca.</b> La Xunta publica un precio medio de la tierra por "
             "comarca, pero mezcla fincas muy distintas y no indica lo que alguien pagaría por esta."):
         el.append(Paragraph("• " + txt, e_["p"]))
-    el += [Spacer(1, 2 * mm),
-           Paragraph("Fuentes de los precios y del crecimiento: " + "; ".join(enlace(f["url"], f["nombre"])
-                                                                              for f in md["fuentes"])
-                     + ". Movilidad de la tierra: " + enlace(precios.fuente()["url"], "Observatorio Galego de Mobilidade "
-                                                             "de Terras (Xunta de Galicia)")
-                     + ". Los precios son orientativos y cambian cada pocos meses.", e_["c"])]
+    g = precios.gastos()
+    el += [Paragraph("Lo que cuesta la operación", e_["h2"]),
+           Paragraph("Vender y comprar tiene gastos que no dependen del tamaño de la finca. Orientativos, para una finca "
+                     f"rústica en Galicia (revisado en {escape(g['revisado'])}):", e_["p"]), Spacer(1, 1 * mm),
+           _tabla([["Gasto", "Quién lo paga", "Cuánto"]] + [[f[0], P(f[1]), P(f[2])] for f in g["filas"]],
+                  [45 * mm, 37 * mm, 95 * mm]),
+           Spacer(1, 2 * mm), Paragraph(escape(g["conclusion"]), e_["p"]),
+           Paragraph("Son cifras orientativas y generales: cada caso tiene sus particularidades. Antes de firmar conviene "
+                     "pedir presupuesto en la notaría y consultar a un gestor o asesor fiscal.", e_["c"])]
     return _construir(el, titulo)
 
 

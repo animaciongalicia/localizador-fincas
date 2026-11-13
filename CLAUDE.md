@@ -49,6 +49,13 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas de España de 
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- **RETIRADO por decisión del usuario (2026-11-13): tablas de producción y fuentes impresas.** El informe NO lleva ninguna tabla de
+  producción de madera (ni eucalipto ni pino ni otras): el usuario las quitó expresamente; no volver a añadirlas. Tampoco se imprime
+  el párrafo de fuentes de los precios (siguen guardadas en `madera_galicia.json` para uso interno). En su lugar, "Lo que cuesta la
+  operación": tabla de gastos orientativos de una compraventa (`fincas/datos/gastos_compraventa.json`: notaría 90 € y registro 24 €
+  de arancel hasta 6.010 € de valor, verificados en el BOE, RD 1426/1989 y 1427/1989; ITP 8 % con deducción del 100 % en suelo
+  rústico, art. 16.Cinco del DL 1/2011 de Galicia, tomado de fuente secundaria: reconfirmar; IRPF 19-28 % de la ganancia; plusvalía
+  municipal no aplica a rústico). Lo que sigue sobre producción queda solo como historial.
 - **Producción de eucalipto, planeamiento y precios caducados (2026-11-13).** (a) `madera_galicia.json` lleva `produccion`: m³/ha a
   turno por calidad del terreno, para glóbulus de rebrote, glóbulus plantado (15 años) y nitens plantado (13), del «Caderno técnico:
   montes de eucalipto» de la Asociación Forestal de Galicia (2020). OJO: según esa fuente el rebrote BIEN LLEVADO (selección a ~1.000

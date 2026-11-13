@@ -1,0 +1,13 @@
+{
+"nota": "Gastos orientativos de la compraventa de una finca rústica en Galicia. Revisar cuando cambien los aranceles o los impuestos y actualizar 'revisado'. Fuentes: aranceles notarial y registral (Reales Decretos 1426/1989 y 1427/1989, BOE); Decreto Legislativo 1/2011 de Galicia, art. 16.Cinco (deducción en transmisiones de suelo rústico); Ley 35/2006 del IRPF (ganancias patrimoniales).",
+"revisado": "noviembre de 2026",
+"filas": [
+["Notaría (escritura de compraventa)", "Se pacta; lo habitual es que la pague el comprador", "El arancel es de 90 € para fincas de hasta 6.010 € de valor. Con copias, folios e IVA, la factura suele ser de unos cientos de euros"],
+["Registro de la Propiedad (inscripción)", "Comprador", "Arancel de 24 € por finca de hasta 6.010 € de valor, más asientos, notas e IVA. Se paga por cada finca"],
+["Impuesto de transmisiones (ITP)", "Comprador", "El tipo en Galicia es el 8 % del valor, pero la compra de suelo rústico tiene una deducción del 100 %: lo normal es no pagar nada. No vale para casas ni para suelo que no sea rústico"],
+["Impuesto sobre la renta (IRPF)", "Vendedor", "Entre el 19 % y el 28 % de la ganancia, que es la diferencia entre el precio de venta y el valor por el que se adquirió o heredó. Si no hay ganancia, no se paga"],
+["Plusvalía municipal", "Nadie", "No se paga en suelo rústico; sí en las casas y en el suelo urbano"],
+["Poner los papeles en regla", "Vendedor", "Variable: tramitar la herencia, corregir el Catastro o el Registro, o medir la finca si hace falta. Es lo que más puede encarecer y retrasar la venta"]
+],
+"conclusion": "Solo entre notaría y Registro hay un gasto fijo de unos cientos de euros por operación, valga la finca lo que valga. En una finca de 1.000 o 2.000 € se lleva una parte importante del precio, y por eso muchas ventas pequeñas no llegan a hacerse. Vender varias fincas al mismo comprador en una sola escritura reparte ese gasto."
+}
