@@ -46,6 +46,13 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- **Inmuebles urbanos (2026-11-13).** Si la referencia catastral de la lista no es rústica (p. ej. una casa en diseminado), la
+  finca ya no queda SIN DATOS: se busca por la referencia (`Finca.refcat`, `por_referencia`). `ServicioCatastro.consulta_referencia`
+  usa `Consulta_DNPRC` (uso, superficie CONSTRUIDA en `sfc`, año `ant`, destinos en `lcons`) y `OVCCoordenadas.asmx/Consulta_CPMRC`
+  (centro de la parcela, para el mapa). El servicio NO da la superficie de la parcela de un urbano (solo la ficha PDF): control de
+  superficie `NO APLICA`. Ficha de la Sede: misma URL con `UrbRus=U` (verificado). SIGPAC no se consulta (`coincide = NO APLICA`).
+  Inventario y condicionantes sí: las capas de la Xunta tienen esas referencias. Clave de caché `<prov+mun>_rc_<14>`.
+  La Sede falla a ratos (error de datos o descarga que no llega): los fallos no se cachean, basta relanzar.
 - **Inventario forestal (2026-11-12).** El cultivo del Catastro suele estar desfasado (en 12 parcelas reales de A Coruña, 7 no
   cuadraban). Se cruza con el Inventario Forestal Continuo de Galicia (INVEGA), NO con el IFN (el IFN4 de Galicia es de 2011 y no
   baja a parcela). Servicio público verificado: `https://ideg.xunta.gal/servizos/rest/services/INVEGA/InvegaRecintos/MapServer/0/query?where=REFCAT='<14>'&outFields=*&returnGeometry=false&f=json`.

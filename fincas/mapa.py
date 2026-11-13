@@ -208,7 +208,7 @@ class ServicioMapa:
 
     # -- piezas inyectables
     def _bbox(self, cod, f) -> Tuple[float, float, float, float]:
-        clave = f"{cod.clave}_{f.poligono}_{f.parcela}"
+        clave = f"{cod.clave}_{f.clave_parcela}"
         c = self.cache.leer("bbox_sixpac", clave)
         if c and len(c.get("bbox", [])) == 4:
             return tuple(float(v) for v in c["bbox"])  # type: ignore[return-value]
@@ -243,6 +243,11 @@ class ServicioMapa:
         for n, r in enumerate(resultados, start=1):
             f, cod, c = r.finca, r.codigos, r.catastro
             if not cod or not c or cod.cod_provincia not in GALICIA:
+                continue
+            if f.por_referencia and c.lon is not None and c.lat is not None:
+                d = 0.0003   # inmueble urbano: sin caja de SIXPAC, se sitúa por el centro que da el Catastro
+                out.append(Punto(n, f.etiqueta, c.refcat, c.superficie_m2, c.lon, c.lat,
+                                 (c.lon - d, c.lat - d, c.lon + d, c.lat + d)))
                 continue
             if not (f.poligono.isdigit() and f.parcela.isdigit()):
                 continue

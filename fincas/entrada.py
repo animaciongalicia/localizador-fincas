@@ -38,6 +38,15 @@ _RE_RC_RUSTICA = re.compile(r"^(\d{2})(\d{3})([A-Z])(\d{3})(\d{5})(?:\d{4}[A-Z]{
 _RE_CODIGO_SEGURO = re.compile(r"^[0-9A-Za-z]{1,6}(?:[-_.][0-9A-Za-z]{1,6})?$")
 
 
+_RE_RC = re.compile(r"^[0-9A-Z]{14}(?:\d{4}[A-Z]{2})?$")   # cualquier referencia catastral (14 o 20 caracteres)
+
+
+def refcat_no_rustica(texto: object) -> str:
+    """Referencia catastral válida que NO es rústica (inmueble urbano), en mayúsculas y sin separadores; '' si no."""
+    t = re.sub(r"[\s\-.]", "", str(texto or "")).upper()
+    return t if _RE_RC.match(t) and not _RE_RC_RUSTICA.match(t) else ""
+
+
 def pol_par_desde_refcat(texto: object) -> Tuple[str, str]:
     """'99999A001000120000AB' -> ('1', '12'). Si no es una RC rústica reconocible: ('', '')."""
     t = re.sub(r"[\s\-.]", "", str(texto or "")).upper()
@@ -244,7 +253,8 @@ def filas_a_fincas(filas: Sequence[Sequence[object]], municipio: str = "", provi
         if (pol and not _RE_CODIGO_SEGURO.match(pol)) or (par and not _RE_CODIGO_SEGURO.match(par)):
             problemas.append(f"{etiqueta}: polígono/parcela con caracteres no válidos ('{pol}', '{par}')")
             pol = par = ""
-        if (not pol or not par) and not sin_datos:
+        rc_urb = refcat_no_rustica(rc) if not (pol and par) else ""   # urbano: se busca por su referencia
+        if (not pol or not par) and not sin_datos and not rc_urb:
             sin_datos = (f"SIN DATOS: falta polígono/parcela y la referencia catastral "
                          f"{'no es interpretable' if rc else 'no consta'}; hay que pedírsela al cliente")
             problemas.append(f"{etiqueta}: {sin_datos} (se mantiene en el Excel, no se busca)")
@@ -265,6 +275,7 @@ def filas_a_fincas(filas: Sequence[Sequence[object]], municipio: str = "", provi
             paraje=str(celda(fila, "paraje") or "").strip(),
             superficie_m2=sup,
             cuota=cuota, notas=str(celda(fila, "notas") or "").strip(), fila=n, sin_datos=sin_datos,
+            refcat="" if sin_datos else rc_urb,
         ))
     return fincas, problemas
 

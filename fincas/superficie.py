@@ -16,6 +16,8 @@ def explicar_control(catastral: Optional[float], cliente: Optional[float], cuota
     """Texto breve que explica un control distinto de OK (vacío si es OK). Solo informa."""
     if control == "OK":
         return ""
+    if control == "NO APLICA":
+        return "Inmueble urbano: la superficie de la parcela figura en la ficha catastral"
     if catastral is None:
         return "Sin superficie catastral: no se pudo comparar"
     if control == "SIN DATO CLIENTE" or cliente is None or cliente <= 0:
