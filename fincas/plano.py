@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import base64
 import math
+import re
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
@@ -191,6 +192,57 @@ def obtener_datos(base: str, prov: str, mun: str, pol: str, par: str, sesion=Non
     if not objetivo:
         raise PlanoNoDisponible("la parcela no aparece en las teselas vectoriales")
     return DatosParcela(bbox, objetivo, vecinos)
+
+
+def anillos_wfs(xml: str) -> List[Anillo]:
+    """Anillos exteriores (Web Mercator) de una respuesta WFS INSPIRE CadastralParcel en EPSG:4326.
+    En ese servicio las coordenadas vienen en orden lat lon."""
+    out: List[Anillo] = []
+    for bloque in re.findall(r"<gml:exterior>.*?</gml:exterior>", xml, flags=re.S):
+        m = re.search(r"<gml:posList[^>]*>([^<]+)</gml:posList>", bloque)
+        if not m:
+            continue
+        nums = [float(n) for n in m.group(1).split()]
+        pares = [(nums[i + 1], nums[i]) for i in range(0, len(nums) - 1, 2)]   # (lon, lat)
+        if len(pares) >= 3:
+            out.append([lonlat_a_merc(lon, lat) for lon, lat in pares])
+    return out
+
+
+def obtener_datos_urbano(base: str, refcat14: str, sesion=None) -> DatosParcela:
+    """Como obtener_datos, pero para un inmueble urbano (sin polígono/parcela): el contorno sale del servicio
+    INSPIRE de parcelas del Catastro y los vecinos, de las teselas de SIXPAC. Lanza PlanoNoDisponible si falla."""
+    s = sesion or _sesion()
+    try:
+        r = s.get(config.CATASTRO_WFS_PARCELA, params={
+            "service": "wfs", "version": "2", "request": "getfeature", "STOREDQUERIE_ID": "GetParcel",
+            "refcat": refcat14, "srsname": "EPSG:4326"}, timeout=config.TIMEOUT_HTTP_S)
+        r.raise_for_status()
+        objetivo = anillos_wfs(r.content.decode("latin-1"))
+    except Exception as e:  # noqa: BLE001
+        raise PlanoNoDisponible(f"parcela del Catastro: {e}") from e
+    if not objetivo:
+        raise PlanoNoDisponible("el Catastro no devuelve la geometría de la parcela")
+    xs = [p[0] for a in objetivo for p in a]
+    ys = [p[1] for a in objetivo for p in a]
+    x1, y1, x2, y2 = min(xs), min(ys), max(xs), max(ys)
+    mx, my = (x2 - x1) * 0.5 + 30, (y2 - y1) * 0.5 + 30
+    vecinos: List[Anillo] = []
+    for tx, ty in teselas_vector(x1 - mx, y1 - my, x2 + mx, y2 + my)[:9]:
+        try:
+            rr = s.get(url_tesela_vector(base, tx, ty), timeout=config.TIMEOUT_HTTP_S)
+            rr.raise_for_status()
+            for f in rr.json().get("features", []):
+                vecinos.extend(anillos(f.get("geometry") or {}))
+        except Exception as e:  # noqa: BLE001
+            raise PlanoNoDisponible(f"teselas vectoriales {tx}.{ty}: {e}") from e
+
+    def a_lonlat(x: float, y: float) -> Tuple[float, float]:
+        return (math.degrees(x / 6378137.0),
+                math.degrees(2 * math.atan(math.exp(y / 6378137.0)) - math.pi / 2))
+    lo1, la1 = a_lonlat(x1, y1)
+    lo2, la2 = a_lonlat(x2, y2)
+    return DatosParcela((lo1, la1, lo2, la2), objetivo, vecinos)
 
 
 def _descargar_teselas(base: str, vista: Vista, sesion=None) -> Dict[Tuple[int, int], str]:

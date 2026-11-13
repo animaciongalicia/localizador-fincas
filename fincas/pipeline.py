@@ -17,7 +17,7 @@ from .codigos import Ambiguo, NoEncontrado, _partes, clave_nombre
 from .excel import escribir_excel
 from .informe import escribir_informe
 from .inventario import aviso_alteracion, contrastar
-from .modelos import Codigos, DatosAprovechamiento, DatosCatastro, DatosInventario, Finca, Meta, Resultado, ResultadoSigpac
+from .modelos import Codigos, DatosAprovechamiento, DatosCatastro, DatosGeologia, DatosInventario, Finca, Meta, Resultado, ResultadoSigpac
 from .registro import Registro
 from .sigpac import GALICIA, coincide_refcat
 from .superficie import control_superficie
@@ -33,6 +33,7 @@ class Opciones:
     usar_pdf_catastro: bool = True
     inventario: bool = True  # cobertura actual según el Inventario Forestal Continuo de Galicia
     aprovechamiento: bool = True  # condicionantes de corta: afecciones y dificultad de saca (solo Galicia)
+    geologia: bool = True  # contexto geológico y minero (IGME; derechos mineros solo Galicia)
     mapa: bool = True      # mapa de conjunto de todas las fincas (solo Galicia)
     cliente: str = ""      # nombre del cliente tal cual (para el dossier)
     expediente: str = ""   # nº de expediente del informe
@@ -48,6 +49,7 @@ class Servicios:
     cache: Cache
     inventario: Optional[object] = None  # .consultar(refcat) -> DatosInventario | None
     aprovechamiento: Optional[object] = None  # .consultar(refcat) -> DatosAprovechamiento | None
+    geologia: Optional[object] = None  # .consultar(lon, lat, galicia) -> DatosGeologia
     mapa: Optional[object] = None  # .generar(resultados, raiz, titulo) -> Conjunto | None
     usados: Dict[str, str] = field(default_factory=dict)  # nombre de fichero -> clave (detecta colisiones)
 
@@ -213,8 +215,9 @@ def _procesar(res: Resultado, op: Opciones, srv: Servicios, d_cat: Path, d_sig: 
             res.errores.append(str(e))
             reg.error(f.etiqueta, f"PDF Catastro: {e}")
         except Exception as e:  # noqa: BLE001
-            res.errores.append(f"PDF Catastro: {e}")
-            reg.error(f.etiqueta, f"PDF Catastro: {e}")
+            motivo = (str(e).strip().splitlines() or ["error desconocido"])[0]   # sin el volcado técnico del navegador
+            res.errores.append(f"Ficha del Catastro no obtenida: {motivo}")
+            reg.error(f.etiqueta, f"PDF Catastro: {motivo}")
 
     # ---- control de superficie
     res.control_superficie = control_superficie(datos.superficie_m2 if datos else None,
@@ -232,10 +235,16 @@ def _procesar(res: Resultado, op: Opciones, srv: Servicios, d_cat: Path, d_sig: 
     if datos and op.aprovechamiento and srv.aprovechamiento is not None and cod.cod_provincia in GALICIA:
         _aprovechamiento(res, srv, clave, reg)
 
+    if datos and op.geologia and srv.geologia is not None:
+        _geologia(res, srv, cod, clave, reg)
+
     # ---- SIGPAC
     if f.por_referencia:   # el visor busca por polígono y parcela: un inmueble urbano no tiene
         res.coincide = "NO APLICA"
         reg.info(f"{f.etiqueta}: inmueble urbano, no se consulta SIGPAC")
+        if (op.usar_sigpac and srv.sigpac is not None and hasattr(srv.sigpac, "ficha_urbana")
+                and cod.cod_provincia in GALICIA and datos):
+            res.sigpac = _ficha_urbana(res, srv, cod, clave, d_sig, base, reg)
     elif op.usar_sigpac and srv.sigpac is not None:
         res.sigpac = _sigpac(res, srv, cod, clave, d_sig, base, reg)
         res.coincide = coincide_refcat(datos.refcat if datos else "", res.sigpac.refcat)
@@ -280,6 +289,37 @@ def _catastro_datos(res, srv, cod, clave, reg) -> Optional[DatosCatastro]:
     datos.consultado = _ahora()
     srv.cache.guardar("catastro", clave, asdict(datos))
     return datos
+
+
+def _geologia(res: Resultado, srv: Servicios, cod: Codigos, clave: str, reg: Registro) -> None:
+    """Contexto geológico y minero. Es un extra: si falla, se avisa y la finca sigue adelante."""
+    f, datos = res.finca, res.catastro
+    d: Optional[DatosGeologia] = None
+    cacheado = srv.cache.leer("geologia_v1", clave)
+    if cacheado:
+        try:
+            d = DatosGeologia(**cacheado)
+        except (TypeError, ValueError):
+            srv.cache.borrar("geologia_v1", clave)
+    if d is None:
+        try:
+            if datos.lon is None or datos.lat is None:   # centro de la parcela: una consulta más al Catastro
+                datos.lon, datos.lat = srv.catastro.centro(datos.refcat)
+                srv.cache.guardar("catastro", clave, asdict(datos))
+            d = srv.geologia.consultar(datos.lon, datos.lat, cod.cod_provincia in GALICIA)
+        except Exception as e:  # noqa: BLE001
+            reg.aviso(f.etiqueta, f"geología y minería: no se pudo consultar ({e})")
+            return
+        d.consultado = _ahora()
+        if not d.sin_consultar:              # solo se cachea la consulta completa
+            srv.cache.guardar("geologia_v1", clave, asdict(d))
+    res.geologia = d
+    reg.info(f"{f.etiqueta}: geología y minería: {d.veredicto}")
+    if d.derechos_parcela:
+        reg.aviso(f.etiqueta, "hay derechos mineros vigentes sobre la finca: "
+                              + ", ".join(x["numero"] for x in d.derechos_parcela))
+    if d.sin_consultar:
+        reg.aviso(f.etiqueta, "geología y minería: no se pudo consultar " + ", ".join(d.sin_consultar))
 
 
 def _aprovechamiento(res: Resultado, srv: Servicios, clave: str, reg: Registro) -> None:
@@ -347,6 +387,35 @@ def _inventario(res: Resultado, srv: Servicios, clave: str, reg: Registro) -> No
         if alt:
             res.avisos.append(alt)
             reg.aviso(f.etiqueta, alt)
+
+
+def _ficha_urbana(res, srv, cod, clave, d_sig, base, reg) -> ResultadoSigpac:
+    """Plano del inmueble urbano (contorno del Catastro + ortofoto SIXPAC). Misma caché que las fichas SIXPAC."""
+    f = res.finca
+    destino = d_sig / f"{base}_sigpac.pdf"
+    cacheado = srv.cache.leer("sigpac_v3", clave)
+    en_cache_pdf = srv.cache.fichero("pdf_sigpac_v3", clave)
+    if cacheado and en_cache_pdf:
+        try:
+            r = ResultadoSigpac(**cacheado)
+            r.consultado = r.consultado or srv.cache.fecha("sigpac_v3", clave)
+            shutil.copyfile(en_cache_pdf, destino)
+            return r
+        except (TypeError, ValueError, OSError):
+            srv.cache.borrar("sigpac_v3", clave)
+            srv.cache.borrar("pdf_sigpac_v3", clave)
+    try:
+        r = srv.sigpac.ficha_urbana(f, cod, res.catastro.refcat if res.catastro else f.refcat, destino)
+    except Exception as e:  # noqa: BLE001
+        r = ResultadoSigpac("ERROR", detalle=str(e))
+    r.consultado = r.consultado or _ahora()
+    if r.estado == "ENCONTRADA":
+        srv.cache.guardar("sigpac_v3", clave, asdict(r))
+        if destino.exists():
+            srv.cache.guardar_fichero("pdf_sigpac_v3", clave, destino)
+    else:
+        reg.aviso(f.etiqueta, f"plano del inmueble urbano no disponible: {r.detalle}")
+    return r
 
 
 def _sigpac(res, srv, cod, clave, d_sig, base, reg) -> ResultadoSigpac:
