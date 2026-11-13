@@ -49,6 +49,13 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas de España de 
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- **Orden definitivo en CUATRO PARTES (2026-11-13, decisión del usuario: primero se enseña el trabajo, luego se interpreta).**
+  1 Lo esencial (resumen ejecutivo, mapa) · 2 Las fincas, una a una · 3 Para decidir (resumen para la compraventa, qué puede valer y
+  qué cuesta vender, afecciones + cotejo forestal en UN apartado) · 4 Anexos. Las partes 2-4 abren con una página separadora
+  (`_separador`, textos en `PARTES`). El Contenido y el índice de fincas son ENLACES a su página: `_ancla` anota la posición de cada
+  fila al dibujar el frontal y `escribir_informe` añade después las anotaciones con pypdf (`Link`). La portada solo lleva las 4 cifras
+  y cómo está organizado el informe; las tablas por municipio y por uso pasaron al resumen ejecutivo. Esto sustituye al orden del
+  punto siguiente.
 - **Composición del informe (2026-11-13, rediseño pedido por el usuario).** Orden: portada con 4 cifras en recuadros (`_tarjetas`) ·
   Contenido (índice general con páginas + índice de fincas) · Resumen ejecutivo (una tabla con marcas verde/ámbar/rojo; rojo solo
   para monte vecinal) · mapa · Resumen para la compraventa · Precio de referencia de la zona · Afecciones · Cotejo forestal ·

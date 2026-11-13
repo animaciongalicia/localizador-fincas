@@ -79,22 +79,29 @@ def test_informe_une_pdfs_con_indice_y_marcadores(tmp_path):
     lector = PdfReader(str(ruta))
     por_finca = [1 + 1 + 2, 1 + 1 + 2, 1]                      # hoja propia + Catastro + SIXPAC
     titulos = [o.title for o in lector.outline]
-    assert titulos == ["Portada y contenido", "Resumen ejecutivo", "Resumen para la compraventa",
-                       "Qué puede valer y qué cuesta vender",
+    assert titulos == ["Portada y contenido", "Resumen ejecutivo", "Parte 2 · Las fincas, una a una",
                        "1. Ortigueira pol 34 parc 175", "2. Ortigueira pol 34 parc 176", "3. Ortigueira pol 34 parc 999",
-                       "Anexo. Fuentes y fechas de consulta", "Anexo. Metodología y aviso legal"]
-    delanteras = lector.get_destination_page_number(lector.outline[4])   # todo lo que va antes de la primera finca
-    assert delanteras >= 5                    # portada, contenido, resumen ejecutivo, compraventa y precios
-    assert lector.get_destination_page_number(lector.outline[5]) == delanteras + 4
-    assert lector.get_destination_page_number(lector.outline[7]) == delanteras + sum(por_finca)
+                       "Parte 3 · Para decidir", "Resumen para la compraventa", "Qué puede valer y qué cuesta vender",
+                       "Parte 4 · Anexos", "Anexo. Fuentes y fechas de consulta", "Anexo. Metodología y aviso legal"]
+    pos = {x: lector.get_destination_page_number(o) for x, o in zip(titulos, lector.outline)}
+    delanteras = pos["1. Ortigueira pol 34 parc 175"]         # todo lo que va antes de la primera finca
+    assert delanteras == pos["Parte 2 · Las fincas, una a una"] + 1 >= 4   # las fincas van tras lo esencial
+    assert pos["2. Ortigueira pol 34 parc 176"] == delanteras + 4
+    assert pos["Parte 3 · Para decidir"] == delanteras + sum(por_finca)    # lo complementario, después de las fincas
     textos = [pag.extract_text() for pag in lector.pages]
     frente = "\n".join(textos[:2])
     assert "ferrados.com" in frente and "Cliente Uno" in frente and "FER-2026-0007" in frente
     assert "Contenido" in textos[1] and "Índice de fincas" in textos[1]
-    # el contenido cita la página real de cada apartado y de cada finca
+    # el contenido cita la página real de cada apartado y de cada finca, y cada fila es un enlace a ella
     plano = " ".join(textos[1].split())
-    assert f"Resumen ejecutivo {lector.get_destination_page_number(lector.outline[1]) + 1}" in plano
-    assert f"Fincas, una a una {delanteras + 1}" in plano
+    assert f"Resumen ejecutivo {pos['Resumen ejecutivo'] + 1}" in plano
+    assert f"Parte 3 · Para decidir {pos['Parte 3 · Para decidir'] + 1}" in plano
+    destinos = set()
+    for an in lector.pages[1]["/Annots"]:
+        o = an.get_object()
+        destinos.add(lector.get_page_number(o["/Dest"][0].get_object()))
+    assert {pos["Resumen ejecutivo"], delanteras, pos["3. Ortigueira pol 34 parc 999"],
+            pos["Anexo. Metodología y aviso legal"]} <= destinos
     assert "Aviso legal" in textos[-1] and "no es una certificación" in textos[-1].lower().replace("\n", " ")
     # todas las páginas, también las fichas externas, llevan marca, expediente, pie y numeración
     total = len(lector.pages)
@@ -118,9 +125,7 @@ def test_hoja_de_finca_muestra_fecha_de_consulta_e_incidencias(tmp_path):
     lector = PdfReader(str(escribir_informe([r], tmp_path, "L")))
     hoja = next(p.extract_text() for p in lector.pages if "Finca 1 de 1" in p.extract_text())
     assert "aviso de prueba" in hoja and "+403 %" in hoja and "SIXPAC" in hoja
-    fuentes = next(p.extract_text() for p in lector.pages if "Fuentes y fechas de consulta" in p.extract_text()
-                   and "Fuentes" in p.extract_text() and "Finca 1 de 1" not in p.extract_text()
-                   and "Índice de fincas" not in p.extract_text())
+    fuentes = next(p.extract_text() for p in lector.pages if "Fecha y hora en que se consultó" in p.extract_text())
     assert "12/11/2026 09:01" in fuentes and "10/11/2026 18:30" in fuentes     # fecha real de cada consulta
 
 
@@ -187,7 +192,9 @@ def test_anexos_al_final_y_hoja_de_finca_sin_geologia(tmp_path):
     indice = next(t for t in textos if "Índice de fincas" in t)
     assert f"Anexo. Informe geológico y minero {geo + 1}" in indice           # el contenido cita su página real
     afe_i = next(i for i, t in enumerate(textos) if "Afecciones y limitaciones detectadas" in t and "Castro" in t)
-    assert afe_i < min(i for i, t in enumerate(textos) if "Finca 1 de 3" in t)   # los resúmenes van antes de las fincas
+    assert ultima_finca < afe_i < cons             # orden: fincas, después lo complementario y al final los anexos
+    assert next(i for i, t in enumerate(textos) if "Resumen ejecutivo" in t and "Hoy sobre el terreno" in t) < \
+        min(i for i, t in enumerate(textos) if "Finca 1 de 3" in t)            # el resumen ejecutivo sí va delante
 
 
 def test_sin_geologia_ni_construcciones_no_hay_anexos(tmp_path):

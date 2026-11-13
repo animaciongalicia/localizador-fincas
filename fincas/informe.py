@@ -152,6 +152,7 @@ def _estilos():
                              keepWithNext=1),
         "n": ParagraphStyle("n", parent=est["Normal"], fontSize=10, leading=13),
         "c": ParagraphStyle("c", parent=est["Normal"], fontSize=8, leading=10, splitLongWords=1),
+        "c_b": ParagraphStyle("c_b", parent=est["Normal"], fontSize=8.5, leading=10.5, fontName="Helvetica"),
         "p": ParagraphStyle("p", parent=est["Normal"], fontSize=9.5, leading=13, spaceAfter=4),
     }
 
@@ -220,10 +221,38 @@ def _tarjetas(cifras: Sequence[Tuple[str, str]]):
     return t
 
 
+PARTES = [("Lo esencial", "El resumen del lote y el mapa: lo que conviene leer primero."),
+          ("Las fincas, una a una", "La hoja de cada finca con sus datos y comprobaciones, seguida de su ficha del "
+                                    "Catastro y de su plano sobre la ortofoto."),
+          ("Para decidir", "Qué conviene aclarar antes de una operación, qué puede valer cada finca y qué cuesta "
+                           "venderla, y los cuadros resumen del lote."),
+          ("Anexos", "Información complementaria: construcciones, geología y minería, fuentes y metodología.")]
+
+
+def _ancla(registro: Optional[list], destino: int):
+    """Marca invisible que anota dónde queda una fila del índice (página y altura) para ponerle después un enlace
+    a la página `destino` (relativa a la primera tras el frontal)."""
+    from reportlab.platypus import Flowable
+
+    class Ancla(Flowable):
+        def wrap(self, ancho, alto):
+            return 0, 0
+
+        def draw(self):
+            if registro is not None:
+                registro.append((destino, self.canv.getPageNumber() - 1, self.canv.absolutePosition(0, 0)[1]))
+
+    return Ancla()
+
+
 def _frontal(resultados: Sequence[Resultado], entradas: List[_Entrada], titulo: str, meta: Meta,
-             paginas_previas: int, contenido: Sequence[Tuple[str, int]] = ()) -> bytes:
+             paginas_previas: int, contenido: Sequence[Tuple[str, int, int]] = (),
+             anclas: Optional[list] = None) -> bytes:
     """Portada con las cifras clave + contenido del documento + índice de fincas. `paginas_previas` = páginas de
-    esta parte frontal; las páginas de `contenido` y de cada finca son relativas a la primera que la sigue."""
+    esta parte frontal; las páginas de `contenido` (nombre, página, nivel: 0 = parte, 1 = apartado) y de cada finca
+    son relativas a la primera que la sigue. En `anclas` se anota la posición de cada fila, para enlazarla."""
+    from reportlab.lib import colors
+    from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import mm
     from reportlab.platypus import PageBreak, Paragraph, Spacer
 
@@ -231,6 +260,7 @@ def _frontal(resultados: Sequence[Resultado], entradas: List[_Entrada], titulo: 
     rs = calcular(resultados)
     difieren = sum(1 for r in resultados if r.contraste == "REVISAR")
     con_puntos = sum(1 for r in resultados if puntos_a_comprobar(r))
+    azul = ParagraphStyle("pag", parent=e_["c"], fontSize=8.5, leading=10.5, textColor=colors.HexColor("#0563C1"))
     el = [Spacer(1, 22 * mm), Paragraph(escape(config.MARCA), e_["marca"]),
           Paragraph("Informe de localización de fincas", e_["h1"]), Spacer(1, 4 * mm),
           _tabla([["Cliente", Paragraph(escape(meta.cliente or titulo), e_["n"])],
@@ -243,39 +273,42 @@ def _frontal(resultados: Sequence[Resultado], entradas: List[_Entrada], titulo: 
                      (formato_ha(rs.superficie_m2) if rs.superficie_m2 else "—", "superficie catastral total"),
                      (str(difieren), "con un uso real distinto del que declara el Catastro"),
                      (str(con_puntos), "con algo que aclarar antes de una operación")]),
-          Paragraph("Resumen", e_["h2"])]
-    filas = [["Concepto", "Valor"],
-             ["Fincas del lote", str(rs.total)],
-             ["Con datos del Catastro", str(rs.con_catastro)],
-             ["Superficie catastral total", f"{formato_m2(rs.superficie_m2)}  ({formato_ha(rs.superficie_m2)})"],
-             ["Fincas con cuota distinta de completa", str(rs.cuotas_parciales)]]
-    for k in ("OK", "REVISAR", "SIN DATO CLIENTE"):
-        if rs.control.get(k):
-            filas.append([f"Control de superficie: {k}", str(rs.control[k])])
-    for k, v in sorted(rs.coincide.items()):
-        filas.append([f"Catastro / SIGPAC-SIXPAC: {k}", str(v)])
-    el.append(_tabla(filas, [97 * mm, 80 * mm]))
-    if rs.por_municipio:
-        el += [Paragraph("Por municipio", e_["h2"]),
-               _tabla([["Municipio", "Fincas", "Superficie"]] +
-                      [[n, str(c), formato_m2(m)] for n, c, m in rs.por_municipio[:15]],
-                      [97 * mm, 30 * mm, 50 * mm])]
-    if rs.por_uso:
-        el += [Paragraph("Por uso / cultivo según el Catastro", e_["h2"]),
-               _tabla([["Uso", "Fincas", "Superficie"]] +
-                      [[Paragraph(escape(n), e_["c"]), str(c), formato_m2(m)] for n, c, m in rs.por_uso[:12]],
-                      [97 * mm, 30 * mm, 50 * mm])]
-    el += [PageBreak(), Paragraph("Contenido", e_["h1"])]
+          Paragraph("Cómo está organizado este informe", e_["h2"]),
+          _tabla([[f"{i}. {nombre}", Paragraph(escape(texto), e_["c"])] for i, (nombre, texto) in enumerate(PARTES, 1)],
+                 [45 * mm, 132 * mm], cabecera=False, clave=True),
+          PageBreak(), Paragraph("Contenido", e_["h1"])]
     if contenido:
-        el.append(_tabla([["Apartado", "Pág."]] +
-                         [[nombre, str(pag + paginas_previas)] for nombre, pag in contenido], [165 * mm, 12 * mm]))
+        filas, fondo = [["Apartado", "Pág."]], []
+        for i, (nombre, pag, nivel) in enumerate(contenido, start=1):
+            texto = f"<b>{escape(nombre)}</b>" if nivel == 0 else "&nbsp;&nbsp;&nbsp;&nbsp;" + escape(nombre)
+            filas.append([[_ancla(anclas, pag), Paragraph(texto, azul if nivel else e_["c_b"])],
+                          Paragraph(str(pag + paginas_previas), azul)])
+            if nivel == 0:
+                fondo.append(("BACKGROUND", (0, i), (-1, i), colors.HexColor("#EEF2EE")))
+        el.append(_tabla(filas, [165 * mm, 12 * mm], extra=fondo))
     el.append(Paragraph("Índice de fincas", e_["h2"]))
     filas = [["Nº", "Finca", "Ref. catastral", "Superficie", "Uso", "Control", "Pág."]]
     for e in entradas:
-        filas.append([str(e.n), Paragraph(escape(e.etiqueta), e_["c"]), e.refcat, e.sup,
+        filas.append([[_ancla(anclas, e.inicio), Paragraph(str(e.n), e_["c"])],
+                      Paragraph(escape(e.etiqueta), azul), e.refcat, e.sup,
                       Paragraph(escape(e.uso), e_["c"]), Paragraph(escape(e.control), e_["c"]),   # Paragraph: parte línea
-                      str(e.inicio + paginas_previas)])
+                      Paragraph(str(e.inicio + paginas_previas), azul)])
     el.append(_tabla(filas, [9 * mm, 45 * mm, 30 * mm, 24 * mm, 31 * mm, 26 * mm, 12 * mm]))
+    el.append(Paragraph("En pantalla, los apartados y las fincas de esta página son enlaces: al pulsarlos se va a su "
+                        "página.", e_["c"]))
+    return _construir(el, titulo)
+
+
+def _separador(numero: int, apartados: Sequence[str], titulo: str) -> bytes:
+    """Página que abre una parte del informe: su número, su título, qué contiene y sus apartados."""
+    from reportlab.lib.units import mm
+    from reportlab.platypus import Paragraph, Spacer
+
+    e_ = _estilos()
+    nombre, texto = PARTES[numero - 1]
+    el = [Spacer(1, 60 * mm), Paragraph(f"Parte {numero}", e_["h3"]), Paragraph(escape(nombre), e_["marca"]),
+          Spacer(1, 4 * mm), Paragraph(escape(texto), e_["n"]), Spacer(1, 6 * mm)]
+    el += [Paragraph("• " + escape(x), e_["p"]) for x in apartados]
     return _construir(el, titulo)
 
 
@@ -348,6 +381,16 @@ def _resumen_ejecutivo(entradas: List[_Entrada], titulo: str) -> Optional[bytes]
                     "<b>Acceso:</b> si la finca linda con terreno de dominio público (camino, vía o cauce) según "
                     "SIXPAC. <b>A aclarar:</b> puntos del resumen para la compraventa. Las marcas resumen datos "
                     "públicos; no valoran la finca ni recomiendan la operación.", e_["c"])]
+    rs = calcular([e.r for e in entradas])
+    if len(rs.por_municipio) > 1:
+        el += [Paragraph("Por municipio", e_["h2"]),
+               _tabla([["Municipio", "Fincas", "Superficie"]] +
+                      [[n, str(c), formato_m2(m)] for n, c, m in rs.por_municipio[:15]],
+                      [97 * mm, 30 * mm, 50 * mm])]
+    if rs.por_uso:
+        el += [Paragraph("Por uso o cultivo según el Catastro", e_["h2"]),
+               _tabla([["Uso", "Fincas", "Superficie"]] +
+                      [[P(n), str(c), formato_m2(m)] for n, c, m in rs.por_uso[:12]], [97 * mm, 30 * mm, 50 * mm])]
     return _construir(el, titulo)
 
 
@@ -421,6 +464,25 @@ def _seccion_mercado(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
                      "dueños).", e_["p"]), Spacer(1, 1 * mm),
            _tabla(filas, [8 * mm, 34 * mm, 30 * mm, 55 * mm, 50 * mm])]
 
+    el += [Paragraph("Si la finca no tiene madera", e_["h2"]),
+           Paragraph("Un terreno sin arbolado, a matorral o a prado pequeño, apenas tiene valor de mercado. La razón es "
+                     "el minifundio: en Galicia las fincas son pequeñas, están dispersas y muchas no tienen buen acceso, "
+                     "de modo que casi solo le sirven a quien ya tiene la de al lado. Lo normal es que valga lo que un "
+                     "colindante quiera pagar, y a veces ninguno tiene interés.", e_["p"]),
+           Paragraph("Los papeles, en regla antes de buscar comprador", e_["h2"])]
+    for txt in (
+            "<b>La finca tiene que estar a nombre de quien vende.</b> Si viene de una herencia sin tramitar, primero "
+            "hay que aceptarla y repartirla.",
+            "<b>Si hay varios dueños, tienen que estar todos de acuerdo</b> y firmar todos. Un heredero que no aparece, "
+            "que no quiere vender o que está enfrentado con los demás bloquea la operación.",
+            "<b>Para cortar la madera pasa lo mismo:</b> hace falta el acuerdo de todas las partes. Un maderista serio "
+            "no entra a cortar sin él.",
+            "<b>Hay que poder seguir la propiedad hacia atrás:</b> testamentos, particiones y escrituras, a veces hasta "
+            "los abuelos o bisabuelos. Cuanto más antigua y menos documentada sea la cadena, más cuesta."):
+        el.append(Paragraph("• " + txt, e_["p"]))
+    el.append(Paragraph("Sin todo esto atado, una venta ya acordada se alarga meses o se cae. Conviene ordenarlo antes de "
+                        "buscar comprador, no después. Este informe no comprueba la titularidad: eso consta en el "
+                        "Registro de la Propiedad y en la documentación de la familia.", e_["p"]))
     el.append(Paragraph("Qué cuesta vender", e_["h2"]))
     comarcas = {}
     for e in con:
@@ -437,9 +499,6 @@ def _seccion_mercado(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
             "madera y alguna explotación de la zona. Encontrar comprador puede llevar meses o años.",
             "<b>Manda el comprador.</b> Con tan poca demanda, el precio lo acaba fijando lo que ofrece quien tiene "
             "interés, no lo que el propietario cree que vale.",
-            "<b>Los papeles retrasan.</b> Catastro y Registro que no coinciden, herencias sin repartir o una superficie "
-            "que no cuadra pueden frenar una venta ya acordada. El resumen para la compraventa señala lo que conviene "
-            "aclarar antes.",
             "<b>Vender tiene gastos.</b> Notaría, Registro, impuestos y, si hace falta, regularizar la documentación. "
             "En fincas de poco valor pueden llevarse una parte apreciable del precio.",
             "<b>Las medias oficiales no sirven para una finca.</b> La Xunta publica un precio medio de la tierra por "
@@ -1081,42 +1140,60 @@ def escribir_informe(resultados: Sequence[Resultado], raiz: Path, titulo: str,
     extras_ok = [x for x in extras_ok if x[2]]
     n_extra = sum(n for _, _, n in extras_ok)
 
-    # Orden del documento: frontal (portada, contenido e índice) · apartados previos · fincas · anexos.
-    # Cada pieza es ("propia", título, bytes) o ("externa", título, ruta). Las páginas se numeran relativas a la
-    # primera que sigue al frontal; el frontal se genera al final, cuando ya se sabe cuánto ocupa todo.
+    # Orden del documento: frontal (portada y contenido) y cuatro partes: lo esencial · las fincas · para decidir ·
+    # anexos. Cada pieza es (tipo, título, contenido, nivel): tipo "propia" (bytes), "externa" (ruta) o "fincas";
+    # nivel 0 = página que abre una parte. Las páginas se numeran relativas a la primera tras el frontal, y el
+    # frontal se genera al final, cuando ya se sabe cuánto ocupa todo.
     e_ = _estilos()
-    previas = [("propia", "Resumen ejecutivo", _resumen_ejecutivo(entradas, titulo))]
-    previas += [("externa", nombre, ruta) for nombre, ruta, _ in extras_ok]
-    previas += [("propia", "Resumen para la compraventa", _anexo_compraventa(entradas, titulo)),
-                ("propia", "Qué puede valer y qué cuesta vender", _seccion_mercado(entradas, titulo)),
-                ("propia", "Afecciones y limitaciones detectadas", _seccion(_afecciones(entradas, e_), titulo)),
-                ("propia", "Cotejo con el Inventario Forestal de Galicia", _seccion(_cotejo(entradas, e_), titulo))]
-    finales = [("propia", "Anexo. Construcciones e inmuebles urbanos", _anexo_construcciones(entradas, titulo)),
-               ("propia", "Anexo. Informe geológico y minero", _anexo_geologia(entradas, titulo)),
-               ("propia", "Anexo. Fuentes y fechas de consulta", _anexo_fuentes(entradas, titulo)),
-               ("propia", "Anexo. Metodología y aviso legal", _seccion_metodologia(titulo))]
+    afe, cot = _afecciones(entradas, e_), _cotejo(entradas, e_)
+    cuadros = (afe + cot[1:]) if (afe and cot) else (afe or cot)
+    nombre_cuadros = ("Afecciones y cotejo con el inventario forestal" if (afe and cot) else
+                      "Afecciones y limitaciones detectadas" if afe else "Cotejo con el Inventario Forestal de Galicia")
+    partes = [
+        [("propia", "Resumen ejecutivo", _resumen_ejecutivo(entradas, titulo))]
+        + [("externa", nombre, ruta) for nombre, ruta, _ in extras_ok],
+        [("fincas", "", True)],
+        [("propia", "Resumen para la compraventa", _anexo_compraventa(entradas, titulo)),
+         ("propia", "Qué puede valer y qué cuesta vender", _seccion_mercado(entradas, titulo)),
+         ("propia", nombre_cuadros, _seccion(cuadros, titulo))],
+        [("propia", "Anexo. Construcciones e inmuebles urbanos", _anexo_construcciones(entradas, titulo)),
+         ("propia", "Anexo. Informe geológico y minero", _anexo_geologia(entradas, titulo)),
+         ("propia", "Anexo. Fuentes y fechas de consulta", _anexo_fuentes(entradas, titulo)),
+         ("propia", "Anexo. Metodología y aviso legal", _seccion_metodologia(titulo))]]
+    secuencia: List[Tuple[str, str, object, int]] = []
+    for n, piezas in enumerate(partes, start=1):
+        piezas = [x for x in piezas if x[2]]
+        if not piezas:
+            continue
+        nombre_parte = f"Parte {n} · {PARTES[n - 1][0]}"
+        if n == 1:                       # la primera parte no lleva página de apertura: sigue al contenido
+            secuencia.append(("titulo", nombre_parte, None, 0))
+        else:
+            apartados = [x[1] for x in piezas if x[1]] or [f"{len(entradas)} fincas, en el orden del índice"]
+            secuencia.append(("propia", nombre_parte, _separador(n, apartados, titulo), 0))
+        secuencia += [(tipo, nombre, cont, 1) for tipo, nombre, cont in piezas]
 
     def lector(pieza):
         return PdfReader(io.BytesIO(pieza[2])) if pieza[0] == "propia" else PdfReader(str(pieza[2]))
 
-    previas = [x for x in previas if x[2]]
-    finales = [x for x in finales if x[2]]
-    contenido: List[Tuple[str, int]] = []
+    contenido: List[Tuple[str, int, int]] = []
     pagina = 1
-    for pieza in previas:
-        contenido.append((pieza[1], pagina))
-        pagina += len(lector(pieza).pages)
-    contenido.append(("Fincas, una a una", pagina))
-    for e in entradas:
-        e.hoja = len(PdfReader(io.BytesIO(_hoja_finca(e, len(entradas), titulo))).pages)
-        e.inicio = pagina                 # relativo a la primera página tras el frontal
-        pagina += e.n_paginas
-    for pieza in finales:
-        contenido.append((pieza[1], pagina))
-        pagina += len(lector(pieza).pages)
+    for pieza in secuencia:
+        tipo, nombre, _, nivel = pieza
+        if tipo == "fincas":
+            for e in entradas:
+                e.hoja = len(PdfReader(io.BytesIO(_hoja_finca(e, len(entradas), titulo))).pages)
+                e.inicio = pagina             # relativo a la primera página tras el frontal
+                pagina += e.n_paginas
+            continue
+        contenido.append((nombre, pagina, nivel))
+        if tipo != "titulo":
+            pagina += len(lector(pieza).pages)
     frontal_n = len(PdfReader(io.BytesIO(_frontal(resultados, entradas, titulo, meta, 0, contenido))).pages)
+    anclas: list = []
     for _ in range(2):
-        frontal = _frontal(resultados, entradas, titulo, meta, frontal_n, contenido)
+        anclas = []
+        frontal = _frontal(resultados, entradas, titulo, meta, frontal_n, contenido, anclas)
         real = len(PdfReader(io.BytesIO(frontal)).pages)
         if real == frontal_n:
             break
@@ -1125,17 +1202,19 @@ def escribir_informe(resultados: Sequence[Resultado], raiz: Path, titulo: str,
     # (página, ¿externa?) en orden, y marcadores (título, índice de página)
     paginas: List[Tuple[object, bool]] = [(p, False) for p in PdfReader(io.BytesIO(frontal)).pages]
     marcadores: List[Tuple[str, int]] = [("Portada y contenido", 0)]
-    for pieza in previas:
-        marcadores.append((pieza[1], len(paginas)))
-        paginas += [(p, pieza[0] == "externa") for p in lector(pieza).pages]
-    for e in entradas:
-        marcadores.append((f"{e.n}. {e.etiqueta}", len(paginas)))
-        paginas += [(p, False) for p in PdfReader(io.BytesIO(_hoja_finca(e, len(entradas), titulo))).pages]
-        for ruta, _ in e.paginas:
-            paginas += [(p, True) for p in PdfReader(str(ruta)).pages]
-    for pieza in finales:
-        marcadores.append((pieza[1], len(paginas)))
-        paginas += [(p, False) for p in lector(pieza).pages]
+    for pieza in secuencia:
+        tipo, nombre = pieza[0], pieza[1]
+        if tipo == "titulo":
+            continue
+        if tipo == "fincas":
+            for e in entradas:
+                marcadores.append((f"{e.n}. {e.etiqueta}", len(paginas)))
+                paginas += [(p, False) for p in PdfReader(io.BytesIO(_hoja_finca(e, len(entradas), titulo))).pages]
+                for ruta, _ in e.paginas:
+                    paginas += [(p, True) for p in PdfReader(str(ruta)).pages]
+            continue
+        marcadores.append((nombre, len(paginas)))
+        paginas += [(p, tipo == "externa") for p in lector(pieza).pages]
 
     w = PdfWriter()
     total = len(paginas)
@@ -1151,6 +1230,15 @@ def escribir_informe(resultados: Sequence[Resultado], raiz: Path, titulo: str,
             w.add_page(p)
     for nombre, idx in marcadores:
         w.add_outline_item(nombre, idx)
+    try:   # el contenido y el índice de fincas son enlaces a su página
+        from pypdf.annotations import Link
+        for destino, pag, y in anclas:
+            objetivo = frontal_n + destino - 1
+            if 0 <= pag < frontal_n and 0 <= objetivo < len(w.pages):
+                w.add_annotation(pag, Link(rect=(42, y - 12, 553, y + 4), target_page_index=objetivo, border=[0, 0, 0]))
+    except Exception as ex:  # noqa: BLE001  sin enlaces el informe sigue siendo válido
+        if log:
+            log(f"Informe: el índice va sin enlaces ({ex})")
     w.add_metadata({"/Title": f"{titulo} — {meta.expediente}".strip(" —"), "/Author": config.MARCA})
     try:
         w.compress_identical_objects()

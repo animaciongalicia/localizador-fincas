@@ -174,4 +174,5 @@ def test_informe_con_extras_ajusta_indice_y_marcadores(tmp_path):
     assert pos_sig == pos_mapa + 2                                   # el mapa ocupa sus 2 páginas
     pos_f1 = lector.get_destination_page_number(lector.outline[titulos.index(next(x for x in titulos if x.startswith("1. ")))])
     contenido = " ".join(lector.pages[1].extract_text().split())
-    assert f"Mapa de conjunto {pos_mapa + 1}" in contenido and f"Fincas, una a una {pos_f1 + 1}" in contenido
+    assert f"Mapa de conjunto {pos_mapa + 1}" in contenido
+    assert titulos[3] == "Parte 2 · Las fincas, una a una" and pos_f1 == pos_sig + 1    # las fincas, tras el mapa
