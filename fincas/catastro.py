@@ -101,6 +101,15 @@ def parsear_dnppp(xml: Union[str, bytes]) -> DatosCatastro:
                 completas.append(ref)
     if not completas:
         raise CatastroError("La respuesta no contiene ninguna referencia catastral")
+    otros: List[str] = []    # inmuebles construidos dados de alta en la misma parcela rústica
+    if rusticos:
+        for bloque in bloques:
+            if bloque in rusticos:
+                continue
+            for rc in bloque.iter("rc"):
+                ref = _txt(rc, "pc1") + _txt(rc, "pc2") + _txt(rc, "car") + _txt(rc, "cc1") + _txt(rc, "cc2")
+                if len(ref) >= 14 and ref not in completas and ref not in otros:
+                    otros.append(ref)
 
     parcelas = list(dict.fromkeys(r[:14] for r in completas))
     avisos: List[str] = []
@@ -148,7 +157,8 @@ def parsear_dnppp(xml: Union[str, bytes]) -> DatosCatastro:
     return DatosCatastro(refcat=refcat, superficie_m2=sup, uso="; ".join(usos),
                          localizacion=localizacion, paraje=paraje,
                          referencias_completas=completas, avisos=avisos,
-                         clase=clase, construida_m2=construida, anio=anio, construcciones=construcciones)
+                         clase=clase, construida_m2=construida, anio=anio, construcciones=construcciones,
+                         otros_inmuebles=otros)
 
 
 def parsear_centro(xml: Union[str, bytes]) -> Tuple[float, float]:
@@ -204,6 +214,7 @@ class ServicioCatastro:
                 "Provincia": "", "Municipio": "", "RC": datos.referencias_completas[0]})
             detalle = parsear_dnppp(r2.content)
             detalle.avisos = datos.avisos + detalle.avisos
+            detalle.otros_inmuebles = datos.otros_inmuebles
             return detalle
         return datos
 
@@ -223,12 +234,16 @@ class ServicioCatastro:
                                       "REVISAR A MANO.")
             datos = detalle
         try:  # centro de la parcela, para situarla en el mapa de conjunto; si falla, se sigue sin él
-            rc_ = self.cliente.get(self.base.replace("OVCCallejero", "OVCCoordenadas") + "/Consulta_CPMRC", params={
-                "Provincia": "", "Municipio": "", "SRS": "EPSG:4326", "RC": datos.refcat})
-            datos.lon, datos.lat = parsear_centro(rc_.content)
+            datos.lon, datos.lat = self.centro(datos.refcat)
         except Exception:  # noqa: BLE001
             pass
         return datos
+
+    def centro(self, refcat: str) -> Tuple[float, float]:
+        """(lon, lat) del centro de la parcela (referencia de 14 caracteres), según el Catastro."""
+        r = self.cliente.get(self.base.replace("OVCCallejero", "OVCCoordenadas") + "/Consulta_CPMRC", params={
+            "Provincia": "", "Municipio": "", "SRS": "EPSG:4326", "RC": refcat[:14]})
+        return parsear_centro(r.content)
 
     # --- PDF
     def descargar_pdf(self, datos: DatosCatastro, codigos: Codigos, destino: Path) -> Path:

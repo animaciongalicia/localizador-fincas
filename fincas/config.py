@@ -31,10 +31,18 @@ SIGPAC_VISOR_URL = os.environ.get(
 
 SIXPAC_VISOR_URL = os.environ.get("FINCAS_SIXPAC_URL", "https://sixpac.xunta.gal/visorhtml5/")
 # Servicios de datos del visor SIXPAC (geometría de parcela y ortofoto) para dibujar el plano de la ficha
+CATASTRO_WFS_PARCELA = os.environ.get(
+    "FINCAS_CATASTRO_WFS_PARCELA", "https://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx")
 SIXPAC_SERVICIOS = os.environ.get("FINCAS_SIXPAC_SERVICIOS", "https://vispac.xunta.gal")
 
 # --- Inventario Forestal Continuo de Galicia (Xunta): cobertura actual por referencia catastral (ArcGIS REST)
 INVEGA_SERVICIOS = os.environ.get("FINCAS_INVEGA_SERVICIOS", "https://ideg.xunta.gal/servizos/rest/services")
+# Geología y minería: servicios del IGME-CSIC (MAGNA, BDMIN, Atlas Geoquímico). Verificados 2026-11-13.
+IGME_SERVICIOS = os.environ.get("FINCAS_IGME_SERVICIOS", "https://mapas.igme.es/gis/rest/services")
+IGME_VISOR_URL = "https://info.igme.es/visor/"
+IGME_BDMIN_URL = "https://info.igme.es/bdmin/"
+CATASTRO_MINERO_URL = "https://geoportal.minetur.gob.es/CatastroMinero/BienvenidaCatastroMinero.do"
+PBA_VISOR_URL = "https://mapas.xunta.gal/visores/pba/"
 INVEGA_VISOR_URL = "https://invega.xunta.gal/invega/visor-gis"
 
 # --- Comportamiento

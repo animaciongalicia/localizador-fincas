@@ -17,6 +17,7 @@ from .aprovechamiento import resumen_afecciones, texto_clases
 from .inventario import evolucion, texto_reparto
 from .mapa import Conjunto, formato_dist, matriz_distancias
 from .resumen import calcular, formato_ha, formato_m2
+from .geologia import texto_derechos, texto_indicios
 from .superficie import explicar_control
 
 COLUMNAS = [
@@ -28,6 +29,8 @@ COLUMNAS = [
     ("cobertura actual (inventario forestal)", 18), ("detalle cobertura", 48), ("edición inventario", 10),
     ("contraste con cultivo catastral", 15),
     ("afecciones para una corta", 30), ("organismos", 40), ("dificultad de saca", 22),
+    ("litología (IGME)", 34), ("indicios mineros a menos de 5 km", 50), ("derechos mineros vigentes", 40),
+    ("valoración geológico-minera", 26),
     ("PDF Catastro", 36), ("PDF SIGPAC", 36), ("ficha web Catastro", 18),
     ("consulta Catastro", 17), ("consulta SIGPAC", 17), ("notas", 50),
 ]
@@ -37,6 +40,13 @@ VERDE = PatternFill("solid", fgColor="C6E0B4")
 CABECERA = PatternFill("solid", fgColor="1F4E78")
 GRIS = PatternFill("solid", fgColor="D9E1F2")
 ENLACE = Font(color="0563C1", underline="single")
+
+
+def _derechos(geo) -> str:
+    if not geo.derechos_consultados:
+        return "Sin verificar (la capa de derechos mineros solo se consulta en Galicia)"
+    return (f"Sobre la finca: {texto_derechos(geo.derechos_parcela)}. "
+            f"A menos de {geo.radio_km:g} km: {texto_derechos(geo.derechos_cerca)}")
 
 
 def _enlace_sede(r: Resultado) -> str:
@@ -54,7 +64,7 @@ def _fila(r: Resultado) -> List[object]:
     notas = " | ".join(x for x in [f.notas, *r.avisos, *r.errores] if x)
     detalle = explicar_control(c.superficie_m2 if c else None, f.superficie_m2, f.cuota,
                                r.control_superficie)
-    inv, ap = r.inventario, r.aprovechamiento
+    inv, ap, geo = r.inventario, r.aprovechamiento, r.geologia
     det_inv = ""
     if inv:
         det_inv = " | ".join(x for x in [
@@ -71,6 +81,8 @@ def _fila(r: Resultado) -> List[object]:
         resumen_afecciones(ap) if ap else "",
         "; ".join(dict.fromkeys(a["organismo"] for a in ap.afecciones)) if ap else "",
         texto_clases(ap.saca) if ap else "",
+        geo.litologia if geo else "", texto_indicios(geo, 20) if geo else "",
+        _derechos(geo) if geo else "", geo.veredicto if geo else "",
         r.pdf_catastro, s.pdf if s else "", "Abrir en la Sede" if _enlace_sede(r) else "",
         fecha_legible(c.consultado) if c else "", fecha_legible(s.consultado) if s else "", notas,
     ]]

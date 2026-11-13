@@ -177,6 +177,29 @@ class ServicioSigpac:
         finally:
             pg.close()
 
+    def ficha_urbana(self, finca: Finca, codigos: Codigos, refcat: str, destino_pdf: Path) -> ResultadoSigpac:
+        """Ficha con ortofoto y contorno para un inmueble urbano (no está en el visor por polígono/parcela):
+        el contorno sale del Catastro y la ortofoto/vecinos de SIXPAC. Solo Galicia."""
+        if codigos.cod_provincia not in GALICIA:
+            return ResultadoSigpac("NO ENCONTRADA", detalle="plano de inmueble urbano solo en Galicia")
+        from . import plano
+
+        try:
+            datos = plano.obtener_datos_urbano(config.SIXPAC_SERVICIOS, (refcat or finca.refcat)[:14])
+            pl = plano.dibujar(config.SIXPAC_SERVICIOS, datos)
+        except Exception as e:  # noqa: BLE001
+            return ResultadoSigpac("ERROR", detalle=f"plano del inmueble urbano: {e}")
+        pg = self.navegador.pagina()
+        try:
+            ok = self._ficha_pdf(pg.context, destino_pdf, b"", finca, codigos, (refcat or finca.refcat)[:14],
+                                 None, url_visor(codigos.cod_provincia), pl)
+        finally:
+            pg.close()
+        if not ok:
+            return ResultadoSigpac("ERROR", detalle="no se pudo generar la ficha PDF")
+        return ResultadoSigpac("ENCONTRADA", refcat=(refcat or finca.refcat)[:14], pdf=destino_pdf.name,
+                               detalle="inmueble urbano: contorno del Catastro sobre ortofoto de SIXPAC")
+
     def _plano(self, finca: Finca, codigos: Codigos):
         """(svg_plano, svg_situacion, zoom) con los servicios de SIXPAC, o None si no aplica/falla (se usa la captura)."""
         if codigos.cod_provincia not in GALICIA:
@@ -202,12 +225,14 @@ class ServicioSigpac:
         import html as _h
         mun_h, prov_h = _h.escape(codigos.nombre_municipio), _h.escape(codigos.nombre_provincia)
         pol_h, par_h, ref_h = _h.escape(finca.poligono), _h.escape(finca.parcela), _h.escape(refcat or "")
+        pol_par = f"{pol_h} / {par_h}" if finca.poligono else "Inmueble urbano (sin polígono ni parcela)"
+        etq_parc = f"parcela {pol_h}/{par_h}" if finca.poligono else "parcela (según Catastro)"
         if plano:
             svg, svg_sit, zoom = plano
             cuerpo = (f'{svg}<div style="display:flex;gap:10px;margin-top:8px;align-items:flex-start">'
                       f'<div style="width:50%"><div class="t">Situación</div>{svg_sit}</div>'
                       f'<div style="width:50%;font-size:11px"><div class="t">Leyenda</div>'
-                      f'<p><b style="color:#d4a900">▬</b> Contorno de la parcela {pol_h}/{par_h}<br>'
+                      f'<p><b style="color:#d4a900">▬</b> Contorno de la {etq_parc}<br>'
                       f'<b>▬</b> Contornos vecinos (blanco)<br><b style="color:#ff2d2d">○</b> Situación en el mapa pequeño</p>'
                       f'<p>Ortofoto y parcelario: {nombre} (Xunta de Galicia). Nivel de zoom {zoom}.</p></div></div>')
             pie = f"Plano generado con los datos del visor {nombre} ({visor})."
@@ -223,7 +248,7 @@ class ServicioSigpac:
         <h1>Ficha {nombre} — ortofoto y parcelario con la parcela resaltada</h1>
         <table>
         <tr><td class="k">Municipio</td><td>{mun_h} ({prov_h})</td></tr>
-        <tr><td class="k">Polígono / Parcela</td><td>{pol_h} / {par_h}</td></tr>
+        <tr><td class="k">Polígono / Parcela</td><td>{pol_par}</td></tr>
         <tr><td class="k">Referencia catastral ({nombre})</td><td>{ref_h or "no disponible"}</td></tr>
         <tr><td class="k">Superficie {nombre}</td><td>{f"{sup:,.1f}".replace(",", " ") + " m²" if sup else "—"}</td></tr>
         <tr><td class="k">Fecha de consulta</td><td>{date.today().strftime("%d/%m/%Y")}</td></tr></table>

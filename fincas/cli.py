@@ -16,7 +16,7 @@ from .utils import slug
 def _parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="fincas",
-        description="Localiza fincas rústicas (Catastro + SIGPAC) y genera una carpeta de resultados.")
+        description="Localiza fincas rústicas e inmuebles urbanos (Catastro, SIGPAC, Xunta, IGME) y genera una carpeta de resultados.")
     p.add_argument("entrada", help="CSV, XLSX o DOCX con la lista de fincas")
     p.add_argument("--nombre", help="nombre del trabajo (por defecto, el del fichero de entrada)")
     p.add_argument("--municipio", default="", help="municipio por defecto si el fichero no lo trae")
@@ -30,6 +30,8 @@ def _parser() -> argparse.ArgumentParser:
                    help="solo lee y valida la entrada y muestra el plan. NO hace ninguna consulta.")
     p.add_argument("--sin-sigpac", action="store_true", help="saltar el paso SIGPAC")
     p.add_argument("--sin-pdf-catastro", action="store_true", help="no descargar el PDF del Catastro")
+    p.add_argument("--sin-geologia", action="store_true",
+                   help="No consultar el contexto geológico y minero (IGME y derechos mineros de la Xunta)")
     p.add_argument("--sin-corta", action="store_true",
                    help="no consultar los condicionantes de corta (afecciones y dificultad de saca, solo Galicia)")
     p.add_argument("--sin-inventario", action="store_true",
@@ -97,7 +99,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                   usar_pdf_catastro=not args.sin_pdf_catastro,
                   informe=not args.sin_informe, mapa=not args.sin_mapa,
                   inventario=not args.sin_inventario,
-                  aprovechamiento=not args.sin_corta)
+                  aprovechamiento=not args.sin_corta,
+                  geologia=not args.sin_geologia)
     if args.simular:
         _plan(fincas[: args.prueba] if args.prueba else fincas, problemas, op)
         return 0
@@ -144,8 +147,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         from .aprovechamiento import ServicioAprovechamiento
         aprovechamiento = None if args.sin_corta else ServicioAprovechamiento(
             ClienteHttp(limitador, log=reg.info), log=reg.info)
+        from .geologia import ServicioGeologia
+        geologia = None if args.sin_geologia else ServicioGeologia(ClienteHttp(limitador, log=reg.info), log=reg.info)
         srv = Servicios(ResolutorCodigos(catastro, cache), catastro, sigpac, cache, mapa=mapa,
-                        inventario=inventario, aprovechamiento=aprovechamiento)
+                        inventario=inventario, aprovechamiento=aprovechamiento, geologia=geologia)
         try:
             carpeta = ejecutar(fincas, op, srv, reg, preguntar=_preguntar)
         except Ambiguo as e:

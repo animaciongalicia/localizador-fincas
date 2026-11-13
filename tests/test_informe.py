@@ -78,11 +78,12 @@ def test_informe_une_pdfs_con_indice_y_marcadores(tmp_path):
     assert ruta == tmp_path / "informe.pdf" and ruta.exists()
     lector = PdfReader(str(ruta))
     por_finca = [1 + 1 + 2, 1 + 1 + 2, 1]                      # hoja propia + Catastro + SIXPAC
-    delanteras = len(lector.pages) - sum(por_finca)
+    delanteras = len(lector.pages) - sum(por_finca) - 1      # la última página es el anexo de fuentes
     assert delanteras >= 3                                          # portada + índice + metodología
     titulos = [o.title for o in lector.outline]
     assert titulos == ["Resumen e índice", "1. Ortigueira pol 34 parc 175", "2. Ortigueira pol 34 parc 176",
-                       "3. Ortigueira pol 34 parc 999"]
+                       "3. Ortigueira pol 34 parc 999",
+                       "Anexo. Fuentes y fechas de consulta"]
     assert lector.get_destination_page_number(lector.outline[1]) == delanteras
     assert lector.get_destination_page_number(lector.outline[2]) == delanteras + 4
     frente = "\n".join(lector.pages[i].extract_text() for i in range(delanteras))
@@ -95,8 +96,10 @@ def test_informe_une_pdfs_con_indice_y_marcadores(tmp_path):
         assert "ferrados.com" in t and "FER-2026-0007" in t, f"sin cabecera en la página {i}"
         assert "Inversiones SHISO SL" in t and f"Página {i} de {total}" in t, f"sin pie en la página {i}"
     hoja = lector.pages[delanteras].extract_text()
-    assert "Trazabilidad de las consultas" in hoja and "15062A03400175" in hoja
-    assert "No se obtuvo ningún documento" in lector.pages[total - 1].extract_text()
+    assert "Trazabilidad" not in hoja and "15062A03400175" in hoja         # las fuentes van en un anexo final
+    textos = [pag.extract_text() for pag in lector.pages]
+    assert any("No se obtuvo ningún documento" in x for x in textos)
+    assert "Fuentes y fechas de consulta" in textos[total - 1]
 
 
 def test_hoja_de_finca_muestra_fecha_de_consulta_e_incidencias(tmp_path):
@@ -107,9 +110,12 @@ def test_hoja_de_finca_muestra_fecha_de_consulta_e_incidencias(tmp_path):
     _pdf(tmp_path / "pdf_catastro" / r.pdf_catastro, 1)
     r.sigpac = ResultadoSigpac("ENCONTRADA", refcat=r.catastro.refcat, pdf="", consultado="2026-11-10T18:30")
     lector = PdfReader(str(escribir_informe([r], tmp_path, "L")))
-    hoja = next(p.extract_text() for p in lector.pages if "Trazabilidad" in p.extract_text())
-    assert "12/11/2026 09:01" in hoja and "10/11/2026 18:30" in hoja
+    hoja = next(p.extract_text() for p in lector.pages if "Finca 1 de 1" in p.extract_text())
     assert "aviso de prueba" in hoja and "+403 %" in hoja and "SIXPAC" in hoja
+    fuentes = next(p.extract_text() for p in lector.pages if "Fuentes y fechas de consulta" in p.extract_text()
+                   and "Fuentes" in p.extract_text() and "Finca 1 de 1" not in p.extract_text()
+                   and "Índice de fincas" not in p.extract_text())
+    assert "12/11/2026 09:01" in fuentes and "10/11/2026 18:30" in fuentes     # fecha real de cada consulta
 
 
 def test_informe_omite_pdf_corrupto_y_sin_pdf(tmp_path):
@@ -139,3 +145,47 @@ def test_excel_hoja_resumen_y_enlaces(tmp_path):
     assert ws.cell(row=2, column=cab.index("PDF Catastro") + 1).hyperlink.target == "pdf_catastro/o_catastro.pdf"
     sede = ws.cell(row=2, column=cab.index("ficha web Catastro") + 1).hyperlink.target
     assert "RefC=15062A03400175" in sede and "del=15" in sede and "mun=62" in sede
+
+
+def test_anexos_al_final_y_hoja_de_finca_sin_geologia(tmp_path):
+    """La geología y las construcciones van en anexos al final; la página de afecciones resume el lote."""
+    from fincas.modelos import DatosAprovechamiento, DatosGeologia
+    a = _res()
+    a.pdf_catastro = "a_catastro.pdf"
+    _pdf(tmp_path / "pdf_catastro" / "a_catastro.pdf")
+    a.aprovechamiento = DatosAprovechamiento(afecciones=[
+        {"tipo": "Patrimonio cultural", "detalle": "Castro de ejemplo", "organismo": "Patrimonio Cultural"},
+        {"tipo": "Registro forestal", "detalle": "Monte veciñal en man común: Monte de Ejemplo",
+         "organismo": "Consellería do Medio Rural"}])
+    a.geologia = DatosGeologia(hoja="1 Hoja", litologia="Granito de ejemplo", derechos_consultados=True,
+                               indicios=[{"nombre": "Mina De Ejemplo", "sustancia": "Estaño", "morfologia": "Filoniana",
+                                          "tamano": "desconocido", "codigo": "1", "distancia_m": 1500}],
+                               veredicto="Indicios en la comarca: 1 indicio(s) minero(s) a menos de 5 km; "
+                                         "el más cercano, Mina De Ejemplo (estaño), a 1,5 km")
+    b = _res(par="176")
+    b.catastro.clase, b.catastro.construida_m2, b.catastro.anio = "Urbano", 120.0, "1950"
+    b.catastro.construcciones = ["VIVIENDA 120 m²"]
+    c = _res(par="177")
+    c.catastro.otros_inmuebles = ["15062A034001770001XX"]
+    destino = escribir_informe([a, b, c], tmp_path, "lote", fecha="01/01/2026")
+    textos = [" ".join((p.extract_text() or "").split()) for p in PdfReader(str(destino)).pages]
+    hoja = next(t for t in textos if "Finca 1 de 3" in t)
+    assert "Mina De Ejemplo" not in hoja and "Granito de ejemplo" not in hoja      # la hoja vuelve a ser la de antes
+    afe = next(t for t in textos if "Afecciones y limitaciones detectadas" in t)
+    assert "Monte de Ejemplo" in afe and "Castro de ejemplo" in afe and "nº 1" in afe
+    geo = next(i for i, t in enumerate(textos) if "Informe geológico y minero" in t and "Mina De Ejemplo" in t)
+    cons = next(i for i, t in enumerate(textos) if "Construcciones e inmuebles urbanos" in t and "VIVIENDA" in t)
+    ultima_finca = max(i for i, t in enumerate(textos) if "Finca 3 de 3" in t)
+    assert ultima_finca < cons < geo                                              # anexos después de las fincas
+    assert "15062A034001770001XX" in textos[cons]                                 # construcción en parcela rústica
+    indice = next(t for t in textos if "Índice de fincas" in t)
+    assert "Anexo. Informe geológico y minero" in indice and str(geo + 1) in indice.split("geológico y minero")[1][:8]
+
+
+def test_sin_geologia_ni_construcciones_no_hay_anexos(tmp_path):
+    a = _res()
+    a.pdf_catastro = "a_catastro.pdf"
+    _pdf(tmp_path / "pdf_catastro" / "a_catastro.pdf")
+    textos = " ".join(p.extract_text() or "" for p in PdfReader(str(escribir_informe([a], tmp_path, "lote"))).pages)
+    assert "Informe geológico y minero" not in textos and "Construcciones e inmuebles" not in textos
+    assert "Afecciones y limitaciones" not in textos and "Fuentes y fechas de consulta" in textos

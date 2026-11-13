@@ -85,6 +85,7 @@ class DatosCatastro:
     construida_m2: Optional[float] = None   # superficie construida (inmuebles urbanos)
     anio: str = ""              # año de construcción
     construcciones: List[str] = field(default_factory=list)   # 'VIVIENDA 306 m²'...
+    otros_inmuebles: List[str] = field(default_factory=list)   # construcciones dadas de alta en la misma parcela rústica
     lon: Optional[float] = None  # centro de la parcela (solo se pide para inmuebles urbanos: sitúa el mapa)
     lat: Optional[float] = None
 
@@ -137,6 +138,23 @@ class DatosAprovechamiento:
 
 
 @dataclass
+class DatosGeologia:
+    """Contexto geológico y minero en torno al centro de la finca (orientativo)."""
+    hoja: str = ""                      # hoja MAGNA 1:50.000: '68 Camariñas'
+    litologia: str = ""                 # litología bajo el centro de la parcela (MAGNA)
+    indicios: List[Dict[str, object]] = field(default_factory=list)        # BDMIN, por distancia
+    explotaciones: List[Dict[str, object]] = field(default_factory=list)   # rocas y minerales industriales
+    derechos_parcela: List[Dict[str, str]] = field(default_factory=list)   # derechos mineros vigentes sobre el punto
+    derechos_cerca: List[Dict[str, str]] = field(default_factory=list)     # dentro del radio
+    derechos_consultados: bool = False  # la capa de derechos mineros solo existe para Galicia
+    geoquimica: List[Dict[str, object]] = field(default_factory=list)      # Atlas Geoquímico de España 2012
+    sin_consultar: List[str] = field(default_factory=list)                 # fuentes que fallaron
+    veredicto: str = ""
+    radio_km: float = 5.0
+    consultado: str = ""
+
+
+@dataclass
 class Resultado:
     finca: Finca
     codigos: Optional[Codigos] = None
@@ -149,6 +167,7 @@ class Resultado:
     contraste: str = ""         # cultivo Catastro vs inventario: COHERENTE | REVISAR | NO COMPARABLE | SIN DATO
     contraste_detalle: str = ""
     aprovechamiento: Optional[DatosAprovechamiento] = None   # condicionantes de corta (solo Galicia)
+    geologia: Optional[DatosGeologia] = None   # contexto geológico y minero (orientativo)
     avisos: List[str] = field(default_factory=list)
     errores: List[str] = field(default_factory=list)
 

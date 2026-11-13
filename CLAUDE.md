@@ -1,8 +1,8 @@
-# CLAUDE.md — Búsqueda de fincas rústicas
+# CLAUDE.md — Búsqueda de fincas (rústicas y urbanas)
 
 ## Objetivo
-CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de España
-(municipio, provincia, polígono, parcela). Salida: carpeta `salidas/AAAA-MM-DD_nombre-trabajo/` con
+CLI reutilizable para cualquier cliente. Entrada: lista de fincas de España de cualquier tipo: rústicas
+(municipio, provincia, polígono, parcela, o referencia catastral) y urbanas (referencia catastral). Salida: carpeta `salidas/AAAA-MM-DD_nombre-trabajo/` con
 `resultados.xlsx`, `pdf_catastro/`, `pdf_sigpac/`, `registro.txt` y un ZIP.
 **Nada del código puede estar atado a un municipio, cliente o lista concreta.**
 
@@ -40,12 +40,36 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas rústicas de E
 | `informe.py` | `informe.pdf`: portada+resumen, índice y todas las fichas con marcadores. Une PDF ya descargados (pypdf + reportlab) |
 | `inventario.py` | Inventario Forestal Continuo de Galicia (Xunta): cobertura ACTUAL por referencia catastral y contraste con el cultivo del Catastro. Parsers puros + `ServicioInventario` con HTTP inyectable |
 | `aprovechamiento.py` | Condicionantes de una corta (solo Galicia): afecciones sectoriales que toca la parcela (capas VISAF de la Xunta) con su organismo, y dificultad de saca (restricciones técnicas INVEGA). Parsers puros + `ServicioAprovechamiento` con HTTP inyectable |
+| `geologia.py` | Contexto geológico y minero (toda España): hoja y litología MAGNA, indicios y explotaciones BDMIN a ≤5 km y Atlas Geoquímico (IGME-CSIC); derechos mineros vigentes de la Xunta (solo Galicia). Parsers puros + `ServicioGeologia` con HTTP inyectable |
 | `superficie.py` | Control de superficie (margen 10 %, cuota) |
 | `pipeline.py` | Orquestación; servicios inyectados (testeable sin red) |
 | `red.py` / `navegador.py` / `cache.py` / `registro.py` | pausas+reintentos+HTTP / Chromium compartido / caché / registro.txt |
 | `config.py` | URLs, constantes (sobreescribibles por variable de entorno) |
 
 ## Decisiones técnicas
+- **Estructura del informe (2026-11-13, decisión del usuario).** La HOJA de cada finca no lleva geología (la alargaba y "rompía" el
+  informe). Orden: portada+resumen, índice (con los anexos y su página), cotejo forestal, página "Afecciones y limitaciones detectadas"
+  (resumen del lote con lo que ya consta en cada hoja; el monte vecinal/utilidad pública va aparte y primero porque afecta a la
+  titularidad), metodología, mapa, fincas, y AL FINAL los anexos: "Construcciones e inmuebles urbanos" (solo si hay; incluye
+  `DatosCatastro.otros_inmuebles` = construcciones dadas de alta en una parcela rústica, que salen de la respuesta-lista de DNPPP sin
+  consulta extra) e "Informe geológico y minero" (indicios en UNA tabla para todo el lote, con la finca más cercana). El Catastro no
+  dice si algo está en ruina: no se aventura, solo se avisa de que hay que verlo en visita.
+  La trazabilidad (fuente y fecha de cada consulta, enlace a la Sede) ya NO va en cada hoja: es el último anexo, "Fuentes y fechas
+  de consulta", una fila por finca. Así la hoja de cada finca cabe en una página.
+  `_tabla` convierte toda cadena suelta en párrafo: ningún texto se sale de su celda (antes los rótulos largos de la 1ª columna se
+  salían). Si una cabecera se parte a mitad de palabra, ensanchar la columna. Para revisar el PDF a ojo sin poppler: separar páginas
+  con pypdf y `sips -s format png` (las fichas SIXPAC salen con fondo negro en esa conversión: es del conversor, no del PDF).
+- **Geología y minería (2026-11-13).** `geologia.py`, por el centro de la parcela (lon/lat de `Consulta_CPMRC`, que se pide y se
+  guarda en la caché de Catastro si falta). Servicios verificados en `https://mapas.igme.es/gis/rest/services`:
+  `Cartografia_Geologica/IGME_MAGNA_50/MapServer/0` (hoja) y `/11` (litología, campo `DLO`), `BasesDatos/IGME_BDMIN_Indicios/MapServer/1`
+  y `IGME_BDMIN_Explotaciones/MapServer/1` (`query` con `distance=5000`; las columnas X/Y vienen mezcladas de SRS: usar la geometría),
+  `AtlasGeoquimico/IGME_MapaIsovalores2012_<El>/MapServer` (`identify` capa 0 = sedimentos: valor y clase, que EMPIEZA EN 0; `legend`
+  da los tramos; unidades sin confirmar: se muestra solo "tramo n de N"). Derechos mineros: `PBA/Afeccions_outras_ConcesionsMineiras/MapServer/0`
+  de la Xunta (solo vigentes; trae TITULAR, que NO se guarda). `IGME_Geode_50` no admite `query`. Valoración en una línea:
+  «Anomalía detectada» (algún elemento Au/Ag/Sn/W/Ce en el tramo más alto del atlas), «Indicios en la comarca» (indicios BDMIN a ≤5 km),
+  «Sin indicios», o «Sin verificar» si falló una fuente (nunca se da por limpia). El atlas es regional (interpolado): el informe lo dice.
+  ~13 peticiones por finca (~50 s), caché `geologia_v1` (solo consultas completas), `--sin-geologia` lo omite. Sin usar: muestras
+  geoquímicas y geofísica (`IGME_MuestrasGeoquimica`, `IGME_SIGEOF`: solo dicen dónde hay datos, no valores).
 - **Inmuebles urbanos (2026-11-13).** Si la referencia catastral de la lista no es rústica (p. ej. una casa en diseminado), la
   finca ya no queda SIN DATOS: se busca por la referencia (`Finca.refcat`, `por_referencia`). `ServicioCatastro.consulta_referencia`
   usa `Consulta_DNPRC` (uso, superficie CONSTRUIDA en `sfc`, año `ant`, destinos en `lcons`) y `OVCCoordenadas.asmx/Consulta_CPMRC`

@@ -1,10 +1,19 @@
-# Búsqueda de fincas rústicas (Catastro + SIGPAC)
+# Búsqueda de fincas e inmuebles (Catastro + SIGPAC + Xunta + IGME)
 
-Dada una lista de fincas (municipio, provincia, polígono, parcela) genera una carpeta con la referencia
-catastral, los datos de cada finca, el PDF del Catastro, el PDF de SIGPAC y un Excel resumen.
+Dada una lista de propiedades de cualquier tipo genera un informe con los datos y la ficha del Catastro de cada
+una, un Excel, un mapa de conjunto y un dossier en PDF.
 
-> Estado: estructura y lógica construidas y probadas **sin red**. Las consultas reales a Catastro y SIGPAC
-> están pendientes de verificar (ver `CLAUDE.md`).
+- **Fincas rústicas** (montes, prados, labradíos): por municipio, provincia, polígono y parcela, o por su
+  referencia catastral. Además de Catastro llevan la ficha SIGPAC/SIXPAC con el contorno sobre la ortofoto.
+- **Inmuebles urbanos** (casas, solares, naves, lo que tengan encima): por su referencia catastral. Llevan uso,
+  superficie construida, año y destinos de la construcción.
+- **En Galicia**, para todas: cobertura forestal actual (Inventario Forestal Continuo), condicionantes de una corta
+  o una venta (afecciones de la Xunta) y derechos mineros vigentes.
+- **En toda España**: contexto geológico y minero del IGME-CSIC (litología, indicios mineros a menos de 5 km,
+  Atlas Geoquímico). Orientativo.
+
+Nunca se obtienen titulares ni valor catastral (datos protegidos). Las fuentes están verificadas con consultas
+reales (ver `CLAUDE.md`).
 
 ## Instalación
 ```bash
@@ -43,7 +52,7 @@ rellena hacia abajo. Un mismo fichero puede mezclar municipios. Ejemplo: `tests/
 ```
 
 Opciones: `--cliente` (salidas en `~/Desktop/BUSQUEDAS FERRADOS-CLAUDE/<cliente>/salidas/`), `--nombre`, `--municipio`, `--provincia`, `--prueba N`, `--salidas DIR`, `--simular`, `--sin-sigpac`,
-`--sin-pdf-catastro`, `--sin-cache`, `--expediente`, `--sin-mapa`, `--sin-inventario`, `--sin-corta`, `--sin-informe`, `--visible`, `--pausa-min`, `--pausa-max`.
+`--sin-pdf-catastro`, `--sin-cache`, `--expediente`, `--sin-mapa`, `--sin-inventario`, `--sin-corta`, `--sin-geologia`, `--sin-informe`, `--visible`, `--pausa-min`, `--pausa-max`.
 
 ## Salida
 ```
