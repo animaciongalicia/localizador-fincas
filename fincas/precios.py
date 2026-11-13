@@ -103,6 +103,31 @@ def madera() -> dict:
     return json.loads((DATOS / "madera_galicia.json").read_text(encoding="utf-8"))
 
 
+@lru_cache(maxsize=1)
+def _planeamiento() -> dict:
+    return json.loads((DATOS / "planeamiento_galicia.json").read_text(encoding="utf-8"))
+
+
+def planeamiento(cod_provincia: str, cod_municipio_ine: str) -> Optional[dict]:
+    """Instrumento de planeamiento general del concello según SIOTUGA: {'concello','figura','fecha','estado'}.
+    Es un dato del MUNICIPIO: la clasificación del suelo de cada finca no se consulta (el propio visor de la Xunta
+    avisa de que su cartografía no tiene validez legal); la informa el ayuntamiento."""
+    return _planeamiento()["concellos"].get(f"{cod_provincia}{str(cod_municipio_ine).zfill(3)}")
+
+
+def fuente_planeamiento() -> Dict[str, str]:
+    d = _planeamiento()
+    return {"fuente": d["fuente"], "url": d["url"], "consultado": d["consultado"]}
+
+
+def meses_sin_revisar_madera(hoy=None) -> int:
+    """Meses desde la última revisión de la tabla de precios de la madera (caducan pronto)."""
+    from datetime import date
+    hoy = hoy or date.today()
+    anio, mes = (int(x) for x in madera()["revisado_iso"].split("-"))
+    return (hoy.year - anio) * 12 + hoy.month - mes
+
+
 def euros_m2(v: Optional[float]) -> str:
     return "sin dato publicado" if v is None else f"{v:.2f} €/m²".replace(".", ",")
 

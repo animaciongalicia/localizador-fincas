@@ -29,49 +29,24 @@ AZUL = "#1F4E78"
 BANDA_SUP, BANDA_INF, LATERAL = 36.0, 34.0, 14.0   # puntos reservados a cabecera, pie y márgenes
 
 METODOLOGIA = [
-    ("Qué contiene este informe",
-     "Para cada finca de la lista del cliente: identificación catastral (referencia, superficie y uso o cultivo) "
-     "y su plano sobre ortofoto en el sistema de parcelas agrícolas (SIXPAC en Galicia, SIGPAC en el resto)."),
-    ("Fuentes",
-     "Sede Electrónica del Catastro (consulta pública de datos no protegidos), visor SIXPAC (Xunta de Galicia) o "
-     "SIGPAC (FEGA) y servicios cartográficos de la Xunta. La fecha y hora de cada consulta figuran en la hoja "
-     "de cada finca."),
-    ("Control de superficie",
-     "Se compara la superficie catastral con la indicada por el cliente (margen del 10 %), admitiendo que sea la "
-     "de la finca entera o la de la cuota. «OK»: coincide. «REVISAR»: no coincide y conviene comprobarlo. "
-     "«SIN DATO CLIENTE»: no se facilitó superficie. Es un aviso: no se descarta ninguna finca."),
-    ("Coincidencia Catastro / SIXPAC-SIGPAC",
-     "Se compara la referencia catastral del Catastro con la que el visor asocia a la parcela. «SI»: coinciden. "
-     "«NO»: difieren. «NO ENCONTRADA»: la parcela no aparece en el visor."),
-    ("Cobertura forestal actual (solo Galicia)",
-     "El cultivo del Catastro puede estar desactualizado; se contrasta con el Inventario Forestal Continuo de "
-     "Galicia (Xunta de Galicia), que cada año clasifica el terreno por teledetección. «COHERENTE»: lo declarado "
-     "en el Catastro ocupa al menos la mitad de la parcela. «REVISAR»: no es así, o hay una corta o un incendio "
-     "en una quinta parte o más. «NO COMPARABLE»: el cultivo catastral no tiene equivalencia. Indica también si "
-     "figura como monte vecinal o público. Es orientativo: no mide edad, densidad ni calidad de la madera."),
-    ("Condicionantes de una corta o una venta (solo Galicia)",
-     "Se comprueba si la parcela toca alguna capa publicada por la Xunta de Galicia: aguas, carreteras, costas, "
-     "patrimonio cultural, Camino de Santiago, espacios naturales, nematodo del pino, registro forestal (montes "
-     "vecinales, de utilidad pública u ordenados, masas de frondosas autóctonas), faja de protección de 50 m, "
-     "líneas eléctricas y gasoductos, concentración parcelaria e incendios registrados de 2010 a 2021. Se indica "
-     "a quién corresponde cada una y la dificultad de saca (pendiente y accesos). Es orientativo: no indica si "
-     "la corta está permitida; el trámite lo confirma la Consellería do Medio Rural. Que no se detecte una "
-     "afección no garantiza que no exista."),
-    ("Geología y minería",
-     "Con el centro de cada finca se consulta al IGME-CSIC la hoja y la litología del Mapa Geológico 1:50.000 "
-     "(MAGNA), los indicios mineros y explotaciones de su base de datos (BDMIN) a menos de 5 km y el Atlas "
-     "Geoquímico de España; en Galicia, también los derechos mineros vigentes que publica la Xunta. Es "
-     "orientativo: un indicio cercano o un valor alto del atlas, que es regional, no significan que haya mineral "
-     "en la finca. Figura en el anexo geológico y minero, al final."),
-    ("Qué puede valer y qué cuesta vender (solo Galicia)",
-     "Precios de la madera en pie tomados de publicaciones del sector, como horquilla y con su fecha; y la tasa de "
-     "movilidad de la tierra de la comarca, del Observatorio Galego de Mobilidade de Terras (Xunta de Galicia). "
-     "Son referencias generales: el informe no calcula el valor ni la madera de ninguna finca."),
-    ("Parcelas colindantes y acceso (solo Galicia)",
-     "Parcelas que tocan cada finca según el parcelario SIXPAC, identificadas por polígono y parcela (nunca por "
-     "titular), y si linda con terreno de dominio público (camino, vía o cauce)."),
-    ("Qué no incluye",
-     "Titulares, valor catastral y cargas: son datos protegidos o registrales que no ofrece la consulta pública."),
+    ("Catastro", "Referencia, superficie y uso de la consulta pública de datos no protegidos, y ficha descriptiva y "
+                 "gráfica de la Sede Electrónica. La superficie se compara con la indicada por el cliente (margen del 10 %)."),
+    ("Plano", "Ortofoto y parcelario del visor SIXPAC de la Xunta (SIGPAC del FEGA fuera de Galicia); se comprueba que "
+              "su referencia catastral coincide con la del Catastro."),
+    ("Cobertura actual", "Inventario Forestal Continuo de Galicia, que clasifica el terreno cada año por teledetección. "
+                         "«Coincide» si lo que declara el Catastro ocupa al menos la mitad de la parcela."),
+    ("Afecciones", "Capas de la Xunta que toca la parcela (aguas, carreteras, costas, patrimonio, espacios naturales, "
+                   "registro forestal, líneas eléctricas, concentración parcelaria, incendios) y a qué organismo "
+                   "corresponden. No indica si una actuación está permitida."),
+    ("Colindantes", "Parcelas que tocan la finca según SIXPAC, por polígono y parcela, y si linda con dominio público."),
+    ("Mercado", "Precios de la madera en pie y producción por hectárea de publicaciones del sector; movilidad de la "
+                "tierra del Observatorio Galego de Mobilidade de Terras. Son referencias generales, no de la finca."),
+    ("Planeamiento", "Instrumento de planeamiento del municipio según el inventario SIOTUGA de la Xunta. La "
+                     "clasificación de cada finca la informa el ayuntamiento."),
+    ("Geología y minería", "Mapa Geológico, indicios mineros a menos de 5 km y Atlas Geoquímico del IGME-CSIC; derechos "
+                           "mineros vigentes de la Xunta."),
+    ("Qué no incluye", "Titulares, valor catastral y cargas: son datos protegidos o registrales que no ofrece la "
+                       "consulta pública. Lo que se señala en Galicia solo se consulta para fincas de Galicia."),
 ]
 AVISO_LEGAL = (
     "Este informe tiene carácter meramente informativo. No es una certificación catastral ni registral, no "
@@ -428,9 +403,15 @@ def _seccion_mercado(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
           Paragraph(escape(md["sin_dato"]), e_["c"]), Spacer(1, 2 * mm),
           Paragraph("<b>Lo que baja o sube ese precio:</b>", e_["p"])]
     el += [Paragraph("• " + escape(x), e_["p"]) for x in md["factores"]]
-    el.append(Paragraph("<b>Cuánta madera hay.</b> " + escape(md["crecimiento"]) + " Lo que decide el dinero es la edad, "
-                        "el diámetro y la densidad del arbolado de cada finca, y eso solo se sabe midiéndolo en el "
-                        "monte: este informe no lo estima.", e_["p"]))
+    pr = md.get("produccion")
+    if pr:
+        el += [Paragraph(f"<b>Cuánta madera puede haber.</b> {escape(md['crecimiento'])} {escape(pr['titulo'])}:", e_["p"]),
+               Spacer(1, 1 * mm),
+               _tabla([pr["columnas"]] + [[str(x) if i == 0 else f"{x} m³" for i, x in enumerate(f)] for f in pr["filas"]],
+                      [42 * mm, 45 * mm, 45 * mm, 45 * mm]),
+               Paragraph(escape(pr["nota"]) + " El maderista paga por tonelada, que pesa al cargar. Este informe no "
+                         "estima la madera de ninguna finca: depende de la edad, el diámetro y la densidad de su "
+                         "arbolado, y eso solo se sabe midiéndolo en el monte.", e_["c"])]
 
     filas = [["Nº", "Finca", "Hoy sobre el terreno", "A quién suele interesar", "Linda con"]]
     for e in con:
@@ -513,18 +494,6 @@ def _seccion_mercado(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
     return _construir(el, titulo)
 
 
-def _seccion_metodologia(titulo: str) -> bytes:
-    from reportlab.platypus import Paragraph
-
-    e_ = _estilos()
-    el = [Paragraph("Anexo", e_["h3"]), Paragraph("Metodología y aviso legal", e_["h1"])]
-    for t, txt in METODOLOGIA:
-        el += [Paragraph(escape(t), e_["h3"]), Paragraph(escape(txt), e_["p"])]
-    el += [Paragraph("Aviso legal", e_["h3"]), Paragraph(escape(AVISO_LEGAL), e_["p"]),
-           Paragraph(f"Emitido por {escape(config.PIE_INFORME)}.", e_["c"])]
-    return _construir(el, titulo)
-
-
 def _seccion(elementos: list, titulo: str) -> Optional[bytes]:
     """Convierte la lista de elementos de un apartado (que empieza con un salto de página) en un PDF propio."""
     return _construir(elementos[1:], titulo) if elementos else None
@@ -573,6 +542,43 @@ def _cotejo(entradas: List[_Entrada], e_) -> list:
                             f"{escape(lista(vecinales))}. Conviene confirmarlo antes de cualquier operación.", e_["p"]))
     el.append(Paragraph("El inventario se elabora por teledetección y es orientativo: señala dónde conviene mirar, "
                         "no sustituye la visita a la finca. El detalle de cada finca figura en su hoja.", e_["c"]))
+    return el
+
+
+def _planeamiento(entradas: List[_Entrada], e_) -> list:
+    """Bloque 'Planeamiento urbanístico del municipio' (dato municipal de SIOTUGA). [] si no hay ninguno."""
+    from reportlab.lib.units import mm
+    from reportlab.platypus import Paragraph, Spacer
+
+    por_mun: dict = {}
+    for e in entradas:
+        cod = e.r.codigos
+        pl = precios.planeamiento(cod.cod_provincia, cod.cod_municipio_ine) if cod else None
+        if pl:
+            por_mun.setdefault((pl["concello"], pl["figura"], pl["fecha"], pl["estado"]), []).append(e)
+    if not por_mun:
+        return []
+    f = precios.fuente_planeamiento()
+    urbanas = [e for es in por_mun.values() for e in es if e.r.catastro and e.r.catastro.clase == "Urbano"]
+
+    def fecha(iso: str) -> str:
+        try:
+            a, m, d = iso.split("-")
+            return f"{d}/{m}/{a}"
+        except ValueError:
+            return iso or "—"
+
+    el = [Spacer(1, 7 * mm), Paragraph("Planeamiento urbanístico del municipio", e_["h2"]),
+          _tabla([["Municipio", "Instrumento de planeamiento", "Aprobación", "Situación", "Fincas"]] +
+                 [[k[0], Paragraph(escape(k[1]), e_["c"]), fecha(k[2]), Paragraph(escape(k[3]), e_["c"]),
+                   Paragraph(escape(_nums(es)), e_["c"])] for k, es in por_mun.items()],
+                 [32 * mm, 48 * mm, 22 * mm, 47 * mm, 28 * mm]),
+          Paragraph("Es el plan que rige en el municipio, no la clasificación de cada finca. Qué se puede hacer en una "
+                    "parcela concreta (si el suelo es rústico, de núcleo rural o urbano, y con qué protección) lo "
+                    "informa el ayuntamiento." + (f" Para {_nums(urbanas)}, que tiene construcción, conviene pedir ese "
+                                                  "informe urbanístico antes de una operación." if urbanas else "")
+                    + f' Fuente: <link href="{escape(f["url"])}" color="#0563C1"><u>SIOTUGA (Xunta de Galicia)</u></link>.',
+                    e_["c"])]
     return el
 
 
@@ -746,10 +752,10 @@ def _anexo_geologia(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
         orden = sorted(indicios.values(), key=lambda x: x[1])
         el.append(_tabla([["Indicio (BDMIN, IGME)", "Sustancias", "Tipo", "Tamaño", "Distancia", "Finca más cercana"]] +
                          [[P(i["nombre"]), P(str(i["sustancia"]).strip()), P(i["morfologia"]), P(i["tamano"]),
-                           km(d), f"nº {e.n}"] for i, d, e in orden[:30]],
+                           km(d), f"nº {e.n}"] for i, d, e in orden[:10]],
                          [48 * mm, 44 * mm, 22 * mm, 25 * mm, 19 * mm, 19 * mm]))
-        if len(orden) > 30:
-            el.append(Paragraph(f"… y {len(orden) - 30} más (ver Excel).", e_["c"]))
+        if len(orden) > 10:
+            el.append(Paragraph(f"… y {len(orden) - 10} más, más lejanos (ver Excel).", e_["c"]))
         el.append(Paragraph("Un indicio es un punto donde consta presencia de mineral o una labor antigua; no "
                             "implica que sea explotable ni que continúe hasta las fincas. Distancia en línea recta.",
                             e_["c"]))
@@ -928,7 +934,7 @@ def _anexo_fuentes(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
         filas.append(fila)
     n_fechas = len(cab) - 3
     ancho_fecha = (177 - 9 - 36 - 24) / n_fechas
-    el = [Paragraph("Anexo", e_["h3"]), Paragraph("Fuentes y fechas de consulta", e_["h1"]),
+    el = [Paragraph("Anexo", e_["h3"]), Paragraph("Fuentes, metodología y aviso legal", e_["h1"]),
           Paragraph("Fecha y hora en que se consultó cada fuente para cada finca. Los datos reflejan lo que publicaba "
                     "cada organismo en ese momento. El enlace abre la ficha pública del inmueble en la Sede "
                     "Electrónica del Catastro, donde puede comprobarse.", e_["p"]),
@@ -953,7 +959,10 @@ def _anexo_fuentes(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
                         + enlace(config.IGME_VISOR_URL, "Visor del IGME") + " · "
                         + enlace(config.CATASTRO_MINERO_URL, "Catastro Minero") + "."))
     el += [Paragraph(f"• <b>{k}:</b> {v}", e_["p"]) for k, v in fuentes]
-    el += [Spacer(1, 2 * mm)]
+    el.append(Paragraph("Cómo se ha hecho", e_["h2"]))
+    el += [Paragraph(f"• <b>{escape(k)}:</b> {escape(v)}", e_["c"]) for k, v in METODOLOGIA]
+    el += [Paragraph("Aviso legal", e_["h2"]), Paragraph(escape(AVISO_LEGAL), e_["c"]),
+           Paragraph(f"Emitido por {escape(config.PIE_INFORME)}.", e_["c"])]
     return _construir(el, titulo)
 
 
@@ -1145,15 +1154,18 @@ def escribir_informe(resultados: Sequence[Resultado], raiz: Path, titulo: str,
     # nivel 0 = página que abre una parte. Las páginas se numeran relativas a la primera tras el frontal, y el
     # frontal se genera al final, cuando ya se sabe cuánto ocupa todo.
     e_ = _estilos()
-    afe, cot = _afecciones(entradas, e_), _cotejo(entradas, e_)
+    afe, cot, plan = _afecciones(entradas, e_), _cotejo(entradas, e_), _planeamiento(entradas, e_)
     if afe and cot:      # juntos en un apartado: el cotejo entra como segundo título, separado del cuadro anterior
         from reportlab.lib.units import mm as _mm
         from reportlab.platypus import Paragraph as _Par, Spacer as _Esp
         cuadros = afe + [_Esp(1, 7 * _mm), _Par("Cotejo con el Inventario Forestal Continuo de Galicia", e_["h2"])] + cot[2:]
     else:
         cuadros = afe or cot
-    nombre_cuadros = ("Afecciones y cotejo con el inventario forestal" if (afe and cot) else
-                      "Afecciones y limitaciones detectadas" if afe else "Cotejo con el Inventario Forestal de Galicia")
+    cuadros = (cuadros + plan) if cuadros else plan      # el planeamiento cierra el apartado (o va solo)
+    nombre_cuadros = ("Cuadros resumen: afecciones, cotejo forestal y planeamiento" if (afe and cot and plan) else
+                      "Afecciones y cotejo con el inventario forestal" if (afe and cot) else
+                      "Afecciones y limitaciones detectadas" if afe else
+                      "Cotejo con el Inventario Forestal de Galicia" if cot else "Planeamiento urbanístico del municipio")
     partes = [
         [("propia", "Resumen ejecutivo", _resumen_ejecutivo(entradas, titulo))]
         + [("externa", nombre, ruta) for nombre, ruta, _ in extras_ok],
@@ -1163,8 +1175,7 @@ def escribir_informe(resultados: Sequence[Resultado], raiz: Path, titulo: str,
          ("propia", nombre_cuadros, _seccion(cuadros, titulo))],
         [("propia", "Anexo. Construcciones e inmuebles urbanos", _anexo_construcciones(entradas, titulo)),
          ("propia", "Anexo. Informe geológico y minero", _anexo_geologia(entradas, titulo)),
-         ("propia", "Anexo. Fuentes y fechas de consulta", _anexo_fuentes(entradas, titulo)),
-         ("propia", "Anexo. Metodología y aviso legal", _seccion_metodologia(titulo))]]
+         ("propia", "Anexo. Fuentes, metodología y aviso legal", _anexo_fuentes(entradas, titulo))]]
     secuencia: List[Tuple[str, str, object, int]] = []
     for n, piezas in enumerate(partes, start=1):
         piezas = [x for x in piezas if x[2]]

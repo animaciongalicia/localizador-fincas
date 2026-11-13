@@ -135,6 +135,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     reg = Registro()
     for pr in problemas:
         reg.aviso("entrada", pr)
+    from . import precios
+    if not args.sin_informe and precios.meses_sin_revisar_madera() > 6:
+        reg.aviso("precios de la madera", f"la tabla lleva {precios.meses_sin_revisar_madera()} meses sin revisar "
+                                          "(fincas/datos/madera_galicia.json): actualizarla antes de entregar el informe")
     limitador = Limitador(args.pausa_min, args.pausa_max)
     cache = Cache(Path(config.CARPETA_CACHE), activa=not args.sin_cache)
     nav = Navegador(visible=args.visible)

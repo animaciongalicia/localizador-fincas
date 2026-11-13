@@ -81,8 +81,8 @@ def test_informe_une_pdfs_con_indice_y_marcadores(tmp_path):
     titulos = [o.title for o in lector.outline]
     assert titulos == ["Portada y contenido", "Resumen ejecutivo", "Parte 2 · Las fincas, una a una",
                        "1. Ortigueira pol 34 parc 175", "2. Ortigueira pol 34 parc 176", "3. Ortigueira pol 34 parc 999",
-                       "Parte 3 · Para decidir", "Resumen para la compraventa", "Qué puede valer y qué cuesta vender",
-                       "Parte 4 · Anexos", "Anexo. Fuentes y fechas de consulta", "Anexo. Metodología y aviso legal"]
+                       "Parte 3 · Para decidir", "Resumen para la compraventa", "Qué puede valer y qué cuesta vender", "Planeamiento urbanístico del municipio",
+                       "Parte 4 · Anexos", "Anexo. Fuentes, metodología y aviso legal"]
     pos = {x: lector.get_destination_page_number(o) for x, o in zip(titulos, lector.outline)}
     delanteras = pos["1. Ortigueira pol 34 parc 175"]         # todo lo que va antes de la primera finca
     assert delanteras == pos["Parte 2 · Las fincas, una a una"] + 1 >= 4   # las fincas van tras lo esencial
@@ -101,7 +101,7 @@ def test_informe_une_pdfs_con_indice_y_marcadores(tmp_path):
         o = an.get_object()
         destinos.add(lector.get_page_number(o["/Dest"][0].get_object()))
     assert {pos["Resumen ejecutivo"], delanteras, pos["3. Ortigueira pol 34 parc 999"],
-            pos["Anexo. Metodología y aviso legal"]} <= destinos
+            pos["Anexo. Fuentes, metodología y aviso legal"]} <= destinos
     assert "Aviso legal" in textos[-1] and "no es una certificación" in textos[-1].lower().replace("\n", " ")
     # todas las páginas, también las fichas externas, llevan marca, expediente, pie y numeración
     total = len(lector.pages)
@@ -112,7 +112,7 @@ def test_informe_une_pdfs_con_indice_y_marcadores(tmp_path):
     hoja = lector.pages[delanteras].extract_text()
     assert "Trazabilidad" not in hoja and "15062A03400175" in hoja         # las fuentes van en un anexo final
     assert any("No se obtuvo ningún documento" in x for x in textos)
-    assert any("Fuentes y fechas de consulta" in x and "Sede del Catastro" in " ".join(x.split()) for x in textos)
+    assert any("Fecha y hora en que se consultó" in x and "Sede del Catastro" in " ".join(x.split()) for x in textos)
 
 
 def test_hoja_de_finca_muestra_fecha_de_consulta_e_incidencias(tmp_path):
@@ -203,7 +203,8 @@ def test_sin_geologia_ni_construcciones_no_hay_anexos(tmp_path):
     _pdf(tmp_path / "pdf_catastro" / "a_catastro.pdf")
     textos = " ".join(p.extract_text() or "" for p in PdfReader(str(escribir_informe([a], tmp_path, "lote"))).pages)
     assert "Informe geológico y minero" not in textos and "Construcciones e inmuebles" not in textos
-    assert "Afecciones y limitaciones" not in textos and "Fuentes y fechas de consulta" in textos
+    assert "Afecciones y limitaciones" not in textos and "Fuentes, metodología y aviso legal" in textos
+    assert "Planeamiento urbanístico del municipio" in textos                 # el planeamiento sale aunque vaya solo
 
 
 def test_puntos_a_comprobar_solo_hechos():
@@ -245,3 +246,14 @@ def test_apartado_de_mercado_no_calcula_el_valor_de_ninguna_finca(tmp_path):
     assert "2,54 %" in todo and "Ortegal" in todo                               # movilidad de la comarca (Xunta)
     assert "€/m²" not in todo and "€/ha" not in todo                            # el precio medio comarcal ya no sale
     assert "puede presentar ofertas de compra" in todo                          # conflicto de intereses, a la vista
+
+
+def test_produccion_de_eucalipto_y_planeamiento_con_fuente(tmp_path):
+    a = _res()
+    a.pdf_catastro = "a_catastro.pdf"
+    _pdf(tmp_path / "pdf_catastro" / "a_catastro.pdf")
+    todo = " ".join(" ".join((p.extract_text() or "").split())
+                    for p in PdfReader(str(escribir_informe([a], tmp_path, "L"))).pages)
+    assert "Glóbulus de rebrote, 15 años" in todo and "231 m³" in todo and "Asociación Forestal de Galicia" in todo
+    assert "no estima la madera de ninguna finca" in todo
+    assert "Ortigueira" in todo and "lo informa el ayuntamiento" in todo        # planeamiento: dato del municipio
