@@ -517,6 +517,90 @@ def _anexo_geologia(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
     return _construir(el, titulo)
 
 
+def puntos_a_comprobar(r: Resultado) -> List[str]:
+    """Hechos objetivos de una finca que conviene aclarar antes de comprarla o venderla. Solo lo que consta en
+    las fuentes consultadas; no valora ni recomienda. Lista vacía si no hay nada destacable."""
+    f, c, inv, ap, geo = r.finca, r.catastro, r.inventario, r.aprovechamiento, r.geologia
+    out: List[str] = []
+    if not c:
+        return ["No se obtuvieron datos del Catastro: " + ("; ".join(r.errores) or "sin detalle")]
+    if not f.cuota.completa:
+        out.append(f"Se transmite una cuota ({f.cuota.texto}), no la finca entera")
+    if r.control_superficie == "REVISAR":
+        out.append("La superficie no cuadra: " + explicar_control(c.superficie_m2, f.superficie_m2, f.cuota, "REVISAR"))
+    if r.coincide == "NO":
+        out.append("La referencia catastral del visor SIXPAC/SIGPAC no coincide con la del Catastro")
+    elif r.coincide == "NO ENCONTRADA":
+        out.append("La parcela no aparece en el visor SIXPAC/SIGPAC")
+    if r.contraste == "REVISAR":
+        out.append("Lo que declara el Catastro no coincide con lo que hay hoy: "
+                   + (r.contraste_detalle or "ver la hoja de la finca"))
+    if inv and inv.monte_vecinal:
+        out.append("Figura como monte vecinal o público en el Inventario Forestal: aclarar la titularidad")
+    vistos = set()
+    for a in (ap.afecciones if ap else []):
+        tipo = a["tipo"].split(" (")[0]
+        if tipo not in vistos:
+            vistos.add(tipo)
+            detalles = "; ".join(dict.fromkeys(x["detalle"] for x in ap.afecciones if x["tipo"].split(" (")[0] == tipo))
+            out.append(f"{tipo}: {detalles}. Organismo: {a['organismo']}"
+                       if a["organismo"] != "Dato informativo" else f"{tipo}: {detalles}")
+    if ap and ap.saca:
+        mala = sum(v for k, v in ap.saca.items() if "esfavorable" in k)
+        if mala >= 0.5:
+            out.append(f"Saca de madera difícil en el {mala * 100:.0f} % de la finca (pendiente y accesos, mapa de la Xunta)")
+    if ap and ap.sin_consultar:
+        out.append("Capas de afecciones sin consultar: " + ", ".join(ap.sin_consultar))
+    for x in (geo.derechos_parcela if geo else []):
+        out.append(f"Derecho minero vigente sobre la finca: {x['numero']} {x['nombre']} ({x['tipo']})")
+    if c.otros_inmuebles:
+        out.append("Hay construcciones dadas de alta en la misma parcela: " + ", ".join(c.otros_inmuebles))
+    if c.clase == "Urbano":
+        out.append("Estado de conservación y situación urbanística de la construcción: no constan en el Catastro")
+    return out
+
+
+def _anexo_compraventa(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
+    """Anexo 'Resumen para la compraventa': por finca, qué es y qué conviene aclarar. Solo hechos de las fuentes."""
+    from reportlab.lib.units import mm
+    from reportlab.platypus import KeepTogether, Paragraph, Spacer
+
+    if not any(e.r.catastro for e in entradas):
+        return None
+    e_ = _estilos()
+
+    def P(txt: object):
+        return Paragraph(escape(str(txt)) if txt not in (None, "") else "—", e_["c"])
+
+    el = [Paragraph("Anexo", e_["h3"]), Paragraph("Resumen para la compraventa", e_["h1"]),
+          Paragraph("Lo esencial de cada finca en una ficha: qué es, qué hay hoy sobre el terreno y qué conviene "
+                    "aclarar antes de comprarla o venderla. Solo recoge hechos que constan en las fuentes públicas "
+                    "consultadas; no valora la finca ni recomienda la operación. Los números son los del índice.",
+                    e_["p"])]
+    for e in entradas:
+        r, f, c, inv = e.r, e.r.finca, e.r.catastro, e.r.inventario
+        filas = []
+        if c:
+            filas.append(["Referencia catastral", P(c.refcat)])
+            if c.superficie_m2:
+                filas.append(["Superficie catastral", P(f"{formato_m2(c.superficie_m2)}  ({formato_ha(c.superficie_m2)})")])
+            filas.append(["Según el Catastro", P(c.uso_detallado)])
+            if inv:
+                filas.append([f"Sobre el terreno hoy ({inv.anio})", P(texto_reparto(inv))])
+        puntos = puntos_a_comprobar(r)
+        filas.append(["A aclarar antes de la operación",
+                      [Paragraph("• " + escape(x), e_["c"]) for x in puntos] if puntos
+                      else P("Nada destacable en las fuentes consultadas")])
+        nombre = f"{e.n}. {e.etiqueta}" + (f" — {f.paraje}" if f.paraje else "")
+        el.append(KeepTogether([Paragraph(escape(nombre), e_["h2"]),
+                                _tabla(filas, [50 * mm, 127 * mm], cabecera=False, clave=True)]))
+    el += [Spacer(1, 4 * mm),
+           Paragraph("Qué no cubre este resumen: quién es el titular y si la finca tiene cargas (hipotecas, embargos, "
+                     "servidumbres), que constan en el Registro de la Propiedad; los linderos reales sobre el terreno; "
+                     "y el valor de la finca. Que no se detecte una afección no garantiza que no exista.", e_["c"])]
+    return _construir(el, titulo)
+
+
 def _anexo_fuentes(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
     """Anexo final 'Fuentes y fechas de consulta': una fila por finca con cuándo se consultó cada fuente y el
     enlace para verificarla en la Sede del Catastro. None si no hay ninguna finca consultada."""
@@ -772,6 +856,7 @@ def escribir_informe(resultados: Sequence[Resultado], raiz: Path, titulo: str,
         e.inicio = pagina                 # relativo a la primera finca; _frontal le suma las previas
         pagina += e.n_paginas
     anexos_pdf = [(nombre, pdf) for nombre, pdf in (
+        ("Anexo. Resumen para la compraventa", _anexo_compraventa(entradas, titulo)),
         ("Anexo. Construcciones e inmuebles urbanos", _anexo_construcciones(entradas, titulo)),
         ("Anexo. Informe geológico y minero", _anexo_geologia(entradas, titulo)),
         ("Anexo. Fuentes y fechas de consulta", _anexo_fuentes(entradas, titulo))) if pdf]

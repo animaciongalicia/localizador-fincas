@@ -78,12 +78,12 @@ def test_informe_une_pdfs_con_indice_y_marcadores(tmp_path):
     assert ruta == tmp_path / "informe.pdf" and ruta.exists()
     lector = PdfReader(str(ruta))
     por_finca = [1 + 1 + 2, 1 + 1 + 2, 1]                      # hoja propia + Catastro + SIXPAC
-    delanteras = len(lector.pages) - sum(por_finca) - 1      # la última página es el anexo de fuentes
+    delanteras = len(lector.pages) - sum(por_finca) - 2      # al final: resumen de compraventa y fuentes
     assert delanteras >= 3                                          # portada + índice + metodología
     titulos = [o.title for o in lector.outline]
     assert titulos == ["Resumen e índice", "1. Ortigueira pol 34 parc 175", "2. Ortigueira pol 34 parc 176",
                        "3. Ortigueira pol 34 parc 999",
-                       "Anexo. Fuentes y fechas de consulta"]
+                       "Anexo. Resumen para la compraventa", "Anexo. Fuentes y fechas de consulta"]
     assert lector.get_destination_page_number(lector.outline[1]) == delanteras
     assert lector.get_destination_page_number(lector.outline[2]) == delanteras + 4
     frente = "\n".join(lector.pages[i].extract_text() for i in range(delanteras))
@@ -189,3 +189,24 @@ def test_sin_geologia_ni_construcciones_no_hay_anexos(tmp_path):
     textos = " ".join(p.extract_text() or "" for p in PdfReader(str(escribir_informe([a], tmp_path, "lote"))).pages)
     assert "Informe geológico y minero" not in textos and "Construcciones e inmuebles" not in textos
     assert "Afecciones y limitaciones" not in textos and "Fuentes y fechas de consulta" in textos
+
+
+def test_puntos_a_comprobar_solo_hechos():
+    from fincas.informe import puntos_a_comprobar
+    from fincas.modelos import DatosAprovechamiento, DatosGeologia
+    assert puntos_a_comprobar(_res()) == []                                   # finca sin nada destacable
+    r = _res(sup=799.0, cliente=159.0, control="REVISAR", cuota=Cuota("1/2", 1, 2, False))
+    r.contraste, r.contraste_detalle = "REVISAR", "El Catastro declara MATORRAL; domina eucaliptos"
+    r.aprovechamiento = DatosAprovechamiento(
+        afecciones=[{"tipo": "Patrimonio cultural", "detalle": "Castro de ejemplo", "organismo": "Patrimonio"},
+                    {"tipo": "Patrimonio cultural", "detalle": "Contorno", "organismo": "Patrimonio"}],
+        saca={"Desfavorable": 0.6, "Favorable": 0.4})
+    r.geologia = DatosGeologia(derechos_parcela=[{"numero": "XX/1", "nombre": "Manantial", "tipo": "Autorización",
+                                                  "recursos": "Agua"}])
+    p = puntos_a_comprobar(r)
+    assert any("cuota (1/2)" in x for x in p) and any("superficie no cuadra" in x for x in p)
+    assert any("domina eucaliptos" in x for x in p) and any("XX/1 Manantial" in x for x in p)
+    assert sum("Patrimonio cultural" in x for x in p) == 1                      # una línea por tipo, con sus detalles
+    assert any("Castro de ejemplo; Contorno" in x for x in p) and any("60 %" in x for x in p)
+    sin = Resultado(finca=Finca("X", "Y", "", "", sin_datos="SIN DATOS"), errores=["SIN DATOS: falta referencia"])
+    assert "falta referencia" in puntos_a_comprobar(sin)[0]

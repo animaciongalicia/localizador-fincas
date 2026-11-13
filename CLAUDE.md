@@ -56,6 +56,8 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas de España de 
   dice si algo está en ruina: no se aventura, solo se avisa de que hay que verlo en visita.
   La trazabilidad (fuente y fecha de cada consulta, enlace a la Sede) ya NO va en cada hoja: es el último anexo, "Fuentes y fechas
   de consulta", una fila por finca. Así la hoja de cada finca cabe en una página.
+  Primer anexo: "Resumen para la compraventa" (`puntos_a_comprobar`): por finca, qué es, qué hay hoy y qué conviene aclarar. SOLO
+  hechos que ya constan en el resto del informe; no valora ni recomienda. Sin consultas nuevas.
   `_tabla` convierte toda cadena suelta en párrafo: ningún texto se sale de su celda (antes los rótulos largos de la 1ª columna se
   salían). Si una cabecera se parte a mitad de palabra, ensanchar la columna. Para revisar el PDF a ojo sin poppler: separar páginas
   con pypdf y `sips -s format png` (las fichas SIXPAC salen con fondo negro en esa conversión: es del conversor, no del PDF).

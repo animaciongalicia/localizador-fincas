@@ -171,4 +171,4 @@ def test_informe_con_extras_ajusta_indice_y_marcadores(tmp_path):
     assert titulos[:2] == ["Resumen e índice", "Mapa de conjunto"]
     pos_mapa = lector.get_destination_page_number(lector.outline[1])
     pos_f1 = lector.get_destination_page_number(lector.outline[2])
-    assert pos_f1 == pos_mapa + 2 and len(lector.pages) == pos_f1 + 2 * 2 + 1   # cada finca: su hoja + 1 ficha; al final, el anexo de fuentes
+    assert pos_f1 == pos_mapa + 2 and len(lector.pages) == pos_f1 + 2 * 2 + 2   # cada finca: su hoja + 1 ficha; al final, dos anexos
