@@ -54,7 +54,15 @@ CLI reutilizable para cualquier cliente. Entrada: lista de fincas de España de 
   para monte vecinal) · mapa · Resumen para la compraventa · Precio de referencia de la zona · Afecciones · Cotejo forestal ·
   fincas · anexos (construcciones, geología, fuentes y fechas, metodología y aviso legal: la metodología va AL FINAL).
   `escribir_informe` monta piezas ("propia"|"externa", título, contenido) y genera el frontal al final con las páginas reales.
-- **Precio de referencia (2026-11-13).** `precios.py`, SIN red: tablas en `fincas/datos/` (públicas). `precios_tierra_galicia.json` =
+- **"Qué puede valer y qué cuesta vender" (2026-11-13, decisión del usuario).** Sustituye al apartado de precio medio comarcal, que
+  el usuario descartó: el cliente lo leería como el precio de su finca y en Galicia se vende por lo que pague el comprador. El
+  apartado da (a) precios de la madera EN PIE como horquilla con fuente y fecha (`fincas/datos/madera_galicia.json`, de Campo Galego
+  y un maderista; caducan: revisar 2-3 veces al año y cambiar `revisado`); (b) a quién suele interesar cada finca y sus colindantes;
+  (c) la tasa de movilidad de la tierra de la comarca (`movilidad_total` en `precios_tierra_galicia.json`, mismo informe de la Xunta).
+  NUNCA calcula toneladas ni dinero de una finca: no se conoce edad ni densidad. Sin tabla de toneladas por edad: solo el crecimiento
+  publicado (10-40 m³/ha·año, media 20, USC); una tabla por edades y por rebrote/plantado necesita validarla un ingeniero forestal.
+  ferrados.com también hace ofertas de compra: el aviso legal lo dice, y las cifras van como horquillas con fuente, no sesgadas a la baja.
+- **Precio de referencia (2026-11-13; ya NO se muestra en el informe, ver arriba).** `precios.py`, SIN red: tablas en `fincas/datos/` (públicas). `precios_tierra_galicia.json` =
   precio medio de compraventa 2021-2023 por comarca, monte y SAU, del informe anual 2024 del Observatorio Galego de Mobilidade de
   Terras (AGADER, con datos de ATRIGA); 44 comarcas, 9 sin dato. `comarcas_galicia.json` = comarca de cada concello por código INE
   (capa `PBA/Mapa_Base_PBA_2020/MapServer/144`, campo `Comarca`). Usar el municipio INE, NO el del Catastro. Tipo de terreno = lo que

@@ -5,6 +5,11 @@ las compraventas declaradas a la Axencia Tributaria de Galicia en 2021-2023, por
 superficie agraria (SAU). Las tablas van en `fincas/datos/` (datos públicos; se actualizan a mano cuando salga un
 informe nuevo). NO es una tasación: es un precio medio comarcal, que el propio informe califica de orientativo. Por
 eso aquí nunca se multiplica por la superficie de la finca.
+
+DECISIÓN (2026-11-13): el precio medio comarcal YA NO se muestra en el informe (el cliente lo lee como el precio de su
+finca y no lo es). Del mismo informe se usa la TASA DE MOVILIDAD (qué parte de la tierra cambia de manos al año), que
+sí es un dato objetivo sobre lo que cuesta vender. `madera()` da precios de la madera en pie tomados de la prensa del
+sector, siempre como horquilla con su fecha.
 """
 from __future__ import annotations
 
@@ -80,6 +85,22 @@ def referencia(r: Resultado) -> Optional[dict]:
     monte, agrario = p.get("monte"), p.get("sau")
     return {"comarca": p.get("comarca") or comarca, "tipo": tipo, "monte": monte, "agrario": agrario,
             "precio": monte if tipo == MONTE else agrario if tipo == AGRARIO else None}
+
+
+def movilidad(r: Resultado) -> Optional[dict]:
+    """{'comarca', 'tasa'}: % de la tierra rústica de la comarca que se compra y vende cada año. None si no consta."""
+    ref = referencia(r)
+    if not ref:
+        return None
+    p = _tablas()["precios"]["por_clave"].get(_clave(ref["comarca"]), {})
+    tasa = p.get("movilidad_total")
+    return {"comarca": ref["comarca"], "tasa": tasa} if tasa is not None else None
+
+
+@lru_cache(maxsize=1)
+def madera() -> dict:
+    """Precios orientativos de la madera en pie y lo que los hace variar (tabla revisable a mano)."""
+    return json.loads((DATOS / "madera_galicia.json").read_text(encoding="utf-8"))
 
 
 def euros_m2(v: Optional[float]) -> str:

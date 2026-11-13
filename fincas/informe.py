@@ -63,11 +63,10 @@ METODOLOGIA = [
      "Geoquímico de España; en Galicia, también los derechos mineros vigentes que publica la Xunta. Es "
      "orientativo: un indicio cercano o un valor alto del atlas, que es regional, no significan que haya mineral "
      "en la finca. Figura en el anexo geológico y minero, al final."),
-    ("Precio de referencia de la zona (solo Galicia)",
-     "Precio medio de las compraventas de tierra rústica de la comarca, separado en monte y tierra agraria, que "
-     "publica el Observatorio Galego de Mobilidade de Terras (Xunta de Galicia) a partir de lo declarado a la "
-     "Axencia Tributaria de Galicia. Es un dato comarcal y orientativo: no es el valor de ninguna finca ni una "
-     "tasación."),
+    ("Qué puede valer y qué cuesta vender (solo Galicia)",
+     "Precios de la madera en pie tomados de publicaciones del sector, como horquilla y con su fecha; y la tasa de "
+     "movilidad de la tierra de la comarca, del Observatorio Galego de Mobilidade de Terras (Xunta de Galicia). "
+     "Son referencias generales: el informe no calcula el valor ni la madera de ninguna finca."),
     ("Parcelas colindantes y acceso (solo Galicia)",
      "Parcelas que tocan cada finca según el parcelario SIXPAC, identificadas por polígono y parcela (nunca por "
      "titular), y si linda con terreno de dominio público (camino, vía o cauce)."),
@@ -79,7 +78,8 @@ AVISO_LEGAL = (
     "acredita la titularidad ni los linderos de las fincas y no sustituye a la información del Registro de la "
     "Propiedad ni a un levantamiento topográfico. Los datos proceden de fuentes públicas en las fechas "
     "indicadas y pueden haber cambiado con posterioridad; su titularidad corresponde a los organismos citados. "
-    "Las distancias y posiciones de los planos son orientativas.")
+    "Las distancias y posiciones de los planos son orientativas. "
+    f"{config.MARCA} puede presentar ofertas de compra sobre las fincas analizadas.")
 
 
 @dataclass
@@ -351,56 +351,106 @@ def _resumen_ejecutivo(entradas: List[_Entrada], titulo: str) -> Optional[bytes]
     return _construir(el, titulo)
 
 
-def _seccion_precios(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
-    """'Precio de referencia de la zona': precio medio comarcal de la tierra rústica (Xunta). Nunca se multiplica
-    por la superficie: no es una tasación. None si ninguna finca tiene comarca con dato."""
+def _seccion_mercado(entradas: List[_Entrada], titulo: str) -> Optional[bytes]:
+    """'Qué puede valer y qué cuesta vender': expectativas realistas. Precios de la madera en pie (horquillas con
+    fuente y fecha), a quién le interesa cada finca (colindantes) y lo poco que se vende en la comarca. Nunca calcula
+    el valor ni las toneladas de una finca. None si no hay ninguna finca con datos del Catastro."""
     from reportlab.lib.units import mm
     from reportlab.platypus import Paragraph, Spacer
 
-    refs = [(e, precios.referencia(e.r)) for e in entradas]
-    refs = [(e, x) for e, x in refs if x]
-    if not refs:
+    con = [e for e in entradas if e.r.catastro]
+    if not con:
         return None
     e_ = _estilos()
-    f = precios.fuente()
+    md = precios.madera()
 
     def P(txt: object):
         return Paragraph(escape(str(txt)) if txt not in (None, "") else "—", e_["c"])
 
-    el = [Paragraph("Precio de referencia de la zona", e_["h1"]),
-          Paragraph(f"Precio medio al que se vendió la tierra rústica en la comarca de cada finca en {f['periodo']}, "
-                    "según las compraventas declaradas a la Axencia Tributaria de Galicia. Sirve para situarse: es "
-                    "la media de la comarca, no el valor de ninguna finca.", e_["p"]), Spacer(1, 2 * mm)]
-    filas = [["Nº", "Finca", "Comarca", "Tipo de terreno hoy", "Precio medio de la comarca", "Equivale a"]]
-    for e, x in refs:
-        if e.r.catastro.clase == "Urbano":
-            tipo, pm, ph = "Inmueble urbano", "No aplica (solo suelo rústico)", "—"
-        elif not x["tipo"]:
-            tipo, pm, ph = "Sin clasificar", "Ver la tabla de la comarca", "—"
+    def enlace(url: str, txt: str) -> str:
+        return f'<link href="{escape(url)}" color="#0563C1"><u>{escape(txt)}</u></link>'
+
+    el = [Paragraph("Qué puede valer y qué cuesta vender", e_["h1"]),
+          Paragraph("Una finca rústica no tiene un precio de lista: en Galicia se vende por lo que un comprador concreto "
+                    "esté dispuesto a pagar, y lo habitual es que haya pocos. Este apartado da referencias para "
+                    "negociar con los pies en el suelo. No es una tasación.", e_["p"]),
+          Paragraph("Si la finca tiene madera", e_["h2"]),
+          Paragraph("Lo que suele tener valor inmediato es la madera, no el suelo. Precios en pie, es decir, lo que "
+                    f"cobra el propietario por tonelada con el árbol sin cortar (revisado en {escape(md['revisado'])}):",
+                    e_["p"]),
+          Spacer(1, 1 * mm),
+          _tabla([["Madera", "Precio en pie", "De qué depende"]] +
+                 [[x["producto"], f"{x['min']} a {x['max']} €/t", P(x["detalle"])] for x in md["precios"]],
+                 [48 * mm, 28 * mm, 101 * mm]),
+          Paragraph(escape(md["sin_dato"]), e_["c"]), Spacer(1, 2 * mm),
+          Paragraph("<b>Lo que baja o sube ese precio:</b>", e_["p"])]
+    el += [Paragraph("• " + escape(x), e_["p"]) for x in md["factores"]]
+    el.append(Paragraph("<b>Cuánta madera hay.</b> " + escape(md["crecimiento"]) + " Lo que decide el dinero es la edad, "
+                        "el diámetro y la densidad del arbolado de cada finca, y eso solo se sabe midiéndolo en el "
+                        "monte: este informe no lo estima.", e_["p"]))
+
+    filas = [["Nº", "Finca", "Hoy sobre el terreno", "A quién suele interesar", "Linda con"]]
+    for e in con:
+        r, c, inv, col = e.r, e.r.catastro, e.r.inventario, e.r.colindantes
+        tipo = precios.tipo_terreno(r)
+        arbolado = 0.0
+        if inv and inv.coberturas:
+            total = sum(inv.coberturas.values()) or 1
+            arbolado = sum(inv.coberturas.get(k, 0.0) for k in ("Eucaliptos", "Coníferas", "Frondosas")) / total
+            hoy = f"{inv.dominante} {inv.coberturas.get(inv.dominante, 0) / total * 100:.0f} %"
         else:
-            tipo, pm, ph = x["tipo"].capitalize(), precios.euros_m2(x["precio"]), precios.euros_ha(x["precio"])
-        filas.append([str(e.n), P(e.etiqueta), P(x["comarca"]), P(tipo), P(pm), P(ph)])
-    el.append(_tabla(filas, [9 * mm, 44 * mm, 28 * mm, 30 * mm, 38 * mm, 28 * mm]))
-    comarcas = {x["comarca"]: x for _, x in refs}
-    el += [Paragraph("Precios medios por comarca", e_["h2"]),
-           _tabla([["Comarca", "Monte", "Tierra agraria (prados y cultivos)"]] +
-                  [[k, f"{precios.euros_m2(v['monte'])}  ({precios.euros_ha(v['monte'])})",
-                    f"{precios.euros_m2(v['agrario'])}  ({precios.euros_ha(v['agrario'])})"]
-                   for k, v in sorted(comarcas.items())], [47 * mm, 65 * mm, 65 * mm]),
-           Paragraph("Cómo leerlo", e_["h2"])]
+            hoy = c.uso or "—"
+        if c.clase == "Urbano":
+            quien = "Compradores de vivienda o construcción; fuera del mercado de fincas rústicas"
+        elif arbolado >= 0.5:
+            quien = "Maderistas (por la madera) y colindantes (por el suelo)"
+        elif arbolado >= 0.2:
+            quien = "Colindantes; la madera es poca para venderla sola"
+        elif tipo == precios.AGRARIO:
+            quien = "Colindantes y explotaciones agrarias de la zona"
+        else:
+            quien = "Sobre todo los colindantes: sin arbolado vale lo que uno de ellos quiera pagar"
+        if col:
+            linda = texto_colindantes(col) + ("" if col.dominio_publico else ". Sin acceso por camino público")
+        else:
+            linda = "No consultado"
+        filas.append([str(e.n), P(e.etiqueta), P(hoy), P(quien), P(linda)])
+    el += [Paragraph("A quién le puede interesar cada finca", e_["h2"]),
+           Paragraph("El comprador más probable de una finca pequeña es quien ya tiene la de al lado. Por eso se indican "
+                     "las parcelas que lindan con cada una (por polígono y parcela; el informe no identifica a sus "
+                     "dueños).", e_["p"]), Spacer(1, 1 * mm),
+           _tabla(filas, [8 * mm, 34 * mm, 30 * mm, 55 * mm, 50 * mm])]
+
+    el.append(Paragraph("Qué cuesta vender", e_["h2"]))
+    comarcas = {}
+    for e in con:
+        m = precios.movilidad(e.r)
+        if m:
+            comarcas[m["comarca"]] = m["tasa"]
+    for comarca, tasa in sorted(comarcas.items()):
+        anios = f"; a ese ritmo, harían falta unos {100 / tasa:.0f} años para que toda cambiase de manos" if tasa else ""
+        el.append(Paragraph(f"• <b>Se vende muy poco.</b> En la comarca de {escape(comarca)} se compra y vende cada año "
+                            f"en torno al {str(tasa).replace('.', ',')} % de la tierra rústica{anios} (Xunta de Galicia, "
+                            "2021-2023).", e_["p"]))
     for txt in (
-            "<b>Es una media de toda la comarca.</b> Dentro de ella los precios cambian mucho de una parroquia a otra "
-            "y de una finca a otra: accesos, pendiente, tamaño, arbolado y cercanía a núcleos pesan más que la media.",
-            "<b>No incluye el arbolado como tal.</b> Es el precio de la tierra en las compraventas declaradas; una "
-            "finca con madera lista para cortar puede valer más, y una recién cortada o quemada, menos.",
-            "<b>El tipo de terreno</b> se toma de lo que hay hoy según el Inventario Forestal (o del Catastro si la "
-            "finca no figura en él). Si una finca mezcla monte y prado, mire los dos precios de su comarca.",
-            "<b>No es una tasación</b> ni el valor a efectos de impuestos. El propio Observatorio advierte de que sus "
-            "cifras son estimaciones orientativas."):
+            "<b>Pocos compradores.</b> Para una finca pequeña suelen reducirse a los colindantes, algún maderista si hay "
+            "madera y alguna explotación de la zona. Encontrar comprador puede llevar meses o años.",
+            "<b>Manda el comprador.</b> Con tan poca demanda, el precio lo acaba fijando lo que ofrece quien tiene "
+            "interés, no lo que el propietario cree que vale.",
+            "<b>Los papeles retrasan.</b> Catastro y Registro que no coinciden, herencias sin repartir o una superficie "
+            "que no cuadra pueden frenar una venta ya acordada. El resumen para la compraventa señala lo que conviene "
+            "aclarar antes.",
+            "<b>Vender tiene gastos.</b> Notaría, Registro, impuestos y, si hace falta, regularizar la documentación. "
+            "En fincas de poco valor pueden llevarse una parte apreciable del precio.",
+            "<b>Las medias oficiales no sirven para una finca.</b> La Xunta publica un precio medio de la tierra por "
+            "comarca, pero mezcla fincas muy distintas y no indica lo que alguien pagaría por esta."):
         el.append(Paragraph("• " + txt, e_["p"]))
     el += [Spacer(1, 2 * mm),
-           Paragraph(f'Fuente: {escape(f["fuente"])}. <link href="{escape(f["url"])}" color="#0563C1"><u>Ver el '
-                     "informe</u></link>.", e_["c"])]
+           Paragraph("Fuentes de los precios y del crecimiento: " + "; ".join(enlace(f["url"], f["nombre"])
+                                                                              for f in md["fuentes"])
+                     + ". Movilidad de la tierra: " + enlace(precios.fuente()["url"], "Observatorio Galego de Mobilidade "
+                                                             "de Terras (Xunta de Galicia)")
+                     + ". Los precios son orientativos y cambian cada pocos meses.", e_["c"])]
     return _construir(el, titulo)
 
 
@@ -1038,7 +1088,7 @@ def escribir_informe(resultados: Sequence[Resultado], raiz: Path, titulo: str,
     previas = [("propia", "Resumen ejecutivo", _resumen_ejecutivo(entradas, titulo))]
     previas += [("externa", nombre, ruta) for nombre, ruta, _ in extras_ok]
     previas += [("propia", "Resumen para la compraventa", _anexo_compraventa(entradas, titulo)),
-                ("propia", "Precio de referencia de la zona", _seccion_precios(entradas, titulo)),
+                ("propia", "Qué puede valer y qué cuesta vender", _seccion_mercado(entradas, titulo)),
                 ("propia", "Afecciones y limitaciones detectadas", _seccion(_afecciones(entradas, e_), titulo)),
                 ("propia", "Cotejo con el Inventario Forestal de Galicia", _seccion(_cotejo(entradas, e_), titulo))]
     finales = [("propia", "Anexo. Construcciones e inmuebles urbanos", _anexo_construcciones(entradas, titulo)),

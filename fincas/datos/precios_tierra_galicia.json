@@ -7,222 +7,355 @@
 "A Barcala": {
 "monte": 0.59,
 "sau": 0.94,
-"total": 0.73
+"total": 0.73,
+"movilidad_monte": 0.78,
+"movilidad_sau": 1.0,
+"movilidad_total": 0.86
 },
 "A Coruña": {
 "monte": 1.79,
 "sau": 4.89,
-"total": 2.92
+"total": 2.92,
+"movilidad_monte": 0.57,
+"movilidad_sau": 0.93,
+"movilidad_total": 0.66
 },
 "A Fonsagrada": {
 "monte": 0.36,
 "sau": 0.47,
-"total": 0.4
+"total": 0.4,
+"movilidad_monte": 0.63,
+"movilidad_sau": 1.12,
+"movilidad_total": 0.74
 },
 "A Mariña Central": {
 "monte": 0.37,
 "sau": 1.64,
-"total": 0.58
+"total": 0.58,
+"movilidad_monte": 1.13,
+"movilidad_sau": 0.76,
+"movilidad_total": 0.86
 },
 "A Mariña Occidental": {
 "monte": 0.47,
 "sau": 2.08,
-"total": 0.6
+"total": 0.6,
+"movilidad_monte": 0.75,
+"movilidad_sau": 0.43,
+"movilidad_total": 0.71
 },
 "A Mariña Oriental": {
 "monte": 0.39,
 "sau": 1.18,
-"total": 0.54
+"total": 0.54,
+"movilidad_monte": 1.09,
+"movilidad_sau": 0.76,
+"movilidad_total": 1.01
 },
 "A Ulloa": {
 "monte": 0.45,
 "sau": 0.99,
-"total": 0.67
+"total": 0.67,
+"movilidad_monte": 1.97,
+"movilidad_sau": 1.28,
+"movilidad_total": 1.62
 },
 "Arzúa": {
 "monte": 1.4,
 "sau": 1.65,
-"total": 1.46
+"total": 1.46,
+"movilidad_monte": 1.75,
+"movilidad_sau": 0.76,
+"movilidad_total": 1.3
 },
 "Baixa Limia": {
 "monte": null,
 "sau": 0.79,
-"total": 0.32
+"total": 0.32,
+"movilidad_monte": null,
+"movilidad_sau": 0.08,
+"movilidad_total": 0.06
 },
 "Barbanza": {
 "monte": 4.58,
 "sau": 5.22,
-"total": 4.83
+"total": 4.83,
+"movilidad_monte": 0.4,
+"movilidad_sau": 0.41,
+"movilidad_total": 0.4
 },
 "Bergantiños": {
 "monte": 0.68,
 "sau": 1.31,
-"total": 0.88
+"total": 0.88,
+"movilidad_monte": 0.32,
+"movilidad_sau": 0.31,
+"movilidad_total": 0.32
 },
 "Betanzos": {
 "monte": 0.81,
 "sau": 1.25,
-"total": 0.98
+"total": 0.98,
+"movilidad_monte": 1.76,
+"movilidad_sau": 1.96,
+"movilidad_total": 1.83
 },
 "Caldas": {
 "monte": 0.78,
 "sau": 2.75,
-"total": 1.33
+"total": 1.33,
+"movilidad_monte": 0.43,
+"movilidad_sau": 0.57,
+"movilidad_total": 0.39
 },
 "Chantada": {
 "monte": 0.6,
 "sau": 1.06,
-"total": 0.84
+"total": 0.84,
+"movilidad_monte": 0.78,
+"movilidad_sau": 0.71,
+"movilidad_total": 0.74
 },
 "Deza": {
 "monte": 0.64,
 "sau": 1.44,
-"total": 0.95
+"total": 0.95,
+"movilidad_monte": 0.57,
+"movilidad_sau": 0.54,
+"movilidad_total": 0.56
 },
 "Eume": {
 "monte": 0.53,
 "sau": 1.36,
-"total": 0.81
+"total": 0.81,
+"movilidad_monte": 1.04,
+"movilidad_sau": 2.18,
+"movilidad_total": 1.26
 },
 "Ferrol": {
 "monte": 0.71,
 "sau": 1.99,
-"total": 1.05
+"total": 1.05,
+"movilidad_monte": 1.6,
+"movilidad_sau": 1.61,
+"movilidad_total": 1.6
 },
 "Fisterra": {
 "monte": 0.69,
 "sau": 1.71,
-"total": 1.0
+"total": 1.0,
+"movilidad_monte": 0.67,
+"movilidad_sau": 0.33,
+"movilidad_total": 0.65
 },
 "Lugo": {
 "monte": 0.61,
 "sau": 1.91,
-"total": 1.17
+"total": 1.17,
+"movilidad_monte": 1.53,
+"movilidad_sau": 1.16,
+"movilidad_total": 1.34
 },
 "Meira": {
 "monte": 0.51,
 "sau": 0.75,
-"total": 0.62
+"total": 0.62,
+"movilidad_monte": 1.65,
+"movilidad_sau": 3.42,
+"movilidad_total": 2.17
 },
 "Muros": {
 "monte": 3.1,
 "sau": 5.9,
-"total": 4.43
+"total": 4.43,
+"movilidad_monte": 0.04,
+"movilidad_sau": 0.26,
+"movilidad_total": 0.07
 },
 "Noia": {
 "monte": 1.15,
 "sau": 3.71,
-"total": 1.87
+"total": 1.87,
+"movilidad_monte": 0.26,
+"movilidad_sau": 0.31,
+"movilidad_total": 0.27
 },
 "O Baixo Miño": {
 "monte": 3.35,
 "sau": 2.74,
-"total": 3.26
+"total": 3.26,
+"movilidad_monte": 0.56,
+"movilidad_sau": 1.16,
+"movilidad_total": 0.85
 },
 "O Morrazo": {
 "monte": 12.56,
 "sau": 12.12,
-"total": 12.33
+"total": 12.33,
+"movilidad_monte": 0.22,
+"movilidad_sau": 0.88,
+"movilidad_total": 0.36
 },
 "O Ribeiro": {
 "monte": 3.16,
 "sau": 3.97,
-"total": 3.02
+"total": 3.02,
+"movilidad_monte": 0.38,
+"movilidad_sau": 0.24,
+"movilidad_total": 0.04
 },
 "O Salnés": {
 "monte": 7.04,
 "sau": 7.72,
-"total": 7.42
+"total": 7.42,
+"movilidad_monte": 0.43,
+"movilidad_sau": 0.69,
+"movilidad_total": 0.55
 },
 "O Sar": {
 "monte": 2.0,
 "sau": 3.13,
-"total": 2.26
+"total": 2.26,
+"movilidad_monte": 0.52,
+"movilidad_sau": 0.71,
+"movilidad_total": 0.81
 },
 "Ordes": {
 "monte": 1.09,
 "sau": 1.55,
-"total": 1.32
+"total": 1.32,
+"movilidad_monte": 2.11,
+"movilidad_sau": 2.74,
+"movilidad_total": 2.39
 },
 "Ortegal": {
 "monte": 0.56,
 "sau": 0.75,
-"total": 0.59
+"total": 0.59,
+"movilidad_monte": 2.61,
+"movilidad_sau": 2.26,
+"movilidad_total": 2.54
 },
 "Os Ancares": {
 "monte": 0.49,
 "sau": 0.59,
-"total": 0.53
+"total": 0.53,
+"movilidad_monte": 0.67,
+"movilidad_sau": 1.0,
+"movilidad_total": 0.77
 },
 "Ourense": {
 "monte": 1.44,
 "sau": 6.33,
-"total": 6.66
+"total": 6.66,
+"movilidad_monte": 0.07,
+"movilidad_sau": 0.07,
+"movilidad_total": 0.02
 },
 "Pontevedra": {
 "monte": 1.95,
 "sau": 3.55,
-"total": 2.05
+"total": 2.05,
+"movilidad_monte": 0.26,
+"movilidad_sau": 0.58,
+"movilidad_total": 0.4
 },
 "Quiroga": {
 "monte": 0.54,
 "sau": 0.71,
-"total": 0.3
+"total": 0.3,
+"movilidad_monte": 0.05,
+"movilidad_sau": 0.51,
+"movilidad_total": 0.44
 },
 "Santiago": {
 "monte": 1.09,
 "sau": 2.36,
-"total": 1.45
+"total": 1.45,
+"movilidad_monte": 1.53,
+"movilidad_sau": 1.25,
+"movilidad_total": 1.44
 },
 "Sarria": {
 "monte": 0.56,
 "sau": 1.0,
-"total": 0.85
+"total": 0.85,
+"movilidad_monte": 0.8,
+"movilidad_sau": 1.22,
+"movilidad_total": 1.03
 },
 "Tabeirós-Terra de Montes": {
 "monte": 0.92,
 "sau": 2.1,
-"total": 1.47
+"total": 1.47,
+"movilidad_monte": 0.35,
+"movilidad_sau": 0.86,
+"movilidad_total": 0.48
 },
 "Terra Chá": {
 "monte": 0.66,
 "sau": 1.04,
-"total": 0.83
+"total": 0.83,
+"movilidad_monte": 1.59,
+"movilidad_sau": 1.7,
+"movilidad_total": 1.64
 },
 "Terra de Lemos": {
 "monte": 0.97,
 "sau": 1.48,
-"total": 1.17
+"total": 1.17,
+"movilidad_monte": 1.39,
+"movilidad_sau": 1.24,
+"movilidad_total": 1.33
 },
 "Terra de Melide": {
 "monte": 1.22,
 "sau": 1.52,
-"total": 1.29
+"total": 1.29,
+"movilidad_monte": 2.0,
+"movilidad_sau": 0.91,
+"movilidad_total": 1.56
 },
 "Terra de Soneira": {
 "monte": 0.61,
 "sau": 1.17,
-"total": 0.8
+"total": 0.8,
+"movilidad_monte": 0.95,
+"movilidad_sau": 1.23,
+"movilidad_total": 1.03
 },
 "Valdeorras": {
 "monte": null,
 "sau": 2.52,
-"total": 0.68
+"total": 0.68,
+"movilidad_monte": null,
+"movilidad_sau": 0.13,
+"movilidad_total": 0.13
 },
 "Verín": {
 "monte": null,
 "sau": 3.1,
-"total": 2.2
+"total": 2.2,
+"movilidad_monte": null,
+"movilidad_sau": 0.17,
+"movilidad_total": 0.11
 },
 "Vigo": {
 "monte": null,
 "sau": 14.94,
-"total": 10.65
+"total": 10.65,
+"movilidad_monte": null,
+"movilidad_sau": 2.43,
+"movilidad_total": 1.29
 },
 "Xallas": {
 "monte": 0.96,
 "sau": 1.36,
-"total": 1.14
+"total": 1.14,
+"movilidad_monte": 1.02,
+"movilidad_sau": 0.77,
+"movilidad_total": 0.89
 }
-}
+},
+"movilidad": "Tasa de transferencia media anual: porcentaje de la superficie rústica de la comarca que se compra y vende cada año (2021-2023)"
 }

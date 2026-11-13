@@ -86,3 +86,11 @@ def test_servicio_usa_la_edicion_mas_reciente():
     srv.consultar("15", "78", "23", "294")
     assert sum(u.endswith("/ParcelasCatastrais") for u in http.urls) == 1     # el año se averigua una vez por lote
     assert ServicioColindantes(_Http(con_geometria=False), base="http://x").consultar("15", "78", "1", "1") is None
+
+
+def test_movilidad_y_tabla_de_madera():
+    m = precios.movilidad(_res())
+    assert m == {"comarca": "Ortegal", "tasa": 2.54}
+    assert precios.movilidad(_res(prov="28", ine="079")) is None
+    md = precios.madera()
+    assert all(x["min"] < x["max"] for x in md["precios"]) and md["revisado"] and len(md["fuentes"]) >= 3

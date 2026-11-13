@@ -80,7 +80,7 @@ def test_informe_une_pdfs_con_indice_y_marcadores(tmp_path):
     por_finca = [1 + 1 + 2, 1 + 1 + 2, 1]                      # hoja propia + Catastro + SIXPAC
     titulos = [o.title for o in lector.outline]
     assert titulos == ["Portada y contenido", "Resumen ejecutivo", "Resumen para la compraventa",
-                       "Precio de referencia de la zona",
+                       "Qué puede valer y qué cuesta vender",
                        "1. Ortigueira pol 34 parc 175", "2. Ortigueira pol 34 parc 176", "3. Ortigueira pol 34 parc 999",
                        "Anexo. Fuentes y fechas de consulta", "Anexo. Metodología y aviso legal"]
     delanteras = lector.get_destination_page_number(lector.outline[4])   # todo lo que va antes de la primera finca
@@ -218,3 +218,23 @@ def test_puntos_a_comprobar_solo_hechos():
     assert any("Castro de ejemplo; Contorno" in x for x in p) and any("60 %" in x for x in p)
     sin = Resultado(finca=Finca("X", "Y", "", "", sin_datos="SIN DATOS"), errores=["SIN DATOS: falta referencia"])
     assert "falta referencia" in puntos_a_comprobar(sin)[0]
+
+
+def test_apartado_de_mercado_no_calcula_el_valor_de_ninguna_finca(tmp_path):
+    """Horquillas de madera con fuente, colindantes y movilidad; nunca el precio medio comarcal ni importes por finca."""
+    from fincas.modelos import DatosColindantes, DatosInventario
+    a = _res(sup=10000.0, uso="MATORRAL")
+    a.pdf_catastro = "a_catastro.pdf"
+    _pdf(tmp_path / "pdf_catastro" / "a_catastro.pdf")
+    a.inventario = DatosInventario(anio=2024, coberturas={"Eucaliptos": 8000.0, "Matorral": 2000.0}, dominante="Eucaliptos")
+    a.colindantes = DatosColindantes(parcelas=[{"poligono": "34", "parcela": "9", "refcat": "X", "superficie_m2": 1}], anio=2026)
+    b = _res(par="176", uso="MATORRAL")
+    textos = [" ".join((p.extract_text() or "").split()) for p in PdfReader(str(escribir_informe([a, b], tmp_path, "L"))).pages]
+    m = next(t for t in textos if "Qué puede valer y qué cuesta vender" in t and "Precio en pie" in t)
+    assert "Eucalipto glóbulus" in m and "24 a 35 €/t" in m                     # horquilla, no una cifra
+    assert "Maderistas" in m and "Polígono 34: parcelas 9" in m and "Sin acceso por camino público" in m
+    assert "vale lo que uno de ellos quiera pagar" in m                         # la finca sin arbolado
+    todo = " ".join(textos)
+    assert "2,54 %" in todo and "Ortegal" in todo                               # movilidad de la comarca (Xunta)
+    assert "€/m²" not in todo and "€/ha" not in todo                            # el precio medio comarcal ya no sale
+    assert "puede presentar ofertas de compra" in todo                          # conflicto de intereses, a la vista

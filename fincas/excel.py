@@ -33,7 +33,7 @@ COLUMNAS = [
     ("afecciones para una corta", 30), ("organismos", 40), ("dificultad de saca", 22),
     ("litología (IGME)", 34), ("indicios mineros a menos de 5 km", 50), ("derechos mineros vigentes", 40),
     ("valoración geológico-minera", 26),
-    ("comarca", 16), ("precio medio de la comarca (€/m²)", 14), ("colindantes", 40), ("linda con dominio público", 12),
+    ("comarca", 16), ("tierra que se vende al año en la comarca (%)", 14), ("colindantes", 40), ("linda con dominio público", 12),
     ("PDF Catastro", 36), ("PDF SIGPAC", 36), ("ficha web Catastro", 18),
     ("consulta Catastro", 17), ("consulta SIGPAC", 17), ("notas", 50),
 ]
@@ -68,7 +68,7 @@ def _fila(r: Resultado) -> List[object]:
     detalle = explicar_control(c.superficie_m2 if c else None, f.superficie_m2, f.cuota,
                                r.control_superficie)
     inv, ap, geo, col = r.inventario, r.aprovechamiento, r.geologia, r.colindantes
-    ref = precios.referencia(r)
+    ref, mov = precios.referencia(r), precios.movilidad(r)
     det_inv = ""
     if inv:
         det_inv = " | ".join(x for x in [
@@ -87,7 +87,7 @@ def _fila(r: Resultado) -> List[object]:
         texto_clases(ap.saca) if ap else "",
         geo.litologia if geo else "", texto_indicios(geo, 20) if geo else "",
         _derechos(geo) if geo else "", geo.veredicto if geo else "",
-        ref["comarca"] if ref else "", ref["precio"] if ref else None,
+        ref["comarca"] if ref else "", mov["tasa"] if mov else None,
         texto_colindantes(col) if col else "", ("SÍ" if col.dominio_publico else "No consta") if col else "",
         r.pdf_catastro, s.pdf if s else "", "Abrir en la Sede" if _enlace_sede(r) else "",
         fecha_legible(c.consultado) if c else "", fecha_legible(s.consultado) if s else "", notas,
