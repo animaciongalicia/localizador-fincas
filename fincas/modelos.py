@@ -28,14 +28,29 @@ class Finca:
     notas: str = ""
     fila: int = 0  # fila de origen en el fichero (para el registro)
     sin_datos: str = ""  # motivo si no hay polígono/parcela: la finca se conserva en el Excel pero no se busca
+    refcat: str = ""     # referencia catastral del cliente cuando NO es rústica (inmueble urbano): se busca por ella
+
+    @property
+    def por_referencia(self) -> bool:
+        """Inmueble sin polígono/parcela (urbano) que se busca por su referencia catastral."""
+        return bool(self.refcat) and not (self.poligono and self.parcela)
+
+    @property
+    def clave_parcela(self) -> str:
+        """Parte de la clave de caché que identifica la finca dentro del municipio."""
+        return f"rc_{self.refcat[:14]}" if self.por_referencia else f"{self.poligono}_{self.parcela}"
 
     @property
     def etiqueta(self) -> str:
+        if self.por_referencia:
+            return f"{self.municipio} ref {self.refcat[:14]}"
         return f"{self.municipio} pol {self.poligono} parc {self.parcela}"
 
     @property
     def nombre_base(self) -> str:
         """municipio_poligonoXX_parcelaXXX (sin extensión)."""
+        if self.por_referencia:
+            return f"{slug(self.municipio)}_ref{self.refcat[:14]}"
         if not self.poligono or not self.parcela:
             return f"{slug(self.municipio)}_fila{self.fila}"
         pol = self.poligono.zfill(2) if self.poligono.isdigit() else self.poligono
@@ -66,6 +81,24 @@ class DatosCatastro:
     referencias_completas: List[str] = field(default_factory=list)  # 20 car. por subparcela
     avisos: List[str] = field(default_factory=list)
     consultado: str = ""        # fecha y hora de la consulta al Catastro (ISO, minutos)
+    clase: str = ""             # 'Urbano' | 'Rústico' ('' en entradas antiguas de caché)
+    construida_m2: Optional[float] = None   # superficie construida (inmuebles urbanos)
+    anio: str = ""              # año de construcción
+    construcciones: List[str] = field(default_factory=list)   # 'VIVIENDA 306 m²'...
+    lon: Optional[float] = None  # centro de la parcela (solo se pide para inmuebles urbanos: sitúa el mapa)
+    lat: Optional[float] = None
+
+    @property
+    def uso_detallado(self) -> str:
+        """Uso o cultivo y, si hay construcción, superficie construida, año y destinos."""
+        partes = [self.uso]
+        if self.construida_m2:
+            partes.append(f"{self.construida_m2:,.0f} m² construidos".replace(",", "."))
+        if self.anio:
+            partes.append(f"año {self.anio}")
+        if self.construcciones:
+            partes.append(", ".join(self.construcciones))
+        return " · ".join(p for p in partes if p)
 
 
 @dataclass

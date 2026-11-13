@@ -180,7 +180,7 @@ def _procesar(res: Resultado, op: Opciones, srv: Servicios, d_cat: Path, d_sig: 
         return
     if cod is None:
         return
-    clave = f"{cod.clave}_{f.poligono}_{f.parcela}"
+    clave = f"{cod.clave}_{f.clave_parcela}"
     base = f.nombre_base
     previo = srv.usados.setdefault(base, clave)
     if previo != clave:  # municipios homónimos de otra provincia: no pisar el PDF anterior
@@ -219,6 +219,8 @@ def _procesar(res: Resultado, op: Opciones, srv: Servicios, d_cat: Path, d_sig: 
     # ---- control de superficie
     res.control_superficie = control_superficie(datos.superficie_m2 if datos else None,
                                                 f.superficie_m2, f.cuota)
+    if datos and datos.clase == "Urbano" and datos.superficie_m2 is None:
+        res.control_superficie = "NO APLICA"   # el servicio no da la superficie de parcela de un urbano
     if res.control_superficie == "REVISAR":
         sup = datos.superficie_m2 if datos else None
         reg.aviso(f.etiqueta, f"superficie catastral {sup} vs cliente {f.superficie_m2} "
@@ -231,7 +233,10 @@ def _procesar(res: Resultado, op: Opciones, srv: Servicios, d_cat: Path, d_sig: 
         _aprovechamiento(res, srv, clave, reg)
 
     # ---- SIGPAC
-    if op.usar_sigpac and srv.sigpac is not None:
+    if f.por_referencia:   # el visor busca por polígono y parcela: un inmueble urbano no tiene
+        res.coincide = "NO APLICA"
+        reg.info(f"{f.etiqueta}: inmueble urbano, no se consulta SIGPAC")
+    elif op.usar_sigpac and srv.sigpac is not None:
         res.sigpac = _sigpac(res, srv, cod, clave, d_sig, base, reg)
         res.coincide = coincide_refcat(datos.refcat if datos else "", res.sigpac.refcat)
         if res.sigpac.estado == "ERROR":
@@ -258,7 +263,8 @@ def _catastro_datos(res, srv, cod, clave, reg) -> Optional[DatosCatastro]:
         except (TypeError, ValueError):  # caché de otro esquema o corrupta: se descarta y se reconsulta
             srv.cache.borrar("catastro", clave)
     try:
-        datos = srv.catastro.consulta_parcela(cod, f.poligono, f.parcela)
+        datos = (srv.catastro.consulta_referencia(f.refcat) if f.por_referencia
+                 else srv.catastro.consulta_parcela(cod, f.poligono, f.parcela))
     except ParcelaNoEncontrada as e:
         res.errores.append(f"Catastro: parcela no encontrada ({e})")
         reg.error(f.etiqueta, f"Catastro: parcela no encontrada ({e})")

@@ -293,7 +293,7 @@ def _hoja_finca(e: _Entrada, total: int, titulo: str) -> bytes:
                   ["Polígono / parcela", P(f"{f.poligono} / {f.parcela}" if f.poligono else "")],
                   ["Referencia catastral", P(c.refcat if c else "")],
                   ["Localización (Catastro)", P(c.localizacion if c else "")],
-                  ["Uso / cultivo", P(c.uso if c else "")]],
+                  ["Uso / cultivo", P(c.uso_detallado if c else "")]],
                  [50 * mm, 125 * mm], cabecera=False, clave=True),
           Paragraph("Superficie y comprobaciones", e_["h2"])]
     detalle = explicar_control(c.superficie_m2 if c else None, f.superficie_m2, f.cuota, r.control_superficie)

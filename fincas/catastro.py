@@ -126,9 +126,38 @@ def parsear_dnppp(xml: Union[str, bytes]) -> DatosCatastro:
     localizacion = next(((e.text or "").strip() for e in raiz.iter("ldt") if (e.text or "").strip()), "")
     paraje = next(((e.text or "").strip() for e in raiz.iter("npa") if (e.text or "").strip()), "")
 
+    # Inmueble urbano: 'sfc' es la superficie CONSTRUIDA, no la de la parcela (esa solo figura en la ficha PDF)
+    cn = next(((e.text or "").strip().upper() for e in raiz.iter("cn") if (e.text or "").strip()), "")
+    clase = {"UR": "Urbano", "RU": "Rústico"}.get(cn, "")
+    construida: Optional[float] = None
+    anio = ""
+    construcciones: List[str] = []
+    if clase == "Urbano" and not ssp:
+        construida, sup = sup, None
+        anio = next(((e.text or "").strip() for e in raiz.iter("ant") if (e.text or "").strip()), "")
+        por_destino: dict = {}
+        for cons in raiz.iter("cons"):
+            destino = _txt(cons, "lcd")
+            m2 = a_numero(_txt(cons, "dfcons/stl"))
+            if destino and m2:
+                por_destino[destino] = por_destino.get(destino, 0.0) + m2
+        construcciones = [f"{d} {v:,.0f} m²".replace(",", ".") for d, v in por_destino.items()]
+        avisos.append("Inmueble urbano: el servicio del Catastro da la superficie construida; "
+                      "la de la parcela figura en la ficha catastral adjunta")
+
     return DatosCatastro(refcat=refcat, superficie_m2=sup, uso="; ".join(usos),
                          localizacion=localizacion, paraje=paraje,
-                         referencias_completas=completas, avisos=avisos)
+                         referencias_completas=completas, avisos=avisos,
+                         clase=clase, construida_m2=construida, anio=anio, construcciones=construcciones)
+
+
+def parsear_centro(xml: Union[str, bytes]) -> Tuple[float, float]:
+    """Respuesta de Consulta_CPMRC -> (x, y) del centro de la parcela en el SRS pedido."""
+    raiz = _raiz(xml)
+    x, y = a_numero(_txt(raiz, ".//xcen")), a_numero(_txt(raiz, ".//ycen"))
+    if x is None or y is None:
+        raise CatastroError("El Catastro no devolvió coordenadas")
+    return float(x), float(y)
 
 
 def es_pdf(contenido: bytes) -> bool:
@@ -178,6 +207,29 @@ class ServicioCatastro:
             return detalle
         return datos
 
+    def consulta_referencia(self, rc: str) -> DatosCatastro:
+        """Inmueble por referencia catastral (urbanos: no tienen polígono/parcela). 14 o 20 caracteres."""
+        r = self.cliente.get(f"{self.base}/Consulta_DNPRC", params={"Provincia": "", "Municipio": "", "RC": rc})
+        datos = parsear_dnppp(r.content)
+        if datos.superficie_m2 is None and datos.construida_m2 is None and not datos.uso:
+            # respuesta-lista (varios inmuebles en la parcela): se pide el detalle del primero y se avisa
+            n = len(datos.referencias_completas)
+            r2 = self.cliente.get(f"{self.base}/Consulta_DNPRC", params={
+                "Provincia": "", "Municipio": "", "RC": datos.referencias_completas[0]})
+            detalle = parsear_dnppp(r2.content)
+            detalle.avisos = datos.avisos + detalle.avisos
+            if n > 1:
+                detalle.avisos.append(f"La parcela tiene {n} inmuebles; se muestra {datos.referencias_completas[0]}. "
+                                      "REVISAR A MANO.")
+            datos = detalle
+        try:  # centro de la parcela, para situarla en el mapa de conjunto; si falla, se sigue sin él
+            rc_ = self.cliente.get(self.base.replace("OVCCallejero", "OVCCoordenadas") + "/Consulta_CPMRC", params={
+                "Provincia": "", "Municipio": "", "SRS": "EPSG:4326", "RC": datos.refcat})
+            datos.lon, datos.lat = parsear_centro(rc_.content)
+        except Exception:  # noqa: BLE001
+            pass
+        return datos
+
     # --- PDF
     def descargar_pdf(self, datos: DatosCatastro, codigos: Codigos, destino: Path) -> Path:
         """Abre la ficha pública del inmueble rústico y pulsa 'Consulta descriptiva y gráfica'."""
@@ -187,6 +239,8 @@ class ServicioCatastro:
         url = config.SEDE_CONSULTA_URL.format(
             prov=codigos.cod_provincia, mun=codigos.cod_municipio_catastro,
             rc20=datos.referencias_completas[0] if datos.referencias_completas else datos.refcat)
+        if datos.clase == "Urbano":
+            url = url.replace("UrbRus=R", "UrbRus=U")
 
         def _una() -> Path:
             pagina = self.navegador.pagina()

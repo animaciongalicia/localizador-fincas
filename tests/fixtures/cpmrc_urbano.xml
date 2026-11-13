@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<consulta_coordenadas xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.catastro.meh.es/">
+  <control>
+    <cucoor>1</cucoor>
+    <cuerr>0</cuerr>
+  </control>
+  <coordenadas>
+    <coord>
+      <pc>
+        <pc1>9990001</pc1>
+        <pc2>00XX00X</pc2>
+      </pc>
+      <geo>
+        <xcen>-8.5</xcen>
+        <ycen>43.0</ycen>
+        <srs>EPSG:4326</srs>
+      </geo>
+      <ldt>LG EJEMPLO VILLAEJEMPLO (A CORUÑA)</ldt>
+    </coord>
+  </coordenadas>
+</consulta_coordenadas>

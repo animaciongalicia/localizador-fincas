@@ -43,9 +43,10 @@ def _enlace_sede(r: Resultado) -> str:
     c, cod = r.catastro, r.codigos
     if not c or not cod:
         return ""
-    return config.SEDE_CONSULTA_URL.format(
+    url = config.SEDE_CONSULTA_URL.format(
         prov=cod.cod_provincia, mun=cod.cod_municipio_catastro,
         rc20=c.referencias_completas[0] if c.referencias_completas else c.refcat)
+    return url.replace("UrbRus=R", "UrbRus=U") if c.clase == "Urbano" else url
 
 
 def _fila(r: Resultado) -> List[object]:
@@ -63,7 +64,7 @@ def _fila(r: Resultado) -> List[object]:
             r.contraste_detalle] if x)
     return [_seguro(x) for x in [
         f.municipio, f.paraje or (c.paraje if c else ""), f.poligono, f.parcela, f.cuota.texto,
-        c.refcat if c else "", c.superficie_m2 if c else None, c.uso if c else "",
+        c.refcat if c else "", c.superficie_m2 if c else None, c.uso_detallado if c else "",
         f.superficie_m2, r.control_superficie, detalle,
         s.refcat if s else "", r.coincide,
         inv.dominante if inv else "", det_inv, inv.anio if inv else None, r.contraste,
